@@ -111,10 +111,12 @@ StyledOverlayWidget {
                 }
 
                 ColumnLayout {
-                    Layout.fillWidth: false
+                    id: textColumn
+                    Layout.fillWidth: true
 
                     StyledText {
                         id: mediaActor
+                        Layout.fillWidth: true
                         text: root.currentPlayer?.trackArtist || Translation.tr("Unknown Artist")
                         color: Appearance.colors.colSubtext
                         font.pixelSize: Appearance.font.pixelSize.medium
@@ -123,20 +125,16 @@ StyledOverlayWidget {
 
                     StyledText {
                         id: mediaTitle
-                        Layout.maximumWidth: 180
+                        Layout.fillWidth: true
                         text: root.currentPlayer?.trackTitle || Translation.tr("Unknown Title")
                         font.pixelSize: Appearance.font.pixelSize.large
                         elide: Text.ElideRight
                     }
                 }
 
-                Item {
-                    Layout.fillWidth: true
-                }
-
                 ButtonGroup {
                     Layout.preferredHeight: parent.height / 1.2
-                    //Layout.preferredWidth: 90
+                    Layout.fillWidth: false
 
                     GroupButton { // Previous button
                         baseWidth: 30
