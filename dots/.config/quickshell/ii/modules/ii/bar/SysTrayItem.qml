@@ -35,7 +35,7 @@ MouseArea {
         tooltip.text = TrayService.getTooltipForItem(root.item);
     }
 
-Loader {
+    Loader {
         id: menu
         function open() { menu.active = true; }
         active: false
