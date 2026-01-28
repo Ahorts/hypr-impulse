@@ -676,6 +676,7 @@ ContentPage {
     ContentSection {
         icon: "music_cast"
         title: Translation.tr("Widget: Media")
+        tooltip: Translation.tr("You can reset the media player by middle-clicking on the widget in case of media source errors")
 
         ConfigRow {
             Layout.fillWidth: true
