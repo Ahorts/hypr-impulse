@@ -25,6 +25,27 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "album"
+        title: Translation.tr("Media")
+
+        ContentSubsection {
+            title: Translation.tr("Prioritized player")
+            tooltip: Translation.tr("Automatically sets the active player to a newly detected player if its identifier matches the value specified in the priority player property so you dont have to manually set the active player")
+
+            MaterialTextArea {
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Desktop entry name (e.g. spotify, google-chrome)")
+                text: Config.options.media.priorityPlayer
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: {
+                    Config.options.media.priorityPlayer = text;
+                }
+            }
+        }
+
+    }
+
+    ContentSection {
         icon: "music_cast"
         title: Translation.tr("Music Recognition")
 

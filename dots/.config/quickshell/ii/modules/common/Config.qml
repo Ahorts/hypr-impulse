@@ -477,9 +477,9 @@ Singleton {
                 // Attempt to remove dupes (the aggregator playerctl one and browsers' native ones when there's plasma browser integration)
                 property bool filterDuplicatePlayers: true
 
-                // Automatically sets the active player to a newly detected player if its identifier matches the value specified in the primaryPlayer property like "spotify" or "google-chrome"
+                // Automatically sets the active player to a newly detected player if its identifier matches the value specified in the priorityPlayer property like "spotify" or "google-chrome"
                 // This comparison uses the desktopEntry property of MprisPlayer (which is the name of the app casting the media)
-                property string primaryPlayer: ""
+                property string priorityPlayer: ""
             }
 
             property JsonObject networking: JsonObject {

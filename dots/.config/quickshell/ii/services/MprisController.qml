@@ -22,14 +22,14 @@ Singleton {
 	property MprisPlayer activePlayer: trackedPlayer ?? Mpris.players.values[0] ?? null;
 	signal trackChanged(reverse: bool);
 
-	property string primaryPlayer: Config.options.media.primaryPlayer;
+	property string priorityPlayer: Config.options.media.priorityPlayer;
 
 	property bool __reverse: false;
 
 	property var activeTrack;
 
 	onAllPlayersChanged: {
-		const nextPlayer = allPlayers.find(player => player.desktopEntry === root.primaryPlayer);
+		const nextPlayer = allPlayers.find(player => player.desktopEntry === root.priorityPlayer);
 		if (nextPlayer) {
 			activePlayer = nextPlayer;
 			return;
