@@ -83,48 +83,58 @@ Scope {
         sourceComponent: PanelWindow {
             id: panelWindow
             visible: true
-
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
             implicitWidth: root.widgetWidth
             implicitHeight: playerColumnLayout.implicitHeight
             color: "transparent"
             WlrLayershell.namespace: "quickshell:mediaControls"
-
-            readonly property var rect: GlobalStates.mediaWidgetRect
-            readonly property real gap: Appearance.sizes.elevationMargin
+            
+            readonly property var rect: Persistent.states.media.popupRect
+            readonly property real barThickness: {
+                if (Config.options.bar.vertical) {
+                    return Config.options.bar.sizes.width || 40;
+                } else {
+                    return Config.options.bar.sizes.height || 40;
+                }
+            }
             anchors {
                 top: true
-                left: true
+                left: !Config.options.bar.vertical || !Config.options.bar.bottom
+                right: Config.options.bar.vertical && Config.options.bar.bottom
             }
             margins {
                 top: {
-                    let visualOffset = 0; 
-
+                    if (rect.width === 0) return 0;
                     if (Config.options.bar.vertical) {
                         let targetY = rect.y + (rect.height / 2) - (panelWindow.implicitHeight / 2);
-                        return Math.max(5, Math.min(targetY, screen.height - panelWindow.implicitHeight - 5));
+                        return Math.max(0, Math.min(targetY, screen.height - panelWindow.implicitHeight));
                     } else {
-                        if (!Config.options.bar.bottom) { 
-                            return rect.y + rect.height + visualOffset;
-                        } else { 
-                            return rect.y - panelWindow.implicitHeight - visualOffset;
+                        if (!Config.options.bar.bottom) {
+                            return barThickness;
+                        } else {
+                            return screen.height - barThickness - panelWindow.implicitHeight;
                         }
                     }
                 }
                 left: {
-                    let visualOffset = 0;
-
+                    if (rect.width === 0) return 0;
                     if (Config.options.bar.vertical) {
-                        if (!Config.options.bar.bottom) { 
-                            return rect.x + rect.width + visualOffset;
-                        } else { 
-                            return rect.x - panelWindow.implicitWidth - visualOffset;
+                        if (!Config.options.bar.bottom) {
+                            return barThickness;
                         }
+                        return 0;
                     } else {
                         let targetX = rect.x + (rect.width / 2) - (panelWindow.implicitWidth / 2);
-                        return Math.max(5, Math.min(targetX, screen.width - panelWindow.implicitWidth - 5));
+                        return Math.max(0, Math.min(targetX, screen.width - panelWindow.implicitWidth));
                     }
+                }
+                right: {
+                    if (rect.width === 0) return 0;
+                    if (Config.options.bar.vertical && Config.options.bar.bottom) {
+                        return barThickness;
+                    }
+                    return 0;
                 }
             }
 
