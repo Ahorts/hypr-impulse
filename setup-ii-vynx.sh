@@ -14,6 +14,7 @@ VERBOSE=false
 FORCE_INSTALL=false
 BACKUP=true
 FULL_INSTALL=false
+NO_CONFIRM=false
 
 for arg in "$@"; do
     case $arg in
@@ -32,6 +33,10 @@ for arg in "$@"; do
         --full-install)
             FULL_INSTALL=true
             ;;
+        --no-confirm)
+            NO_CONFIRM=true
+            FORCE_INSTALL=true
+            ;;
         *)
             echo -e "${RED}Unknown flag: $arg${NC}"
             echo "Usage: $0 [OPTIONS]"
@@ -41,6 +46,7 @@ for arg in "$@"; do
             echo "  --no-backup        Skip backup of existing config"
             echo "  --force-install    Skip illogical-impulse check"
             echo "  --full-install     Install original dots first, then ii-vynx"
+            echo "  --no-confirm       Skip all confirmations and checks"
             echo "  -v, --verbose      Enable verbose output"
             exit 1
             ;;
@@ -102,15 +108,26 @@ echo -e "${CYAN}          ii-vynx setup     ${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-echo -e "${NC}Welcome to the ii-vynx setup script!${NC}"
-echo -e "${NC}This script will install ii-vynx on your system.${NC}"
-echo ""
+if [ "$NO_CONFIRM" = false ]; then
+    echo -e "${NC}Welcome to the ii-vynx setup script!${NC}"
+    echo -e "${NC}This script will install ii-vynx on your system.${NC}"
+    echo ""
+fi
 
 log_verbose "Verbose mode enabled"
 log_verbose "DO_PULL=$DO_PULL"
 log_verbose "FORCE_INSTALL=$FORCE_INSTALL"
 log_verbose "BACKUP=$BACKUP"
 log_verbose "FULL_INSTALL=$FULL_INSTALL"
+log_verbose "NO_CONFIRM=$NO_CONFIRM"
+
+if [ "$NO_CONFIRM" = true ]; then
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}  ⚠ No-confirm mode enabled${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}Skipping all confirmations...${NC}"
+    echo ""
+fi
 
 if [ "$FULL_INSTALL" = true ]; then
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -122,24 +139,25 @@ if [ "$FULL_INSTALL" = true ]; then
     install_original_dots
 fi
 
-if [ "$DO_PULL" = false ]; then
-    echo -e "${YELLOW}--no-pull flag used, skipping git pull.${NC}"
-fi
+if [ "$NO_CONFIRM" = false ]; then
+    if [ "$DO_PULL" = false ]; then
+        echo -e "${YELLOW}--no-pull flag used, skipping git pull.${NC}"
+    fi
 
-echo -e "${BLUE}Your current Quickshell configuration will be backed up and overwritten.${NC}"
-if [ "$BACKUP" = false ]; then
+    echo -e "${BLUE}Your current Quickshell configuration will be backed up and overwritten.${NC}"
+    if [ "$BACKUP" = false ]; then
+        echo ""
+        echo -e "${RED}WARNING: You've used --no-backup flag, skipping the backup process.${NC}"
+    fi
+    echo -e "${RED}Do you want to continue? (y/n): ${NC}"
+    read -r response
+
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        echo -e "${RED}Operation cancelled.${NC}"
+        exit 0
+    fi
     echo ""
-    echo -e "${RED}WARNING: You've used --no-backup flag, skipping the backup process.${NC}"
 fi
-echo -e "${RED}Do you want to continue? (y/n): ${NC}"
-read -r response
-
-if [[ ! "$response" =~ ^[Yy]$ ]]; then
-    echo -e "${RED}Operation cancelled.${NC}"
-    exit 0
-fi
-
-echo ""
 
 CONFIG_DIR="$HOME/.config"
 CHECK_DIR="$CONFIG_DIR/illogical-impulse"
