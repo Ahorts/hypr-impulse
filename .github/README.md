@@ -42,6 +42,11 @@ git clone https://github.com/vaguesyntax/ii-vynx.git --recurse-submodules
 ./setup-ii-vynx.sh
 ```
 
+Tip: You can see all flags you can use with `--help`:
+```
+./setup-ii-vynx.sh --help
+```
+
 <div align="center">
     <h2>• updating •</h2>
 </div>
