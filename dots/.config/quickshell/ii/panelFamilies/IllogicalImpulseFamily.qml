@@ -56,8 +56,8 @@ Scope {
     PanelLoader { component: RegionSelector {} }
     PanelLoader { component: ScreenCorners {} }
     PanelLoader { component: SessionScreen {} }
-    PanelLoader { component: SidebarLeft {} }
-    PanelLoader { component: SidebarRight {} }
+    PanelLoader { component: SidebarPolicies {} }
+    PanelLoader { component: SidebarDashboard {} }
     PanelLoader { extraCondition: Config.options.bar.vertical && barExtraCondition; component: VerticalBar {} }
     PanelLoader { component: WallpaperSelector {} }
     PanelLoader { component: WrappedFrame {} }

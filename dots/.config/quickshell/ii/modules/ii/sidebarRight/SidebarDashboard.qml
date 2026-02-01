@@ -56,7 +56,7 @@ Scope {
             id: sidebarContentLoader
 
             active: GlobalStates.sidebarRightOpen || Config?.options.sidebar.keepRightSidebarLoaded
-            sourceComponent: SidebarRightContent {}
+            sourceComponent: SidebarDashboardContent {}
             
             width: root.sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
             height: parent.height - (Appearance.sizes.hyprlandGapsOut * 2)

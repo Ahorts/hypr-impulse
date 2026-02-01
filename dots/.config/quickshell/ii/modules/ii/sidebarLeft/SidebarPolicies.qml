@@ -12,7 +12,7 @@ Scope { // Scope
     id: root
     property bool detach: false
     property bool pin: false
-    property Component contentComponent: SidebarLeftContent {}
+    property Component contentComponent: SidebarPoliciesContent {}
     property Item sidebarContent
 
     readonly property bool isOnLeft: {
