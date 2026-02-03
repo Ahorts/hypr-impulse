@@ -56,8 +56,6 @@ Singleton {
 
     onPoliciesPanelOpenChanged: {
         if (policiesPanelOpen) {
-            Notifications.timeoutAll();
-            Notifications.markAllRead();
             if (Config.options.sidebar.position == "right" || Config.options.sidebar.position == "left") {
                 GlobalStates.dashboardPanelOpen = false
             }
@@ -67,6 +65,8 @@ Singleton {
 
     onDashboardPanelOpenChanged: {
         if (dashboardPanelOpen) {
+            Notifications.timeoutAll();
+            Notifications.markAllRead();
             if (Config.options.sidebar.position == "right" || Config.options.sidebar.position == "left") {
                 GlobalStates.policiesPanelOpen = false
             }
