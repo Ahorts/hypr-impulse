@@ -65,11 +65,19 @@ Item {
     }
 
 
-    // Function to update workspaceOccupied
     function updateWorkspaceOccupied() {
         workspaceOccupied = Array.from({ length: root.workspacesShown }, (_, i) => {
-            return Hyprland.workspaces.values.some(ws => ws.id === workspaceOffset + workspaceGroup * root.workspacesShown + i + 1);
-        })
+            const workspaceId = workspaceOffset + workspaceGroup * root.workspacesShown + i + 1;
+            const workspaceExists = Hyprland.workspaces.values.some(ws => ws.id === workspaceId);
+
+            if (!workspaceExists) return false;
+            
+            // current workspace doesnot have a window -> make it not occupied
+            if (workspaceId === monitor?.activeWorkspace?.id) {
+                return hasWindowsInWorkspace(workspaceId);
+            }
+            return true;
+        });
     }
 
     function hasWindowsInWorkspace(workspaceId) {
