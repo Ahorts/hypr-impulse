@@ -22,6 +22,7 @@ if status is-interactive # Commands to run in interactive sessions can go here
     alias pn=pnpm
     alias nv=nvim
     alias cd=z
+    alias pls=sudo
 
     function nvim
         kitten @ set-spacing margin=0
@@ -40,3 +41,6 @@ end
 #   set_color cyan; echo (pwd)
 #   set_color green; echo '> '
 # end
+
+# Created by `pipx` on 2026-01-29 16:31:06
+set PATH $PATH /home/ahorts/.local/bin
