@@ -25,6 +25,39 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "album"
+        title: Translation.tr("Media")
+
+        ContentSubsection {
+            title: Translation.tr("Prioritized player")
+            tooltip: Translation.tr("Automatically sets the active player to a newly detected player if its identifier matches the value specified in the priority player property so you dont have to manually set the active player")
+
+            MaterialTextArea {
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Desktop entry name (e.g. spotify, google-chrome)")
+                text: Config.options.media.priorityPlayer
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: {
+                    Config.options.media.priorityPlayer = text;
+                }
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "filter_list"
+            text: Translation.tr("Filter duplicate players")
+            checked: Config.options.media.filterDuplicatePlayers
+            onCheckedChanged: {
+                Config.options.media.filterDuplicatePlayers = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Attempt to remove dupes (the aggregator playerctl one and browsers' native ones when there's plasma browser integration)")
+            }
+        }
+
+    }
+
+    ContentSection {
         icon: "music_cast"
         title: Translation.tr("Music Recognition")
 
@@ -113,17 +146,6 @@ ContentPage {
     ContentSection {
         icon: "search"
         title: Translation.tr("Search")
-
-        ConfigSwitch {
-            text: Translation.tr("Use Levenshtein distance-based algorithm instead of fuzzy")
-            checked: Config.options.search.sloppy
-            onCheckedChanged: {
-                Config.options.search.sloppy = checked;
-            }
-            StyledToolTip {
-                text: Translation.tr("Could be better if you make a ton of typos,\nbut results can be weird and might not work with acronyms\n(e.g. \"GIMP\" might not give you the paint program)")
-            }
-        }
 
         ContentSubsection {
             title: Translation.tr("Prefixes")

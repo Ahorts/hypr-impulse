@@ -26,5 +26,5 @@ DelegateChooser {
     DelegateChoice { roleValue: "resources"; Resources {} }
     DelegateChoice { roleValue: "notes"; Notes {} }
     DelegateChoice { roleValue: "volumeMixer"; VolumeMixer {} }
-    DelegateChoice { roleValue: "media"; Media {} }
+    DelegateChoice { roleValue: "media"; MediaContent {} }
 }

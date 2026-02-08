@@ -8,6 +8,11 @@ import qs.modules.common.functions
 Flow {
     id: root
     Layout.fillWidth: true
+
+    property color colBackground: Appearance.colors.colSecondaryContainer
+    property color colBackgroundHover: Appearance.colors.colSecondaryContainerHover
+    property color colBackgroundActive: Appearance.colors.colSecondaryContainerActive
+
     spacing: 2
     property list<var> options: [
         {
@@ -50,6 +55,11 @@ Flow {
             buttonText: modelData.displayName
             toggled: root.currentValue == modelData.value
             releaseAction: modelData.releaseAction || ""
+
+            colBackground: root.colBackground
+            colBackgroundHover: root.colBackgroundHover
+            colBackgroundActive: root.colBackgroundActive
+
             onClicked: {
                 root.selected(modelData.value);
             }

@@ -3,7 +3,7 @@ import qs.services
 import qs.modules.common  
 import qs.modules.common.widgets  
 import qs.modules.common.functions  
-import qs.modules.ii.sidebarLeft.wallpaperBrowser  
+import qs.modules.ii.sidebarPolicies.wallpaperBrowser  
 import QtQuick  
 import QtQuick.Controls  
 import QtQuick.Layouts  
@@ -377,7 +377,7 @@ Item {
     
 
     property var allCommands: [  
-        { name: "api", description: Translation.tr("Set API key for current service"), execute: args => {  
+        { name: "api", description: Translation.tr("Set API key for current service. Usage: %1api YOUR_API_KEY").arg(root.commandPrefix), execute: args => {  
             if (args.length === 0) {  
                 const currentService = root.currentService;  
                 const unsplashApiKey = WallpaperBrowser.unsplashApiToken
@@ -407,7 +407,7 @@ Item {
             KeyringStorage.setNestedField(["apiKeys", `wallpapers_${currentService}`], args[0].trim());  
             WallpaperBrowser.addSystemMessage(Translation.tr(`API key set for %1`).arg(currentService));  
         } },  
-        { name: "service", description: Translation.tr("Change wallpaper service"), execute: args => {  
+        { name: "service", description: Translation.tr("Change wallpaper service. Usage: %1service SERVICE").arg(root.commandPrefix), execute: args => {  
             if (args.length === 0) {  
                 WallpaperBrowser.addSystemMessage(Translation.tr("Usage: %1service SERVICE, available services: \n\n Unsplash: \n- Requires API key, type %1api to get started. \n\nWallhaven: \n- Doesn't require API key \n- You can search similar images").arg(root.commandPrefix));  
                 return;  
@@ -419,7 +419,7 @@ Item {
                 WallpaperBrowser.addSystemMessage(Translation.tr("Invalid service. Use: unsplash or wallhaven"));  
             }  
         } }, 
-        { name: "similar", description: Translation.tr("Find similar images (only for Wallhaven)"), execute: args => {
+        { name: "similar", description: Translation.tr("Find similar images (only for Wallhaven). Usage: %1similar WALLHAVEN_IMAGE_ID").arg(root.commandPrefix), execute: args => {
             const currentProvider = root.currentService;
             if (currentProvider !== "wallhaven") {
                 WallpaperBrowser.addSystemMessage(Translation.tr("Similar images only works with wallhaven service"))
@@ -432,7 +432,7 @@ Item {
             WallpaperBrowser.moreLikeThisPicture(args[0], 1);
             return; 
         } },
-        { name: "anime", description: Translation.tr("Toggle anime results"), execute: args => {  
+        { name: "anime", description: Translation.tr("Toggle anime results. Usage: %1anime SHOW/HIDE").arg(root.commandPrefix), execute: args => {  
             const currentProvider = root.currentService;
             if (currentProvider !== "wallhaven") {
                 WallpaperBrowser.addSystemMessage(Translation.tr("Anime toggle only works with wallhaven service"))
@@ -450,7 +450,7 @@ Item {
             WallpaperBrowser.addSystemMessage(Translation.tr(`Anime results: %1`).arg(showAnime ? "visible" : "hidden"));
             WallpaperBrowser.setAnimeResults(showAnime);  
         } },
-        { name: "sort", description: Translation.tr("Sort results"), execute: args => {  
+        { name: "sort", description: Translation.tr("Sort results. Usage: %1sort SORT_OPTION").arg(root.commandPrefix), execute: args => {  
             const currentService = root.currentService;
             if (args.length === 0) {  
                 if (currentService === "unsplash") {
@@ -484,6 +484,9 @@ Item {
         { name: "clear", description: Translation.tr("Clear the current list of images"), execute: () => {  
             WallpaperBrowser.clearResponses();  
         } },  
+        { name: "help", description: Translation.tr("Shows a list of available commands"), execute: () => {  
+            WallpaperBrowser.addSystemMessage(Translation.tr("Available commands are:\n- %1api API_KEY: Set API key for current service\n- %1service SERVICE: Change wallpaper service\n- %1similar IMAGE_ID: Find similar images, you must enter wallhaven image id thats located in the file name (e.g. wallhaven-lyz3d2.png's id is lyz3d2)\n- %1anime SHOW/HIDE: Toggle anime results (only for wallhaven service)\n- %1sort SORT_OPTION: Sort results\n- %1clear: Clear the current list of images\n- %1next: Load next page").arg(root.commandPrefix));
+        } },
         { name: "next", description: Translation.tr("Load next page"), execute: () => {  
             console.log("[Wallpapers] Next page")
             if (root.responses.length > 0) {  

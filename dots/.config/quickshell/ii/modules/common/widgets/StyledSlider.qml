@@ -19,6 +19,7 @@ Slider {
     property list<real> stopIndicatorValues: [1]
     enum Configuration {
         Wavy = 4,
+        X0 = 3,
         XS = 12,
         S = 18,
         M = 30,
@@ -42,7 +43,7 @@ Slider {
         : trackWidth >= StyledSlider.Configuration.M ? 9
         : trackWidth >= StyledSlider.Configuration.S ? 6
         : height / 2
-    property real handleHeight: (configuration === StyledSlider.Configuration.Wavy) ? 24 : Math.max(33, trackWidth + 9)
+    property real handleHeight: (configuration === StyledSlider.Configuration.Wavy) ? 24 : (configuration === StyledSlider.Configuration.X0) ? 14 : Math.max(33, trackWidth + 9)
     property real handleWidth: root.pressed ? handlePressedWidth : handleDefaultWidth
     property real handleMargins: 4
     property real trackDotSize: 3

@@ -178,6 +178,7 @@ Singleton {
                         property string styleLocked: "cookie"  // Options: "cookie", "digital"
                         property JsonObject cookie: JsonObject {
                             property bool aiStyling: false
+                            property string aiStylingModel: "gemini" // Options "gemini", "openrouter"
                             property int sides: 14
                             property string backgroundStyle: "cookie"     // Options: "cookie", "sine", "shape" 
                             property string backgroundShape: "Arch"  // Options: MaterialShape.Shape enum values as string
@@ -274,9 +275,10 @@ Singleton {
                 
                 property JsonObject mediaPlayer: JsonObject {
                     property bool useCustomSize: false
-                    property int customSize: 300
+                    property int customSize: 250
                     property JsonObject lyrics: JsonObject {
                         property bool enable: true
+                        property int customSize: 400
                         property string style: "scrolling" // Options: "static", "scrolling"
                         property bool showLoadingIndicator: true
                         property bool useGradientMask: true
@@ -318,6 +320,7 @@ Singleton {
                     property list<var> workspaceMap: [0, 10] 
                     property int maxWindowCount: 5 // Maximum windows to show in one workspace
                     property bool useNerdFont: false
+                    property int activeIndicatorOpacity: 100 // 0-100
                 }
                 property JsonObject weather: JsonObject {
                     property bool enable: false
@@ -345,7 +348,7 @@ Singleton {
                         { id: "utility_buttons", icon: "build", title: "Utility buttons" }
                     ]
                     property list<var> left: [
-                        { id: "left_sidebar_button", icon: "star", title: "Left sidebar button" },
+                        { id: "policies_panel_button", icon: "star", title: "Policies panel button" },
                         { id: "active_window", icon: "label", title: "Active window" }
                     ]
                     property list<var> center: [
@@ -356,7 +359,7 @@ Singleton {
                     property list<var> right: [
                         { id: "clock", icon: "nest_clock_farsight_analog", title: "Clock" }, 
                         { id: "system_tray", icon: "system_update_alt", title: "System tray" },
-                        { id: "right_sidebar_button", icon: "notifications", title: "Right sidebar button" }
+                        { id: "dashboard_panel_button", icon: "notifications", title: "Dashboard panel button" }
                     ]
 
                 }
@@ -476,6 +479,10 @@ Singleton {
             property JsonObject media: JsonObject {
                 // Attempt to remove dupes (the aggregator playerctl one and browsers' native ones when there's plasma browser integration)
                 property bool filterDuplicatePlayers: true
+
+                // Automatically sets the active player to a newly detected player if its identifier matches the value specified in the priorityPlayer property like "spotify" or "google-chrome"
+                // This comparison uses the desktopEntry property of MprisPlayer (which is the name of the app casting the media)
+                property string priorityPlayer: ""
             }
 
             property JsonObject networking: JsonObject {
@@ -506,6 +513,12 @@ Singleton {
                 property JsonObject notes: JsonObject {
                     property bool showTabs: true
                     property bool allowEditingIcon: true
+                }
+                property JsonObject media: JsonObject {
+                    property int backgroundOpacityPercentage: 100
+                    property bool useGradientMask: true
+                    property bool showSlider: true
+                    property int lyricSize: Appearance.font.pixelSize.larger
                 }
             }
 
@@ -605,6 +618,7 @@ Singleton {
             }
 
             property JsonObject sidebar: JsonObject {
+                property string position: "default"
                 property bool keepRightSidebarLoaded: true
                 property JsonObject translator: JsonObject {
                     property bool enable: false
@@ -612,6 +626,7 @@ Singleton {
                 }
                 property JsonObject ai: JsonObject {
                     property bool textFadeIn: false
+                    property bool showProviderAndModelButtons: true
                 }
                 property JsonObject booru: JsonObject {
                     property bool allowNsfw: false

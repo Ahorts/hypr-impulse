@@ -255,6 +255,24 @@ Singleton {
     // - api_format: The API format of the model. Can be "openai" or "gemini". Default is "openai".
     // - extraParams: Extra parameters to be passed to the model. This is a JSON object.
     property var models: Config.options.policies.ai === 2 ? {} : {
+        "openrouter-gemini-2.5-flash-lite": aiModelComponent.createObject(this, {
+            name: "OpenRouter Gemini 2.5 Flash-Lite",
+            icon: "google-gemini-symbolic",
+            description: Translation.tr("Online via %1 | %2's model")
+                .arg("OpenRouter")
+                .arg("Google"),
+            homepage: "https://openrouter.ai/google/gemini-2.5-flash-lite",
+            endpoint: "https://openrouter.ai/api/v1/chat/completions",
+            model: "google/gemini-2.5-flash-lite",
+            requires_key: true,
+            key_id: "openrouter",
+            key_get_link: "https://openrouter.ai/settings/keys",
+            key_get_description: Translation.tr(
+                "**Pricing**: Pay-as-you-go (token based).\n\n" +
+                "**Instructions**: Log into your OpenRouter account, " +
+                "go to Keys in the top-right menu, and create an API key."
+            ),
+        }),
         "gemini-2.5-flash": aiModelComponent.createObject(this, {
             "name": "Gemini 2.5 Flash",
             "icon": "google-gemini-symbolic",
@@ -266,6 +284,19 @@ Singleton {
             "key_id": "gemini",
             "key_get_link": "https://aistudio.google.com/app/apikey",
             "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
+            "api_format": "gemini",
+        }),
+        "gemini-2.5-flash-lite": aiModelComponent.createObject(this, {
+            "name": "Gemini 2.5 Flash-Lite",
+            "icon": "google-gemini-symbolic",
+            "description": Translation.tr("Online | Google's model\nUltra-fast and cost-effective version of Gemini 2.5. Best for simple API tasks and quick responses."),
+            "homepage": "https://aistudio.google.com",
+            "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:streamGenerateContent",
+            "model": "gemini-2.5-flash-lite",
+            "requires_key": true,
+            "key_id": "gemini",
+            "key_get_link": "https://aistudio.google.com/app/apikey",
+            "key_get_description": Translation.tr("**Pricing**: free/paid. Optimized for speed.\n\n**Instructions**: Log into Google AI Studio, get your API key. Note: 2.5 Flash-Lite might require v1beta endpoint."),
             "api_format": "gemini",
         }),
         "gemini-3-flash": aiModelComponent.createObject(this, {
@@ -294,21 +325,23 @@ Singleton {
             "key_get_description": Translation.tr("**Instructions**: Log into Mistral account, go to Keys on the sidebar, click Create new key"),
             "api_format": "mistral",
         }),
-        "openrouter-deepseek-r1": aiModelComponent.createObject(this, {
-            "name": "DeepSeek R1",
-            "icon": "deepseek-symbolic",
-            "description": Translation.tr("Online via %1 | %2's model").arg("OpenRouter").arg("DeepSeek"),
-            "homepage": "https://openrouter.ai/deepseek/deepseek-r1:free",
-            "endpoint": "https://openrouter.ai/api/v1/chat/completions",
-            "model": "deepseek/deepseek-r1:free",
-            "requires_key": true,
-            "key_id": "openrouter",
-            "key_get_link": "https://openrouter.ai/settings/keys",
-            "key_get_description": Translation.tr("**Pricing**: free. Data use policy varies depending on your OpenRouter account settings.\n\n**Instructions**: Log into OpenRouter account, go to Keys on the topright menu, click Create API Key"),
-        }),
     }
     property var modelList: Object.keys(root.models)
     property var currentModelId: Persistent.states?.ai?.model || modelList[0]
+
+    property var modelsOfProviders: {
+        "openrouter": [
+            {title: "Gemini 2.5 Flash-Lite", value: "openrouter-gemini-2.5-flash-lite"},
+        ],
+        "gemini": [
+            { title: "Gemini 3 Flash", value: "gemini-3-flash" },
+            { title: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
+            { title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite" },
+        ],
+        "mistral": [
+            { title: "Mistral Medium 3", value: "mistral-medium-3" }
+        ],
+    }
 
     property var apiStrategies: {
         "openai": openaiApiStrategy.createObject(this),

@@ -17,6 +17,7 @@ Item {
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
     
     property int customSize: Config.options.bar.mediaPlayer.customSize
+    property int lyricsCustomSize: Config.options.bar.mediaPlayer.lyrics.customSize
     property bool useCustomSize: Config.options.bar.mediaPlayer.useCustomSize 
     readonly property int maxWidth: 300
 
@@ -26,7 +27,7 @@ Item {
     readonly property string lyricsStyle: Config.options.bar.mediaPlayer.lyrics.style
 
     Layout.fillHeight: true
-    implicitWidth: useCustomSize ? customSize : Math.min(rowLayout.implicitWidth + rowLayout.spacing, maxWidth)
+    implicitWidth: useCustomSize ? lyricScroller.hasSyncedLines ? lyricsCustomSize :customSize : Math.min(rowLayout.implicitWidth + rowLayout.spacing, maxWidth)
     implicitHeight: Appearance.sizes.barHeight
 
     Behavior on implicitWidth {
@@ -65,9 +66,11 @@ Item {
             } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
                 activePlayer.next();
             } else if (event.button === Qt.LeftButton) {
-                GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
+                var globalPos = root.mapToItem(null, 0, 0);
+                Persistent.states.media.popupRect = Qt.rect(globalPos.x, globalPos.y, root.width, root.height);
+                GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
             }
-        }
+        }   
     }
 
     RowLayout { // Real content

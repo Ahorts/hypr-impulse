@@ -95,18 +95,20 @@ OverlayBackground {
             return;
         }
         
+        const deletedIndex = currentTabIndex;
         let newTabs = root.tabsData.tabs.slice();
-        newTabs.splice(currentTabIndex, 1);
+        newTabs.splice(deletedIndex, 1);
         
-        root.tabsData = {
-            tabs: newTabs
-        };
+        const newIndex = Math.min(deletedIndex, newTabs.length - 1);
+        
+        root.tabsData = { tabs: newTabs };
+        Persistent.states.overlay.notes.tabIndex = newIndex;
+        root.content = newTabs[newIndex].content || "";
         
         saveToFile();
-        const newIndex = Math.min(currentTabIndex, newTabs.length - 1);
-        root.changeCurrentTab(newIndex);
+        
         Qt.callLater(() => {
-            loadTabContent(newIndex);
+            updateCopyListEntries();
         });
     }
 

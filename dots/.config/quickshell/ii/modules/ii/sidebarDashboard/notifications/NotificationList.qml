@@ -47,7 +47,7 @@ Item {
             bottom: parent.bottom
         }
 
-        NotificationStatusButton {
+        GroupButtonWithIcon {
             Layout.fillWidth: false
             buttonIcon: "notifications_paused"
             toggled: Notifications.silent
@@ -55,12 +55,12 @@ Item {
                 Notifications.silent = !Notifications.silent;
             }
         }
-        NotificationStatusButton {
+        GroupButtonWithIcon {
             enabled: false
             Layout.fillWidth: true
             buttonText: Translation.tr("%1 notifications").arg(Notifications.list.length)
         }
-        NotificationStatusButton {
+        GroupButtonWithIcon {
             Layout.fillWidth: false
             buttonIcon: "delete_sweep"
             onClicked: () => {

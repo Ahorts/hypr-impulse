@@ -30,6 +30,19 @@ ContentPage {
         } 
     }
 
+    ContentSection {
+        icon: "keyboard"
+        title: Translation.tr("AI")
+
+        ConfigSwitch {
+            buttonIcon: "box"
+            text: Translation.tr("Show provider and model buttons")
+            checked: Config.options.sidebar.ai.showProviderAndModelButtons
+            onCheckedChanged: {
+                Config.options.sidebar.ai.showProviderAndModelButtons = checked;
+            }
+        }
+    }
 
     ContentSection {
         icon: "keyboard"
@@ -373,6 +386,7 @@ ContentPage {
 
         ConfigRow {
             uniform: true
+
             ConfigSwitch {
                 buttonIcon: "tab"
                 text: Translation.tr("Show tabs")
@@ -393,7 +407,57 @@ ContentPage {
             }
             
         }
-        
+    }
+
+    ContentSection {
+        icon: "music_note"
+        title: Translation.tr("Overlay: Media")
+    
+        ConfigSwitch {
+            buttonIcon: "sliders"
+            text: Translation.tr("Show slider")
+            checked: Config.options.overlay.media.showSlider
+            onCheckedChanged: {
+                Config.options.overlay.media.showSlider = checked;
+            }
+        }
+
+        ConfigSpinBox {
+            icon: "opacity"
+            text: Translation.tr("Background opacity (%)")
+            value: Config.options.overlay.media.backgroundOpacityPercentage
+            from: 0
+            to: 100
+            stepSize: 10
+            onValueChanged: {
+                Config.options.overlay.media.backgroundOpacityPercentage = value;
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Lyrics")
+
+            ConfigSwitch {
+                buttonIcon: "gradient"
+                text: Translation.tr("Use gradient masking")
+                checked: Config.options.overlay.media.useGradientMask
+                onCheckedChanged: {
+                    Config.options.overlay.media.useGradientMask = checked;
+                }
+            }
+
+            ConfigSpinBox {
+                icon: "format_size"
+                text: Translation.tr("Lyrics font size (px)")
+                value: Config.options.overlay.media.lyricSize
+                from: 10
+                to: 30
+                stepSize: 1
+                onValueChanged: {
+                    Config.options.overlay.media.lyricSize = value;
+                }
+            }
+        }
 
     }
 
@@ -513,6 +577,41 @@ ContentPage {
             }
             StyledToolTip {
                 text: Translation.tr("When enabled keeps the content of the right sidebar loaded to reduce the delay when opening,\nat the cost of around 15MB of consistent RAM usage. Delay significance depends on your system's performance.\nUsing a custom kernel like linux-cachyos might help")
+            }
+        }
+
+        ConfigRow {
+            ContentSubsection {
+                title: Translation.tr("Sidebars position")
+
+                ConfigSelectionArray {
+                    currentValue: Config.options.sidebar.position
+                    onSelected: newValue => {
+                        Config.options.sidebar.position = newValue;
+                    }
+                    options: [
+                        {
+                            displayName: Translation.tr("Default"),
+                            icon: "side_navigation",
+                            value: "default"
+                        },
+                        {
+                            displayName: Translation.tr("Inverted"),
+                            icon: "swap_horiz",
+                            value: "inverted"
+                        },
+                        {
+                            displayName: Translation.tr("Left"),
+                            icon: "align_horizontal_left",
+                            value: "left"
+                        },
+                        {
+                            displayName: Translation.tr("Right"),
+                            icon: "align_horizontal_right",
+                            value: "right"
+                        }
+                    ]
+                }
             }
         }
 

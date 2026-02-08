@@ -42,11 +42,12 @@ Item {
         "screen_share_indicator": [screenshareIndicatorComp, screenshareIndicatorComp],
         "timer": [timerComp, timerCompVert],
         "weather": [weatherComp, weatherComp],
-        "left_sidebar_button": [leftSidebarButtonComp, leftSidebarButtonComp],
-        "right_sidebar_button": [rightSidebarButtonComp, rightSidebarButtonCompVert]
+        "policies_panel_button": [policiesPanelButton, policiesPanelButton],
+        "dashboard_panel_button": [dashboardPanelButton, dashboardPanelButtonVert]
     })
 
-    
+    property list<string> primaryBackgroundComps: ["timer", "record_indicator", "screen_share_indicator"] // components that are mostly indicators
+
     property real startRadius: {
         if (barSection === 0) {
             if (originalIndex == 0) return Appearance.rounding.full
@@ -85,9 +86,9 @@ Item {
         
         startRadius: rootItem.startRadius
         endRadius: rootItem.endRadius
-        colBackground: itemLoader.item.backgroundColor ?? Appearance.colors.colLayer2
+        colBackground: primaryBackgroundComps.includes(modelData.id) ? Appearance.m3colors.m3primary : Appearance.m3colors.m3surfaceContainerLow
 
-        items: Loader {
+        Loader {
             id: itemLoader
             active: true
             sourceComponent: compMap[modelData.id][vertical ? 1 : 0]
@@ -126,8 +127,8 @@ Item {
 
     Component { id: workspaceComp; Workspaces { vertical: rootItem.vertical } }
 
-    Component { id: leftSidebarButtonComp; LeftSidebarButton {} }
+    Component { id: policiesPanelButton; PoliciesPanelButton {} }
     
-    Component { id: rightSidebarButtonComp; RightSidebarButton {} }
-    Component { id: rightSidebarButtonCompVert; VerticalRightSidebarButton {} }
+    Component { id: dashboardPanelButton; DashboardPanelButton {} }
+    Component { id: dashboardPanelButtonVert; VerticalDashboardPanelButton {} }
 }
