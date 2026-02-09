@@ -258,7 +258,7 @@ Singleton {
     property var models: Config.options.policies.ai === 2 ? {} : {
         "openrouter": aiModelComponent.createObject(this, {
             name: `OpenRouter - ${currentModel}`,
-            icon: "google-gemini-symbolic",
+            icon: "openrouter-symbolic",
             description: Translation.tr("Online via %1 | %2's model")
                 .arg("OpenRouter")
                 .arg("Google"),
