@@ -283,7 +283,7 @@ Item {
                     id: searchInputField  
                     Layout.fillWidth: true  
                     Layout.fillHeight: true  
-                    placeholderText: Translation.tr("Search wallpapers... (e.g., nature, abstract)")  
+                    placeholderText: WallpaperBrowser.currentProvider === "wallhaven" ? Translation.tr("Search or drag wallpapers...") : Translation.tr("Search wallpapers... (e.g., nature, abstract)")  
                       
                     onTextChanged: {  
                         if (searchInputField.text.length === 0) {  
