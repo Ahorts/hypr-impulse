@@ -22,16 +22,15 @@ Item {
     readonly property int maxSize: 350
     readonly property int fixedSize: root.vertical ? 150 : 225
 
-    implicitWidth: isFixedSize? fixedSize : Math.min(colLayout.implicitWidth + 20, maxSize)
-    implicitHeight: isFixedSize ? fixedSize : root.vertical ? colLayout.implicitWidth + 20 : 0
-
     property string classText: root.focusingThisMonitor && root.activeWindow?.activated && root.biggestWindow ? 
-                root.activeWindow?.appId :
-                (root.biggestWindow?.class) ?? Translation.tr("Desktop")
-
+                root.activeWindow?.appId : (root.biggestWindow?.class) ?? Translation.tr("Desktop")
+                
     property string titleText: root.focusingThisMonitor && root.activeWindow?.activated && root.biggestWindow ? 
-                root.activeWindow?.title :
-                (root.biggestWindow?.title) ?? `${Translation.tr("Workspace")} ${monitor?.activeWorkspace?.id ?? 1}`
+                root.activeWindow?.title : (root.biggestWindow?.title) ?? `${Translation.tr("Workspace")} ${monitor?.activeWorkspace?.id ?? 1}`
+    
+    implicitHeight: isFixedSize ? fixedSize : (root.vertical ? Math.max(classText.implicitWidth, titleText.implicitWidth) + 20 : colLayout.implicitHeight)
+    implicitWidth: isFixedSize ? fixedSize : Math.min(Math.max(classText.implicitWidth, titleText.implicitWidth) + 20, maxSize)
+    clip: true
 
     Behavior on implicitWidth {
         animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
@@ -48,7 +47,11 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: -4
 
+        width: root.vertical ? implicitWidth : root.width
+        height: root.vertical ? root.height : implicitHeight
+
         StyledText {
+            id: classText
             visible: !root.vertical
             Layout.fillWidth: true
             font.pixelSize: Appearance.font.pixelSize.smaller
@@ -58,13 +61,13 @@ Item {
         }
 
         StyledText {
-            Layout.preferredWidth: root.isFixedSize ? root.fixedSize : Math.min(implicitWidth, maxSize)
+            id: titleText
+            Layout.fillWidth: true
             font.pixelSize: Appearance.font.pixelSize.small
             color: Appearance.colors.colOnLayer0
             elide: Text.ElideRight
             rotation: root.vertical ? 90 : 0
             text: root.vertical ? root.classText : root.titleText
         }
-
     }
 }
