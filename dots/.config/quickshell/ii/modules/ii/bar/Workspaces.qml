@@ -211,6 +211,99 @@ Item {
         implicitHeight: root.vertical ? indicatorLength : individualIconBoxHeight
         implicitWidth: root.vertical ? individualIconBoxHeight : indicatorLength
     }
+    
+    Rectangle {
+        id: hoverIndicator
+        z: 2
+        anchors.horizontalCenter: root.vertical ? parent.horizontalCenter : undefined
+        anchors.verticalCenter: root.vertical ? undefined : parent.verticalCenter
+
+        color: "transparent"
+        radius: Appearance.rounding.full
+        
+        visible: interactionMouseArea.containsMouse
+        
+        property int hoverIdx: interactionMouseArea.containsMouse ? interactionMouseArea.hoverIndex : root.workspaceIndexInGroup
+        
+        function offsetFor(index) {
+            let y = 0
+            for (let i = 0; i < index; i++) {
+                const item = contentLayout.children[i]
+                y += root.vertical ? item?.height - root.iconBoxWrapperSize : item?.width - root.iconBoxWrapperSize
+            }
+            return y
+        }
+        
+        property real currentItemOffset: {
+            const item = contentLayout.children[hoverIdx]
+            const itemSize = root.vertical ? item?.height : item?.width
+            return itemSize - root.iconBoxWrapperSize
+        }
+        
+        readonly property real accumulatedPreviousOffsets: offsetFor(hoverIdx)
+        
+        property real indicatorPosition: hoverIdx * root.iconBoxWrapperSize + accumulatedPreviousOffsets + root.iconBoxWrapperSize * 0.05 // this should be half the bottom multiplier
+        property real indicatorLength: root.iconBoxWrapperSize + currentItemOffset - root.iconBoxWrapperSize * 0.1                        // this should be 2x of the top multiplier
+        
+        y: root.vertical ? indicatorPosition : 0
+        x: root.vertical ? 0 : indicatorPosition
+        implicitHeight: root.vertical ? indicatorLength : individualIconBoxHeight
+        implicitWidth: root.vertical ? individualIconBoxHeight : indicatorLength
+        
+        Behavior on indicatorPosition {
+            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+        }
+        Behavior on indicatorLength {
+            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+        }
+        
+        HoverOverlay {
+            hover: interactionMouseArea.containsMouse
+        }
+    }
+
+
+    MouseArea {
+        id: interactionMouseArea
+        z: 4 
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        hoverEnabled: true
+        
+        property int hoverIndex: {
+            const position = root.vertical ? mouseY : mouseX;
+            let accumulated = 0;
+            
+            // calculating the every workspace's length
+            for (let i = 0; i < root.workspacesShown; i++) {
+                const item = contentLayout.children[i];
+                if (!item) continue;
+                
+                const itemSize = root.vertical ? item.height : item.width;
+                
+                if (position < accumulated + itemSize) {
+                    return i;
+                }
+                
+                accumulated += itemSize;
+            }
+            
+            return root.workspacesShown - 1;
+        }
+
+        onPressed: {
+            const wsId = workspaceOffset + workspaceGroup * workspacesShown + hoverIndex + 1;
+            Hyprland.dispatch(`workspace ${wsId}`);
+        }
+        
+        onWheel: (event) => {
+            // console.log(event.angleDelta.y)
+            if (event.angleDelta.y < 0)
+                Hyprland.dispatch(`workspace r+1`);
+            else if (event.angleDelta.y > 0)
+                Hyprland.dispatch(`workspace r-1`);
+        }
+    }
 
     StyledRectangle {
         id: occupiedIndicatorsBg
@@ -402,6 +495,21 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    component HoverOverlay: Rectangle {
+        id: hoverOverlay
+        anchors.fill: parent
+
+        property bool hover: false
+        
+        color: Appearance.colors.colPrimary
+        radius: Appearance.rounding.full
+        opacity: hover ? 0.1 : 0
+        
+        Behavior on opacity {
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
     }
 
