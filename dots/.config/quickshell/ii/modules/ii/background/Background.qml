@@ -169,7 +169,7 @@ Variants {
                         result = ((bgRoot.monitor.activeWorkspace?.id - lower) / range);
                     }
                     if (Config.options.background.parallax.enableSidebar) {
-                        result += (0.15 * GlobalStates.effectiveRightOpen - 0.15 * GlobalStates.effectiveLeftOpen);                    
+                        result += (0.15 * GlobalStates.effectiveLeftOpen - 0.15 * GlobalStates.effectiveRightOpen);                    
                     }
                     return result;
                 }
