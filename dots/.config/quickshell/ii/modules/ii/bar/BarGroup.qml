@@ -12,7 +12,7 @@ Item {
     property var startRadius // left - top
     property var endRadius // right - bottom
 
-    property color colBackground:  Appearance.m3colors.m3surfaceContainerLow
+    property color colBackground: Appearance.m3colors.m3surfaceContainerLow
 
     Rectangle {
         id: background
@@ -23,11 +23,15 @@ Item {
             leftMargin: root.vertical ? 4 : 0
             rightMargin: root.vertical ? 4 : 0
         }
-        color: Config.options?.bar.borderless ? "transparent" : root.colBackground
+        color: root.colBackground
         topLeftRadius: startRadius
         bottomLeftRadius: root.vertical ? endRadius: startRadius
         topRightRadius: root.vertical ? startRadius: endRadius
         bottomRightRadius: endRadius
+
+        Behavior on color {
+            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+        }
     }
 
     GridLayout {

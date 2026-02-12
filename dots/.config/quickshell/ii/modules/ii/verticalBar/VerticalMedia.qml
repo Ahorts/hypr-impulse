@@ -12,7 +12,6 @@ import qs.modules.ii.bar as Bar
 
 MouseArea {
     id: root
-    property bool borderless: Config.options.bar.borderless
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
 

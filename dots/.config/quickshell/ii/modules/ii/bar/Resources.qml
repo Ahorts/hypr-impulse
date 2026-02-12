@@ -5,7 +5,6 @@ import QtQuick.Layouts
 
 MouseArea {
     id: root
-    property bool borderless: Config.options.bar.borderless
     property bool alwaysShowAllResources: true //! FIXME: remove the alwaysShow properties, useless now
     implicitWidth: rowLayout.implicitWidth + rowLayout.anchors.leftMargin + rowLayout.anchors.rightMargin
     implicitHeight: Appearance.sizes.barHeight
