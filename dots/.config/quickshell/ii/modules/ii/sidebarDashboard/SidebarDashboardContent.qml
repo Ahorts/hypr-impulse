@@ -235,13 +235,23 @@ Item {
                     colorize: true
                     color: Appearance.colors.colOnLayer0
                 }
-                StyledText {
+                ColumnLayout {
                     anchors.verticalCenter: parent.verticalCenter
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    color: Appearance.colors.colOnLayer0
-                    text: Translation.tr("Up %1").arg(DateTime.uptime)
-                    textFormat: Text.MarkdownText
+                    spacing: -4
+                    StyledText {
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colOnLayer0
+                        text: Translation.tr("Up")
+                        textFormat: Text.MarkdownText
+                    }
+                    StyledText {
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: Appearance.colors.colSubtext
+                        text: DateTime.uptime
+                        textFormat: Text.MarkdownText
+                    }
                 }
+                
             }
         }
 
