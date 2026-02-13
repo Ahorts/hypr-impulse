@@ -77,7 +77,7 @@ AbstractBackgroundWidget {
     // 'Switch button' visiblity on hover
     hoverEnabled: true
     onEntered: {
-        //if (root.playerList.length <= 1) return
+        if (root.playerList.length <= 1) return
         showSwitchButton = true
     }
     onExited: showSwitchButton = false
@@ -107,6 +107,9 @@ AbstractBackgroundWidget {
     
     function updatePlayer() {
         // console.log("[Media Player Widget]",filteredActivePlayer)
+        if (MprisController.activePlayer) {
+            root.currentPlayer = MprisController.activePlayer
+        }
         if (root.filteredPlayerList.length > 0) {
             root.currentPlayer = root.filteredPlayerList[0]
             return
