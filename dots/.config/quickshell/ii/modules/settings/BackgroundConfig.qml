@@ -129,11 +129,11 @@ ContentPage {
 
         ConfigRow {
             ContentSubsection {
-                register: true
                 visible: !Config.options.background.widgets.clock.showOnlyWhenLocked
                 title: Translation.tr("Clock style")
                 Layout.fillWidth: true
                 ConfigSelectionArray {
+                    register: true
                     currentValue: Config.options.background.widgets.clock.style
                     onSelected: newValue => {
                         Config.options.background.widgets.clock.style = newValue;
@@ -154,10 +154,10 @@ ContentPage {
             }
 
             ContentSubsection {
-                register: true
                 title: Translation.tr("Clock style (locked)")
                 Layout.fillWidth: false
                 ConfigSelectionArray {
+                    register: true
                     currentValue: Config.options.background.widgets.clock.styleLocked
                     onSelected: newValue => {
                         Config.options.background.widgets.clock.styleLocked = newValue;
