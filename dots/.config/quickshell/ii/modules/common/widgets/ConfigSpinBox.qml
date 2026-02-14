@@ -1,5 +1,6 @@
 import qs.modules.common.widgets
 import qs.modules.common
+import qs.services
 import QtQuick
 import QtQuick.Layouts
 
@@ -14,6 +15,13 @@ RowLayout {
     spacing: 10
     Layout.leftMargin: 8
     Layout.rightMargin: 8
+
+    /// Search Registry ///
+    Component.onCompleted: {
+        if (page?.register == false) return
+        let section = SearchRegistry.findSection(this)
+        if (section && text) section.addKeyword(text)
+    }
 
     RowLayout {
         spacing: 10

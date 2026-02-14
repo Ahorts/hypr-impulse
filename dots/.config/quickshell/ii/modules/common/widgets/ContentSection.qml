@@ -9,7 +9,7 @@ ColumnLayout {
     id: root
     property string title
     property string icon: ""
-    property list<string> keywords: []
+    property list<string> stringMap: []
     default property alias data: sectionContent.data
 
     Layout.fillWidth: true
@@ -25,27 +25,20 @@ ColumnLayout {
 
     Component.onCompleted: {
         if (page?.register == false) return
-        // console.log("KEYWORDS", root.keywords)
+        // console.log("KEYWORDS", root.stringMap)
+        if (!page?.index) return
         SearchRegistry.registerSection({
             pageIndex: page?.index,
             title: root.title,
-            keywords: root.keywords,
+            searchStrings: root.stringMap.slice(),
             yPos: root.y
         })
     }
 
     function addKeyword(word) {
         if (!word) return
-
-        let tokens = SearchRegistry.tokenize(word)
-
-        //console.log("Adding keywords", tokens)
-
-        for (let t of tokens) {
-            if (!keywords.includes(t)) {
-                keywords.push(t)
-            }
-        }
+        // console.log("ADD KEYWORD", word)
+        stringMap.push(word)
     }
 
     

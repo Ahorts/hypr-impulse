@@ -62,7 +62,6 @@ ContentPage {
     ContentSection {
         icon: "format_paint"
         title: Translation.tr("Wallpaper & Colors")
-        keywords: ["wallpaper", "colors", "appearance", "palette", "transparency"]
         Layout.fillWidth: true
 
         RowLayout {
@@ -235,7 +234,6 @@ ContentPage {
     ContentSection {
         icon: "screenshot_monitor"
         title: Translation.tr("Bar & screen")
-        keywords: ["bar", "screen", "position", "style", "corner", "rounding", "appearance"]
 
         ConfigRow {
             ContentSubsection {

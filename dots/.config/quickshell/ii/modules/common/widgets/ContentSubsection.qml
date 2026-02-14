@@ -13,6 +13,13 @@ ColumnLayout {
     Layout.topMargin: 4
     spacing: 2
 
+    Component.onCompleted: {
+        if (page?.register == false) return
+        let section = SearchRegistry.findSection(this)
+        if (section && title) section.addKeyword(title)
+        if (section && tooltip) section.addKeyword(tooltip)
+    }
+
     RowLayout {
         ContentSubsectionLabel {
             visible: root.title && root.title.length > 0

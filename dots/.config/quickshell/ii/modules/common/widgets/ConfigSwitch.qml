@@ -1,5 +1,6 @@
 import qs.modules.common.widgets
 import qs.modules.common
+import qs.services
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -16,16 +17,11 @@ RippleButton {
     onClicked: checked = !checked
 
     /// Search Registry ///
-    function findSection(item) {
-        while (item) {
-            if (item.addKeyword) return item
-            item = item.parent
-        }
-    }
     Component.onCompleted: {
-        let section = findSection(this)
-        if (section && text)
-            section.addKeyword(text)
+        if (page?.register == false) return
+        let section = SearchRegistry.findSection(this)
+        // console.log("ADDING", text)
+        if (section && text) section.addKeyword(text)
     }
 
     contentItem: RowLayout {
