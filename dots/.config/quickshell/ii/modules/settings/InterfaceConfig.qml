@@ -584,7 +584,7 @@ ContentPage {
 
         ConfigRow {
             ContentSubsection {
-                title: Translation.tr("Sidebars position")
+                title: Translation.tr("Sidebar position")
 
                 ConfigSelectionArray {
                     currentValue: Config.options.sidebar.position
