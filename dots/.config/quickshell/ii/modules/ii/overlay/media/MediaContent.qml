@@ -18,11 +18,12 @@ import Qt5Compat.GraphicalEffects
 
 StyledOverlayWidget {
     id: root
-    minimumWidth: 350
-    minimumHeight: 150
+    minimumWidth: 250
+    minimumHeight: 50
     
     readonly property MprisPlayer currentPlayer: MprisController.activePlayer
     
+    resizable: false
     property bool downloaded: false
     property string displayedArtFilePath: root.downloaded ? Qt.resolvedUrl(artFilePath) : ""
 
@@ -34,6 +35,10 @@ StyledOverlayWidget {
     onArtFilePathChanged: updateArt()
 
     readonly property bool showSlider: Config.options.overlay.media.showSlider
+    readonly property bool hasSyncedLines: lyricScroller.hasSyncedLines
+
+    readonly property int heightWithLyrics: 150
+    readonly property int heightWithoutLyrics: 80
 
     function updateArt() {
         coverArtDownloader.targetFile = root.artUrl 
@@ -63,12 +68,23 @@ StyledOverlayWidget {
     }
 
     Timer {
-        running: root.currentPlayer?.playbackState == MprisPlaybackState.Playing && lyricScroller.hasSyncedLines
+        running: root.currentPlayer?.playbackState == MprisPlaybackState.Playing && root.hasSyncedLines
         interval: 250
         repeat: true
         onTriggered: root.currentPlayer.positionChanged()
     }
 
+    onHasSyncedLinesChanged: {
+        const oldHeight = Persistent.states.overlay.media.height
+        const newHeight = root.hasSyncedLines ? heightWithLyrics : heightWithoutLyrics
+        const heightDifference = newHeight - oldHeight
+        
+        if (Persistent.states.overlay.media.y > overlayWindow.height / 2) {
+            Persistent.states.overlay.media.y = Persistent.states.overlay.media.y - heightDifference
+        }
+        
+        Persistent.states.overlay.media.height = newHeight
+    }
     
 
     contentItem: OverlayBackground {
@@ -86,7 +102,11 @@ StyledOverlayWidget {
             Item {
                 id: lyricsItem
                 Layout.fillWidth: true
-                Layout.preferredHeight: parent.height - mediaControlsRow.height - contentItem.padding * 2 - 20
+                Layout.preferredHeight: root.hasSyncedLines ? heightWithLyrics - heightWithoutLyrics : 0
+
+                Behavior on Layout.preferredHeight {
+                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                }
 
                 LyricScroller {
                     id: lyricScroller
