@@ -11,6 +11,17 @@ Item {
         
     ]
 
+    function tokenize(text) {
+        if (!text || typeof text !== "string")
+            return []
+
+        return text
+            .toLowerCase()
+            .replace(/[^a-z0-9\s_\-\.]/g, " ")
+            .split(/[\s_\-\.]+/)
+            .filter(function(t) { return t.length > 2 })
+    }
+
     function registerSection(data) {
         sections.push(data)
     }
@@ -35,39 +46,56 @@ Item {
 
     function getSearchResult(text) {
         var results = []
-        text = text.toLowerCase()
+
+        if (!text)
+            return results
+
+        var queryWords = tokenize(text)
 
         for (var i in root.sections) {
             var section = root.sections[i]
+
+            var matchScore = 0
+            var matchedKeyword = ""
+
             for (var j in section.keywords) {
-                var keyword = section.keywords[j].toLowerCase()
-                var words = keyword.split(/\s+/) // keyword'u kelimelere ayır
-                for (var k in words) {
-                    if (words[k].includes(text)) {
-                        results.push({
-                            pageIndex: section.pageIndex,
-                            title: section.title,
-                            keyword: words[k], // eşleşen kelimeyi kaydet
-                            yPos: section.yPos
-                        })
-                        break // bir keyword içindeki kelimelerden biri eşleşince diğerlerine bakmaya gerek yok
+                var keyword = section.keywords[j]
+
+                for (var q in queryWords) {
+                    if (keyword.includes(queryWords[q])) {
+                        matchScore++
+                        matchedKeyword = keyword
                     }
                 }
             }
+
+            // tüm query kelimeleri eşleştiyse
+            if (matchScore > 0) {
+                results.push({
+                    pageIndex: section.pageIndex,
+                    title: section.title,
+                    keyword: matchedKeyword,
+                    yPos: section.yPos,
+                    matchScore: matchScore
+                })
+            }
         }
+
         return results
     }
 
 
     function scoreResult(result, text) {
+        let base = result.matchScore * 300
+
         let keyword = result.keyword
         text = text.toLowerCase()
 
-        if (keyword === text) return 1000
-        if (keyword.startsWith(text)) return 700
-        if (keyword.includes(text)) return 400
+        if (keyword === text) return base + 1000
+        if (keyword.startsWith(text)) return base + 700
+        if (keyword.includes(text)) return base + 400
 
-        return 200 - keyword.length
+        return base
     }
 
 

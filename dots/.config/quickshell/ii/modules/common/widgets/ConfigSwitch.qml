@@ -15,6 +15,19 @@ RippleButton {
     
     onClicked: checked = !checked
 
+    /// Search Registry ///
+    function findSection(item) {
+        while (item) {
+            if (item.addKeyword) return item
+            item = item.parent
+        }
+    }
+    Component.onCompleted: {
+        let section = findSection(this)
+        if (section && text)
+            section.addKeyword(text)
+    }
+
     contentItem: RowLayout {
         spacing: 10
         OptionalMaterialSymbol {

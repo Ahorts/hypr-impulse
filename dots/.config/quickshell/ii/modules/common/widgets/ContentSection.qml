@@ -15,8 +15,17 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: 6
 
+    Timer {
+        id: registerDelayTimer
+        interval: 250
+        onTriggered: {
+            
+        }
+    }
+
     Component.onCompleted: {
         if (page?.register == false) return
+        // console.log("KEYWORDS", root.keywords)
         SearchRegistry.registerSection({
             pageIndex: page?.index,
             title: root.title,
@@ -24,6 +33,22 @@ ColumnLayout {
             yPos: root.y
         })
     }
+
+    function addKeyword(word) {
+        if (!word) return
+
+        let tokens = SearchRegistry.tokenize(word)
+
+        //console.log("Adding keywords", tokens)
+
+        for (let t of tokens) {
+            if (!keywords.includes(t)) {
+                keywords.push(t)
+            }
+        }
+    }
+
+    
 
     RowLayout {
         spacing: 6
