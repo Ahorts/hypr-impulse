@@ -13,7 +13,6 @@ ContentPage {
     ContentSection {
         icon: "sync_alt"
         title: Translation.tr("Parallax")
-        keywords: ["parallax", "vertical", "workspace", "sidebar", "zoom", "background", "wallpaper"]
 
         ConfigSwitch {
             buttonIcon: "unfold_more_double"
@@ -60,7 +59,6 @@ ContentPage {
         id: settingsClock
         icon: "clock_loader_40"
         title: Translation.tr("Widget: Clock")
-        keywords: ["clock", "widget", "digital", "cookie", "animate", "sides", "rotate", "dial", "hour", "minute", "second", "date", "quote", "background", "widgets"]
 
         function stylePresent(styleName) {
             if (!Config.options.background.widgets.clock.showOnlyWhenLocked && Config.options.background.widgets.clock.style === styleName) {
@@ -577,7 +575,6 @@ ContentPage {
     ContentSection {
         icon: "weather_mix"
         title: Translation.tr("Widget: Weather")
-        keywords: ["weather", "widget", "placement", "draggable", "least busy", "most busy", "background", "widgets"]
 
         ConfigRow {
             Layout.fillWidth: true

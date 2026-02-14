@@ -16,7 +16,6 @@ ContentPage {
     ContentSection {
         icon: "mobile_layout"
         title: Translation.tr("Bar layout")
-        keywords: ["bar", "layout", "sections", "positions", "alignment", "vertical"]
         ContentSubsection {
             title: Translation.tr("Left layout")
             tooltip: Translation.tr("Top layout in vertical mode")
@@ -55,7 +54,6 @@ ContentPage {
     ContentSection {
         icon: "ad"
         title: Translation.tr("Active window")
-        keywords: ["active", "window", "fixed", "size", "focus"]
         ConfigSwitch {
             buttonIcon: "crop_free"
             text: Translation.tr("Use fixed size")
@@ -69,7 +67,6 @@ ContentPage {
     ContentSection {
         icon: "music_cast"
         title: Translation.tr("Media player")
-        keywords: ["media", "player", "custom", "size", "horizontal"]
         ConfigSwitch {
             enabled: !Config.options.bar.vertical
             buttonIcon: "crop_free"
@@ -99,7 +96,6 @@ ContentPage {
     ContentSection {
         icon: "notifications"
         title: Translation.tr("Notifications")
-        keywords: ["notifications", "unread", "indicator", "count", "alerts"]
         ConfigSwitch {
             buttonIcon: "counter_2"
             text: Translation.tr("Unread indicator: show count")
@@ -113,7 +109,6 @@ ContentPage {
     ContentSection {
         icon: "spoke"
         title: Translation.tr("Positioning")
-        keywords: ["position", "autohide", "corners", "groups", "style", "orientation"]
 
         ConfigRow {
             ContentSubsection {
@@ -176,7 +171,6 @@ ContentPage {
         }
 
         ConfigRow {
-            
             ContentSubsection {
                 title: Translation.tr("Corner style")
                 Layout.fillWidth: true
@@ -236,7 +230,6 @@ ContentPage {
         id: tray
         icon: "shelf_auto_hide"
         title: Translation.tr("Tray")
-        keywords: ["tray", "icons", "pinned"]
 
         ConfigSwitch {
             buttonIcon: "keep"
@@ -260,7 +253,6 @@ ContentPage {
     ContentSection {
         icon: "widgets"
         title: Translation.tr("Utility buttons")
-        keywords: ["utility", "buttons", "snip", "picker", "keyboard", "mic", "darkmode", "profile", "record"]
 
         ConfigRow {
             uniform: true
@@ -335,7 +327,6 @@ ContentPage {
     ContentSection {
         icon: "workspaces"
         title: Translation.tr("Workspaces")
-        keywords: ["workspace", "workspaces", "numbers", "apps", "icons"]
 
         ConfigSwitch {
             buttonIcon: "counter_1"
@@ -420,7 +411,6 @@ ContentPage {
     ContentSection {
         icon: "tooltip"
         title: Translation.tr("Tooltips")
-        keywords: ["tooltip", "tooltips", "click", "hover"]
         ConfigSwitch {
             buttonIcon: "ads_click"
             text: Translation.tr("Click to show")

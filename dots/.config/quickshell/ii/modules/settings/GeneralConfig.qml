@@ -22,7 +22,6 @@ ContentPage {
     ContentSection {
         icon: "volume_up"
         title: Translation.tr("Audio")
-        keywords: ["audio", "volume", "protection", "limit", "earbang", "increase"]
 
         ConfigSwitch {
             buttonIcon: "hearing"
@@ -65,7 +64,6 @@ ContentPage {
     ContentSection {
         icon: "battery_android_full"
         title: Translation.tr("Battery")
-        keywords: ["battery", "low", "critical", "suspend", "full", "warning", "automatic"]
 
         ConfigRow {
             uniform: true
@@ -137,7 +135,6 @@ ContentPage {
     ContentSection {
         icon: "language"
         title: Translation.tr("Language")
-        keywords: ["language", "interface", "locale", "translation", "gemini", "ui", "generate"]
 
         ContentSubsection {
             title: Translation.tr("Interface Language")
@@ -200,7 +197,6 @@ ContentPage {
     ContentSection {
         icon: "rule"
         title: Translation.tr("Policies")
-        keywords: ["policies", "ai", "weeb", "local", "closet", "anime"]
 
         ConfigRow {
 
@@ -272,7 +268,6 @@ ContentPage {
     ContentSection {
         icon: "notification_sound"
         title: Translation.tr("Sounds")
-        keywords: ["sounds", "battery", "pomodoro", "notifications", "alerts"]
         ConfigRow {
             uniform: true
             ConfigSwitch {
@@ -297,7 +292,6 @@ ContentPage {
     ContentSection {
         icon: "nest_clock_farsight_analog"
         title: Translation.tr("Time")
-        keywords: ["time", "clock", "second precision", "format", "12h", "24h", "am/pm"]
 
         ConfigSwitch {
             buttonIcon: "pace"
@@ -347,7 +341,6 @@ ContentPage {
     ContentSection {
         icon: "work_alert"
         title: Translation.tr("Work safety")
-        keywords: ["work safety", "clipboard", "wallpaper", "sussy", "anime"]
 
         ConfigSwitch {
             buttonIcon: "assignment"

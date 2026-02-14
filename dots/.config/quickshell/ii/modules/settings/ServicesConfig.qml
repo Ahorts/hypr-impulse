@@ -13,7 +13,6 @@ ContentPage {
     ContentSection {
         icon: "neurology"
         title: Translation.tr("AI")
-        keywords: ["AI", "system prompt"]
 
         MaterialTextArea {
             Layout.fillWidth: true
@@ -31,7 +30,6 @@ ContentPage {
     ContentSection {
         icon: "music_cast"
         title: Translation.tr("Music Recognition")
-        keywords: ["music recognition", "timeout", "polling interval", "seconds"]
 
         ConfigSpinBox {
             icon: "timer_off"
@@ -60,7 +58,6 @@ ContentPage {
     ContentSection {
         icon: "cell_tower"
         title: Translation.tr("Networking")
-        keywords: ["networking", "user agent"]
 
         MaterialTextArea {
             Layout.fillWidth: true
@@ -76,7 +73,6 @@ ContentPage {
     ContentSection {
         icon: "memory"
         title: Translation.tr("Resources")
-        keywords: ["resources", "polling interval", "ms"]
 
         ConfigSpinBox {
             icon: "av_timer"
@@ -95,7 +91,6 @@ ContentPage {
     ContentSection {
         icon: "file_open"
         title: Translation.tr("Save paths")
-        keywords: ["save paths", "video recording path", "screenshot path"]
 
         MaterialTextArea {
             Layout.fillWidth: true
@@ -121,7 +116,6 @@ ContentPage {
     ContentSection {
         icon: "search"
         title: Translation.tr("Search")
-        keywords: ["search", "levenshtein", "fuzzy", "prefixes", "action", "clipboard", "emojis", "math", "shell command", "web search", "base URL"]
 
         ConfigSwitch {
             text: Translation.tr("Use Levenshtein distance-based algorithm instead of fuzzy")
@@ -215,7 +209,6 @@ ContentPage {
     ContentSection {
         icon: "weather_mix"
         title: Translation.tr("Weather")
-        keywords: ["weather", "GPS", "fahrenheit", "city name", "polling interval", "minutes"]
         ConfigRow {
             ConfigSwitch {
                 buttonIcon: "assistant_navigation"
