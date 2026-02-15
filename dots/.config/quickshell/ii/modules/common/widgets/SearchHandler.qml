@@ -10,7 +10,11 @@ Item {
         if (SearchRegistry.currentSearch.toLowerCase() === searchHandler.searchString.toLowerCase()) {
             Qt.callLater (() => {
                 let p = page.contentItem.mapFromItem(root, 0, 0)
-                page.contentY = p.y - 100
+                let targetY = p.y - 100
+                
+                let maxContentY = Math.max(0, page.contentHeight - page.height)
+                
+                page.contentY = Math.max(0, Math.min(targetY, maxContentY))
 
                 highlightOverlay.startAnimation()
             })
