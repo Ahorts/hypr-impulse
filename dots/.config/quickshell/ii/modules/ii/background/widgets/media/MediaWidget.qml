@@ -204,18 +204,18 @@ AbstractBackgroundWidget {
             }
         }
         
-        Rectangle { // Art background
+        MaterialShape { // Art background
             id: artBackground
             anchors.fill: parent
-            radius: Appearance.rounding.full
             color: Appearance.colors.colPrimaryContainer
+            shapeString: Config.options.background.widgets.media.backgroundShape
             
             layer.enabled: true
             layer.effect: OpacityMask {
-                maskSource: Rectangle {
+                maskSource: MaterialShape {
                     width: artBackground.width
+                    shapeString: Config.options.background.widgets.media.backgroundShape
                     height: artBackground.height
-                    radius: artBackground.radius
                 }
             }
 

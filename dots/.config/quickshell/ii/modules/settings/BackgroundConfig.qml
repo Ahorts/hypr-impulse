@@ -613,7 +613,7 @@ ContentPage {
         
         Loader { 
             id: backgroundShapeLoader
-            active: page.allowHeavyLoads && settingsClock.cookiePresent && Config.options.background.widgets.clock.cookie.backgroundStyle === "shape"
+            active: page.allowHeavyLoads && settingsClock.cookiePresent && Config.options.background.widgets.clock.cookie.backgroundStyle === "shape" && page.contentY > 500 && !page.register
             visible: active
             Layout.fillWidth: true
             sourceComponent: ContentSubsection {
@@ -736,6 +736,10 @@ ContentPage {
                 Layout.fillWidth: false
                 currentValue: Config.options.background.widgets.media.placementStrategy
                 onSelected: newValue => {
+                    if (newValue === "selectShape") {
+                        mediaBackgroundShapeLoader.active = true;
+                        return;
+                    }
                     Config.options.background.widgets.media.placementStrategy = newValue;
                 }
                 options: [
@@ -754,20 +758,56 @@ ContentPage {
                         icon: "shapes",
                         value: "mostBusy"
                     },
+                    {
+                        displayName: "",
+                        icon: "shape_line",
+                        value: "selectShape"
+                    }
                 ]
+            }
+        }
+
+
+        Loader { 
+            id: mediaBackgroundShapeLoader
+            active: false
+            visible: active
+            Layout.fillWidth: true
+            sourceComponent: ContentSubsection {
+                title: Translation.tr("Background shape")
+                
+                ConfigSelectionArray {
+                    currentValue: Config.options.background.widgets.media.backgroundShape
+                    onSelected: newValue => {
+                        Config.options.background.widgets.media.backgroundShape = newValue;
+                    }
+                    options: ([ 
+                        "Circle", "Square", "Slanted", "Arch", "Arrow", "SemiCircle", "Oval", "Pill", "Triangle",
+                        "Diamond", "ClamShell", "Pentagon", "Gem", "Sunny", "VerySunny", "Cookie4Sided", "Cookie6Sided", 
+                        "Cookie7Sided", "Cookie9Sided", "Cookie12Sided", "Ghostish", "Clover4Leaf", "Clover8Leaf", "Burst", 
+                        "SoftBurst", "Flower", "Puffy", "PuffyDiamond", "PixelCircle", "Bun", "Heart" 
+                    ]).map(icon => { 
+                        return { 
+                            displayName: "", 
+                            shape: icon, 
+                            value: icon 
+                        } 
+                    })
+                }
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "colors"
+            text: Translation.tr("Tint art cover")
+            checked: Config.options.background.widgets.media.tintArtCover
+            onCheckedChanged: {
+                Config.options.background.widgets.media.tintArtCover = checked;
             }
         }
 
         ConfigRow {
             uniform: true
-            ConfigSwitch {
-                buttonIcon: "colors"
-                text: Translation.tr("Tint art cover")
-                checked: Config.options.background.widgets.media.tintArtCover
-                onCheckedChanged: {
-                    Config.options.background.widgets.media.tintArtCover = checked;
-                }
-            }
             ConfigSwitch {
                 buttonIcon: "opacity"
                 text: Translation.tr("Use album colors")

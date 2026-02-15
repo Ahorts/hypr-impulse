@@ -216,6 +216,7 @@ Singleton {
                         property bool hideAllButtons: false
                         property bool showPreviousToggle: true
                         property bool tintArtCover: false
+                        property string backgroundShape: "Circle"  // Options: MaterialShape.Shape enum values as string
                         property JsonObject glow: JsonObject {
                             property bool enable: true
                             property real brightness: 10
