@@ -618,10 +618,6 @@ Singleton {
                 }
             }
 
-            property JsonObject settings: JsonObject {
-                property bool enableSearchFunctionality: true // some people may wanna disable this bc it loads all pages at the startup so it may be laggy for some users
-            }
-
             property JsonObject sidebar: JsonObject {
                 property string position: "default"
                 property bool keepRightSidebarLoaded: true
