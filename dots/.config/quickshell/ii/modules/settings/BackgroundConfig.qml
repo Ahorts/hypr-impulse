@@ -576,44 +576,65 @@ ContentPage {
             }
         }
 
+
         ContentSubsection {
             visible: settingsClock.cookiePresent
             title: Translation.tr("Background style")
 
-            ConfigSelectionArray {
-                currentValue: Config.options.background.widgets.clock.cookie.backgroundStyle
-                onSelected: newValue => {
-                    Config.options.background.widgets.clock.cookie.backgroundStyle = newValue;
+            ConfigRow {
+                spacing: 10
+                ConfigSelectionArray {
+                    Layout.fillWidth: false
+                    currentValue: Config.options.background.widgets.clock.cookie.backgroundStyle
+                    onSelected: newValue => {
+                        Config.options.background.widgets.clock.cookie.backgroundStyle = newValue;
+                    }
+                    options: [
+                        {
+                            displayName: "",
+                            icon: "block",
+                            value: "hide"
+                        },
+                        {
+                            displayName: Translation.tr("Sine"),
+                            icon: "waves",
+                            value: "sine"
+                        },
+                        {
+                            displayName: Translation.tr("Cookie"),
+                            icon: "cookie",
+                            value: "cookie"
+                        },
+                        {
+                            displayName: Translation.tr("Shape"),
+                            icon: "shape_line",
+                            value: "shape"
+                        },
+                    ]
                 }
-                options: [
-                    {
-                        displayName: "",
-                        icon: "block",
-                        value: "hide"
-                    },
-                    {
-                        displayName: Translation.tr("Sine"),
-                        icon: "waves",
-                        value: "sine"
-                    },
-                    {
-                        displayName: Translation.tr("Cookie"),
-                        icon: "cookie",
-                        value: "cookie"
-                    },
-                    {
-                        displayName: Translation.tr("Shape"),
-                        icon: "shape_line",
-                        value: "shape"
-                    },
-                ]
-            }
+
+                RippleButtonWithShape {
+                    Layout.fillWidth: false
+                    shapeString: Config.options.background.widgets.clock.cookie.backgroundShape
+                    showDropDown: true
+
+                    onClicked: {
+                        backgroundShapeLoader.active = !backgroundShapeLoader.active;
+                    }
+                    StyledToolTip {
+                        text: Translation.tr("Select a material shape")
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+            }   
         }
 
-        
         Loader { 
             id: backgroundShapeLoader
-            active: page.allowHeavyLoads && settingsClock.cookiePresent && Config.options.background.widgets.clock.cookie.backgroundStyle === "shape" && page.contentY > 500 && !page.register
+            active: false
             visible: active
             Layout.fillWidth: true
             sourceComponent: ContentSubsection {
@@ -729,25 +750,9 @@ ContentPage {
                 }
             }
             
-
-            RippleButton {
-                buttonRadius: Appearance.rounding.full
-                
-                buttonText: ""
-
-                colBackground: Appearance.colors.colSecondaryContainer
-                colBackgroundHover: Appearance.colors.colSecondaryContainerHover
-                colRipple: Appearance.colors.colSecondaryContainerActive
-                
-                implicitWidth: 40
-                MaterialShape {
-                    id: mediaBackgroundShape
-                    shapeString: Config.options.background.widgets.media.backgroundShape
-                    color: Appearance.colors.colOnSecondaryContainer
-                    width: 20
-                    height: 20
-                    anchors.centerIn: parent
-                }
+            RippleButtonWithShape {
+                shapeString: Config.options.background.widgets.media.backgroundShape
+                showDropDown: true
 
                 onClicked: {
                     mediaBackgroundShapeLoader.active = !mediaBackgroundShapeLoader.active;
