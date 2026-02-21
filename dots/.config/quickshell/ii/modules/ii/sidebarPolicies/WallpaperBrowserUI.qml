@@ -33,6 +33,10 @@ Item {
     property real pullLoadingGap: 100  
     property bool pullLoading: false  
     property real normalizedPullDistance: 0  
+
+    // Input field properties  
+    property bool containsDrag: false  
+    property string previewPath: ""
       
     onFocusChanged: focus => {  
         if (focus) {  
@@ -182,6 +186,25 @@ Item {
                 }  
             }  
         }  
+
+        AttachedFileIndicator {
+            visible: implicitHeight > 0
+            implicitHeight: root.containsDrag ? contentHeight : 0
+            opacity: root.containsDrag ? 1 : 0
+            highlight: false
+
+            Layout.fillWidth: true
+
+            Behavior on implicitHeight {
+                animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
+            }
+            Behavior on opacity {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+            }
+
+            filePath: root.previewPath
+            
+        }
           
         Rectangle {  
             id: searchInputContainer  
@@ -192,6 +215,59 @@ Item {
             implicitHeight: Math.max(inputFieldRowLayout.implicitHeight + inputFieldRowLayout.anchors.topMargin + statusRowLayout.implicitHeight + statusRowLayout.anchors.bottomMargin + spacing, 45)  
             clip: true  
               
+
+            DropArea {
+                id: dropArea
+                anchors.fill: parent
+
+                readonly property string currentProvider: WallpaperBrowser.currentProvider
+                function getWallhavenId(url) {
+                    const urlStr = url.toString()
+                    const fileName = urlStr.split('/').pop() 
+                    const fileNameWithoutExt = fileName.split('.')[0] 
+                    const match = fileNameWithoutExt.match(/^wallhaven-([a-zA-Z0-9]{6})$/i)
+                    return match ? match[1] : null
+                }
+
+                onContainsDragChanged: root.containsDrag = dropArea.containsDrag
+
+                onEntered: (drag) => {
+                    if (currentProvider !== "wallhaven") return
+                    if (!Images.isValidImageByName(drag.urls[0])) return
+                    if (drag.hasUrls && drag.urls.length > 0) {
+                        root.previewPath = drag.urls[0]
+                    }
+                }
+                onExited: root.previewPath = ""
+
+                onDropped: (drop) => {
+                    if (drop.hasUrls) {
+                        for (var i = 0; i < drop.urls.length; i++) {
+                            const fileUrl = drop.urls[i]
+
+                            const wallhavenId = getWallhavenId(fileUrl)
+                            if (currentProvider !== "wallhaven") {
+                                WallpaperBrowser.addSystemMessage(Translation.tr("Similar images only works with wallhaven service"));  
+                                continue
+                            }
+                            if (!Images.isValidImageByName(fileUrl)) {
+                                WallpaperBrowser.addSystemMessage(Translation.tr("Please drop an image file"));  
+                                continue
+                            }
+                            if (!wallhavenId) {
+                                WallpaperBrowser.addSystemMessage(Translation.tr("Please drop a valid wallhaven image named like **wallhaven-######.png**"));  
+                                continue
+                            }
+
+                            console.log("[Wallpaper Browser] Dropped image:", fileUrl)
+                            WallpaperBrowser.addSimilarImageMessage(Translation.tr("Searching for a similar image:"), fileUrl)
+                            root.handleInput(root.commandPrefix + "similar " + wallhavenId);
+                        }
+                        drop.accept(Qt.CopyAction)
+                    }
+                }
+            }
+
             RowLayout {  
                 id: inputFieldRowLayout  
                 anchors.left: parent.left  
@@ -204,7 +280,7 @@ Item {
                     id: searchInputField  
                     Layout.fillWidth: true  
                     Layout.fillHeight: true  
-                    placeholderText: Translation.tr("Search wallpapers... (e.g., nature, abstract)")  
+                    placeholderText: WallpaperBrowser.currentProvider === "wallhaven" ? Translation.tr("Search or drag wallpapers...") : Translation.tr("Search wallpapers... (e.g., nature, abstract)")  
                       
                     onTextChanged: {  
                         if (searchInputField.text.length === 0) {  

@@ -6,7 +6,8 @@ import QtQuick.Layouts
 
 Item { // Model indicator
     id: root
-    property string icon: "api"
+    property string icon: ""
+    property string symbol: ""
     property string text: ""
     property string tooltipText: ""
     implicitHeight: rowLayout.implicitHeight + 4 * 2
@@ -16,10 +17,24 @@ Item { // Model indicator
         id: rowLayout
         anchors.centerIn: parent
 
-        MaterialSymbol {
-            text: root.icon
-            iconSize: Appearance.font.pixelSize.normal
+        Loader {
+            active: root.icon.length > 0
+            sourceComponent: MaterialSymbol {
+                text: root.icon
+                iconSize: Appearance.font.pixelSize.normal
+            }
         }
+        Loader {
+            active: root.symbol.length > 0
+            sourceComponent: CustomIcon {
+                source: root.symbol
+                width: Appearance.font.pixelSize.normal
+                height: Appearance.font.pixelSize.normal
+                colorize: true
+                color: Appearance.colors.colPrimary
+            }
+        }
+        
         StyledText {
             id: providerName
             font.pixelSize: Appearance.font.pixelSize.smaller

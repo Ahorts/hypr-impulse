@@ -271,6 +271,7 @@ if [ $? -eq 0 ]; then
     echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     echo -e "${RED}WARNING: You might need to reset your config if your shell looks broken (refer to wiki).${NC}"
+    echo -e "${BLUE}Press SUPER+CTRL+R if your shell does not starts.${NC}"
     echo ""
     log_verbose "Script completed successfully"
     echo -e "${BLUE}Please star this project on GitHub: ${NC}https://github.com/vaguesyntax/ii-vynx"

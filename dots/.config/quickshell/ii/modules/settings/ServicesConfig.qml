@@ -5,6 +5,9 @@ import qs.modules.common
 import qs.modules.common.widgets
 
 ContentPage {
+    id: page
+    readonly property int index: 5
+    property bool register: parent.register ?? false
     forceWidth: true
 
     ContentSection {
@@ -254,6 +257,25 @@ ContentPage {
                 }
             }
 
+        }
+    }
+
+    ContentSection {
+        icon: "download"
+        title: Translation.tr("Update")
+
+        ContentSubsection {
+            title: Translation.tr("Script path")
+
+            MaterialTextArea {
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Direct path to setup-ii-vynx.sh")
+                text: Config.options.update.scriptPath
+                wrapMode: TextEdit.NoWrap
+                onTextChanged: {
+                    Config.options.update.scriptPath = text;
+                }
+            }
         }
     }
 

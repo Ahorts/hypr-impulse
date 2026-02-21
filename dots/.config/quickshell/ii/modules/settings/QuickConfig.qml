@@ -10,6 +10,8 @@ import qs.modules.common.functions
 
 ContentPage {
     id: page
+    readonly property int index: 0
+    property bool register: parent.register ?? false
     forceWidth: true
     interactive: false
 
@@ -314,6 +316,7 @@ ContentPage {
                 title: Translation.tr("Screen round corner")
 
                 ConfigSelectionArray {
+                    register: true
                     currentValue: Config.options.appearance.fakeScreenRounding
                     onSelected: newValue => {
                         Config.options.appearance.fakeScreenRounding = newValue;
@@ -364,6 +367,7 @@ ContentPage {
             Layout.fillWidth: false
 
             ConfigSelectionArray {
+                register: true
                 currentValue: Config.options.bar.barBackgroundStyle
                 onSelected: newValue => {
                     Config.options.bar.barBackgroundStyle = newValue;

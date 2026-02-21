@@ -92,18 +92,15 @@ Singleton {
                 property string systemPrompt: "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text. You can have a friendly greeting at the beginning of the conversation, but don't repeat the user's question\n\n## Context (ignore when irrelevant)\n- You are a helpful and inspiring sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response: \n  - **Bold** text to **highlight keywords** in your response\n  - **Split long information into small sections** with h2 headers and a relevant emoji at the start of it (for example `## 🐧 Linux`). Bullet points are preferred over long paragraphs, unless you're offering writing support or instructed otherwise by the user.\n- Asked to compare different options? You should firstly use a table to compare the main aspects, then elaborate or include relevant comments from online forums *after* the table. Make sure to provide a final recommendation for the user's use case!\n- Use LaTeX formatting for mathematical and scientific notations whenever appropriate. Enclose all LaTeX '$$' delimiters. NEVER generate LaTeX code in a latex block unless the user explicitly asks for it. DO NOT use LaTeX for regular documents (resumes, letters, essays, CVs, etc.).\n"
                 property string tool: "functions" // search, functions, or none
                 property list<var> extraModels: [
-                    {
-                        "api_format": "openai", // Most of the time you want "openai". Use "gemini" for Google's models
-                        "description": "This is a custom model. Edit the config to add more! | Anyway, this is DeepSeek R1 Distill LLaMA 70B",
-                        "endpoint": "https://openrouter.ai/api/v1/chat/completions",
-                        "homepage": "https://openrouter.ai/deepseek/deepseek-r1-distill-llama-70b:free", // Not mandatory
-                        "icon": "spark-symbolic", // Not mandatory
-                        "key_get_link": "https://openrouter.ai/settings/keys", // Not mandatory
-                        "key_id": "openrouter",
-                        "model": "deepseek/deepseek-r1-distill-llama-70b:free",
-                        "name": "Custom: DS R1 Dstl. LLaMA 70B",
-                        "requires_key": true
-                    }
+                    //Needed entries in the object: title, value, modelProvider (only for openrouter)
+                    {"openrouter": [
+                        {title: "Gemini 2.5 Flash", value: "gemini-2.5-flash", modelProvider: "google"},
+                    ]},
+                    {"google": [
+                    ]},
+                    {"mistral": [
+                        
+                    ]},
                 ]
             }
 
@@ -216,8 +213,10 @@ Singleton {
                         property real x: 800
                         property real y: 100
                         property bool useAlbumColors: true
+                        property bool hideAllButtons: false
                         property bool showPreviousToggle: true
                         property bool tintArtCover: false
+                        property string backgroundShape: "Circle"  // Options: MaterialShape.Shape enum values as string
                         property JsonObject glow: JsonObject {
                             property bool enable: true
                             property real brightness: 10
@@ -267,7 +266,7 @@ Singleton {
                 property bool bottom: false // Instead of top
                 property int cornerStyle: 0 // 0: Hug | 1: Float | 2: Plain rectangle
                 property bool floatStyleShadow: true // Show shadow behind bar when cornerStyle == 1 (Float)
-                property bool borderless: false // true for no grouping of items
+                property int barGroupStyle: 0 // 0: Pills | 1: Island (opaque) | 2: Transparent (or maybe line-separated in the future)
                 property string topLeftIcon: "spark" // Options: "distro" or any icon name in ~/.config/quickshell/ii/assets/icons
                 property int barBackgroundStyle: 1 // 0: Transparent | 1: Visible | 2: Adaptive
                 property bool verbose: true
@@ -288,8 +287,6 @@ Singleton {
                 
                 
                 property JsonObject resources: JsonObject {
-                    property bool alwaysShowSwap: true
-                    property bool alwaysShowCpu: true
                     property int memoryWarningThreshold: 95
                     property int swapWarningThreshold: 85
                     property int cpuWarningThreshold: 90
@@ -588,6 +585,11 @@ Singleton {
                 property bool filterPassive: true
             }
 
+            property JsonObject update: JsonObject {
+                property string scriptPath: ""
+                property string scriptFlags: "--no-backup --no-confirm"
+            }
+
             property JsonObject musicRecognition: JsonObject {
                 property int timeout: 16
                 property int interval: 4
@@ -627,6 +629,7 @@ Singleton {
                 property JsonObject ai: JsonObject {
                     property bool textFadeIn: false
                     property bool showProviderAndModelButtons: true
+                    property list<string> showProviders: ["google", "openrouter", "mistral"]
                 }
                 property JsonObject booru: JsonObject {
                     property bool allowNsfw: false

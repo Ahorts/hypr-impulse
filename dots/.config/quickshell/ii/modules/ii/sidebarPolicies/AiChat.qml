@@ -20,6 +20,9 @@ Item {
     property var suggestionQuery: ""
     property var suggestionList: []
 
+    property bool containsDrag: false
+    property string previewPath: ""
+
     onFocusChanged: focus => {
         if (focus) {
             root.inputField.forceActiveFocus();
@@ -54,7 +57,14 @@ Item {
             name: "model",
             description: Translation.tr("Choose model"),
             execute: args => {
-                Ai.setModel(args[0]);
+                Persistent.states.ai.model = args[0];
+            }
+        },
+        {
+            name: "provider",
+            description: Translation.tr("Choose provider"),
+            execute: args => {
+                Persistent.states.ai.provider = args[0];
             }
         },
         {
@@ -123,6 +133,7 @@ Item {
             name: "clear",
             description: Translation.tr("Clear chat history"),
             execute: () => {
+
                 Ai.clearMessages();
             }
         },
@@ -413,64 +424,98 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
             showArrows: root.suggestionList.length > 1
         }
 
-        Item {
-            Layout.fillWidth: true
-            implicitHeight: contentLayout.implicitHeight
-            visible: Config.options.sidebar.ai.showProviderAndModelButtons // FIXME: loader plss
+        Loader {
+            id: modelAndProviderLoader
+            width: item?.implicitWidth
+            height: item?.implicitHeight
+            Layout.alignment: Qt.AlignHCenter
 
-            ColumnLayout {
-                id: contentLayout
-                Layout.fillWidth: true
+            active: Config.options.sidebar.ai.showProviderAndModelButtons && Ai.messageIDs.length === 0
+            visible: active
+
+            sourceComponent: Item {
+                implicitWidth: contentLayout.implicitWidth
+                implicitHeight: contentLayout.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                ConfigSelectionArray {
-                    id: providerSelector
-                    Layout.alignment: Qt.AlignHCenter
+                ColumnLayout {
+                    id: contentLayout
+                    width: 330
+                    anchors.horizontalCenter: parent.horizontalCenter
 
-                    colBackground: Appearance.colors.colLayer1
-                    colBackgroundHover: Appearance.colors.colLayer1Hover
-                    colBackgroundActive: Appearance.colors.colLayer1Active
+                    ConfigSelectionArray {
+                        id: providerSelector
+                        Layout.alignment: Qt.AlignHCenter
+                        width: parent.width
 
-                    currentValue: Persistent.states.ai.provider
-                    onSelected: newValue => {
-                        Persistent.states.ai.provider = newValue;
-                    }
-                    options: [
-                        {
-                            displayName: "Gemini",
-                            icon: "star",
-                            value: "gemini"
-                        },
-                        {
-                            displayName: "OpenRouter",
-                            icon: "alt_route",
-                            value: "openrouter"
-                        },
-                        {
-                            displayName: "Mistral",
-                            icon: "metro",
-                            value: "mistral"
+                        currentValue: Persistent.states.ai.provider
+                        onSelected: newValue => {
+                            Persistent.states.ai.provider = newValue;
+                            Persistent.states.ai.model = Ai.modelsOfProviders[providerSelector.currentValue][0].value
                         }
-                    ]
-                }
+                        
+                        
+                        property var allProviderOptions: ({
+                            "google": {
+                                displayName: "Google",
+                                symbol: "spark-symbolic",
+                                value: "google"
+                            },
+                            "openrouter": {
+                                displayName: "OpenRouter",
+                                symbol: "openrouter-symbolic",
+                                value: "openrouter"
+                            },
+                            "mistral": {
+                                displayName: "Mistral",
+                                symbol: "mistral-symbolic",
+                                value: "mistral"
+                            }
+                        })
 
-                StyledComboBox {
-                    id: componentSelector
-
-                    buttonIcon: "box"
-                    textRole: "title"
-                    model: Ai.modelsOfProviders[providerSelector.currentValue]
-                    enabled: true
-
-                    onModelChanged: {
-                        Persistent.states.ai.model = Ai.modelsOfProviders[providerSelector.currentValue][0].value;
+                        readonly property list<string> showProviders: Config.options.sidebar.ai.showProviders
+                        
+                        options: {
+                            var result = [];
+                            for (var i = 0; i < showProviders.length; i++) {
+                                var providerKey = showProviders[i];
+                                if (allProviderOptions[providerKey]) {
+                                    result.push(allProviderOptions[providerKey]);
+                                }
+                            }
+                            return result;
+                        }
                     }
-                    onActivated: index => {
-                        Persistent.states.ai.model = Ai.modelsOfProviders[providerSelector.currentValue][index].value;    
+
+
+                    StyledComboBox {
+                        id: modelSelector
+                        width: parent.width
+
+                        buttonIcon: "wand_stars"
+                        textRole: "title"
+                        model: Ai.modelsOfProviders[providerSelector.currentValue]
+                        enabled: true
+                        currentIndex: {
+                            const models = Ai.modelsOfProviders[providerSelector.currentValue];
+                            for (var i = 0; i < models.length; i++) {
+                                if (models[i].value === Persistent.states.ai.model) {
+                                    return i;
+                                }
+                            }
+                            return 0;
+                        }
+
+                        function updateModel(index = 0) {
+                            Persistent.states.ai.model = Ai.modelsOfProviders[providerSelector.currentValue][index].value
+                        }
+
+                        onActivated: index => updateModel(index)
                     }
                 }
             }
         }
+        
         
 
         FlowButtonGroup { // Suggestions
@@ -529,6 +574,25 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
             }
         }
 
+        AttachedFileIndicator {
+            visible: implicitHeight > 0
+            implicitHeight: root.containsDrag ? contentHeight : 0
+            opacity: root.containsDrag ? 1 : 0
+            highlight: false
+
+            Layout.fillWidth: true
+
+            Behavior on implicitHeight {
+                animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
+            }
+            Behavior on opacity {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+            }
+
+            filePath: root.previewPath
+            
+        }
+
         Rectangle { // Input area
             id: inputWrapper
             property real spacing: 5
@@ -554,6 +618,46 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                 onRemove: Ai.attachFile("")
             }
 
+            DropArea {
+                id: dropArea
+                anchors.fill: parent
+
+                readonly property string currentProvider: Persistent.states.ai.provider
+
+                onContainsDragChanged: {
+                    if (currentProvider !== "google") return
+                    root.containsDrag = dropArea.containsDrag
+                }
+
+                onPreviewPathChanged: {
+                    if (currentProvider !== "google") return
+                    root.previewPath = dropArea.previewPath
+                }
+
+                property string previewPath: ""
+    
+                onEntered: (drag) => {
+                    if (currentProvider !== "google") return
+                    if (drag.hasUrls && drag.urls.length > 0) {
+                        previewPath = drag.urls[0]
+                    }
+                }
+                
+                onExited: {
+                    previewPath = ""
+                }
+                
+                onDropped: (drop) => {
+                    if (drop.hasUrls) {
+                        for (var i = 0; i < drop.urls.length; i++) {
+                            console.log("[AI Chat] Dropped file:", drop.urls[i])
+                            Ai.attachFile(drop.urls[i])
+                        }
+                        drop.accept(Qt.CopyAction)
+                    }
+                }
+            } 
+
             RowLayout { // Input field and send button
                 id: inputFieldRowLayout
                 anchors {
@@ -570,7 +674,7 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                     Layout.fillWidth: true
                     padding: 10
                     color: activeFocus ? Appearance.m3colors.m3onSurface : Appearance.m3colors.m3onSurfaceVariant
-                    placeholderText: Translation.tr('Message the model... "%1" for commands').arg(root.commandPrefix)
+                    placeholderText: Persistent.states.ai.provider === "google" ? Translation.tr('Message or drag files here... "%1" for commands').arg(root.commandPrefix) : Translation.tr('Message to models... "%1" for commands').arg(root.commandPrefix)
 
                     background: null
 
@@ -580,22 +684,56 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                             root.suggestionQuery = "";
                             root.suggestionList = [];
                             return;
-                        } else if (messageInputField.text.startsWith(`${root.commandPrefix}model`)) {
+                        } else if (messageInputField.text.startsWith(`${root.commandPrefix}provider`)) {
                             root.suggestionQuery = messageInputField.text.split(" ")[1] ?? "";
-                            const modelResults = Fuzzy.go(root.suggestionQuery, Ai.modelList.map(model => {
-                                return {
-                                    name: Fuzzy.prepare(model),
-                                    obj: model
-                                };
-                            }), {
+                            
+                            const providers = ["google", "openrouter", "mistral"];
+                            const providerDescriptions = {
+                                "google": {displayName: "Google", description: "Google's LLM"},
+                                "openrouter": {displayName: "OpenRouter", description: "OpenRouter's LLM"},
+                                "mistral": {displayName: "Mistral", description: "Mistral's LLM"}
+                            };
+                            
+                            const providerResults = Fuzzy.go(root.suggestionQuery, providers.map(p => ({
+                                name: Fuzzy.prepare(p),
+                                obj: p
+                            })), {
                                 all: true,
                                 key: "name"
                             });
-                            root.suggestionList = modelResults.map(model => {
+                            
+                            root.suggestionList = providerResults.map(result => {
+                                const providerName = result.target;
+                                const providerInfo = providerDescriptions[providerName];
                                 return {
-                                    name: `${messageInputField.text.trim().split(" ").length == 1 ? (root.commandPrefix + "model ") : ""}${model.target}`,
-                                    displayName: `${Ai.models[model.target].name}`,
-                                    description: `${Ai.models[model.target].description}`
+                                    name: `${messageInputField.text.trim().split(" ").length == 1 ? (root.commandPrefix + "provider ") : ""}${providerName}`,
+                                    displayName: providerInfo.displayName,
+                                    description: providerInfo.description
+                                };
+                            });
+                        } else if (messageInputField.text.startsWith(`${root.commandPrefix}model`)) {
+                            root.suggestionQuery = messageInputField.text.split(" ")[1] ?? "";
+                            
+                            const providerModels = Ai.modelsOfProviders[Persistent.states.ai.provider] || [];
+                            
+                            const modelList = providerModels.map(model => ({
+                                name: Fuzzy.prepare(model.value),
+                                obj: model
+                            }));
+
+                            const modelResults = Fuzzy.go(root.suggestionQuery, modelList, {
+                                all: true,
+                                key: "name"
+                            });
+                            
+                            root.suggestionList = modelResults.map(result => {
+                                const modelValue = result.target;
+                                const model = providerModels.find(m => m.value === modelValue);
+                                
+                                return {
+                                    name: `${messageInputField.text.trim().split(" ").length == 1 ? (root.commandPrefix + "model ") : ""}${model.value}`,
+                                    displayName: model.title,
+                                    description: model.modelProvider ? `Provider: ${model.modelProvider}` : `${Ai.currentProvider} model`
                                 };
                             });
                         } else if (messageInputField.text.startsWith(`${root.commandPrefix}prompt`)) {
@@ -801,8 +939,11 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
 
                 ApiInputBoxIndicator {
                     // Model indicator
-                    icon: "api"
-                    text: Ai.getModel().name
+                    property string currentProvider: Persistent.states.ai.provider
+                    property string providerIcon: currentProvider === "openrouter" ? "openrouter-symbolic" : currentProvider === "google" ? "spark-symbolic" : "mistral-symbolic"
+
+                    symbol: providerIcon
+                    text: Persistent.states.ai.model // TODO: add a readable version
                     tooltipText: Translation.tr("Current model: %1\nSet it with %2model MODEL").arg(Ai.getModel().name).arg(root.commandPrefix)
                 }
 

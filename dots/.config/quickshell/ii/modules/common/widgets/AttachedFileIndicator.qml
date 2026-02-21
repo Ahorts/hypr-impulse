@@ -13,6 +13,7 @@ Rectangle {
 
     signal remove()
     property bool canRemove: true
+    property bool highlight: true
     property string filePath: ""
     property string mimeType: ""
     property real maxHeight: 200
@@ -21,6 +22,7 @@ Rectangle {
     property real scale: Math.min(root.maxHeight / imageHeight, root.width / imageWidth)
     onFilePathChanged: refresh()
     visible: filePath !== ""
+    
 
     function refresh() {
         root.mimeType = "";
@@ -57,8 +59,10 @@ Rectangle {
     property real horizontalPadding: 10
     property real verticalPadding: 10
     radius: Appearance.rounding.small - anchors.margins
-    color: Appearance.colors.colLayer2
+    color: highlight ? Appearance.colors.colPrimary : Appearance.colors.colLayer2
     implicitHeight: visible ? (contentItem.implicitHeight + verticalPadding * 2) : 0
+
+    readonly property real contentHeight: contentItem.implicitHeight + verticalPadding * 2
 
     ColumnLayout {
         id: contentItem
@@ -87,6 +91,7 @@ Rectangle {
                     return "file_present";
                 }
                 iconSize: Appearance.font.pixelSize.hugeass
+                color: highlight ? Appearance.colors.colOnPrimary : Appearance.colors.colPrimary
             }
 
             StyledText {
@@ -96,13 +101,14 @@ Rectangle {
                 font.pixelSize: Appearance.font.pixelSize.smaller
                 font.family: Appearance.font.family.monospace
                 wrapMode: Text.Wrap
+                color: highlight ? Appearance.colors.colOnPrimary : Appearance.colors.colPrimary
             }
 
             RippleButton {
                 visible: root.canRemove
                 Layout.alignment: Qt.AlignTop
                 buttonRadius: Appearance.rounding.full
-                colBackground: Appearance.colors.colLayer2
+                colBackground: highlight ? Appearance.m3colors.m3background : Appearance.colors.colLayer2
                 implicitHeight: 28
                 implicitWidth: 28
                 contentItem: MaterialSymbol {
@@ -110,7 +116,7 @@ Rectangle {
                     text: "close"
                     horizontalAlignment: Text.AlignHCenter
                     iconSize: Appearance.font.pixelSize.larger
-                    color: Appearance.colors.colOnSurfaceVariant
+                    color: highlight ? Appearance.colors.colPrimary : Appearance.colors.colOnSurfaceVariant
                 }
 
                 onClicked: root.remove()

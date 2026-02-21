@@ -9,6 +9,8 @@ import QtQml.Models
 ContentPage {
     id: page
     forceWidth: true
+    readonly property int index: 2 
+    property bool register: parent.register ?? false
 
     property var componentMap: ({
         "active_window": activeWindow,
@@ -174,6 +176,7 @@ ContentPage {
                 Layout.fillWidth: true
 
                 ConfigSelectionArray {
+                    register: true
                     currentValue: Config.options.bar.cornerStyle
                     onSelected: newValue => {
                         Config.options.bar.cornerStyle = newValue; // Update local copy
@@ -200,23 +203,30 @@ ContentPage {
 
             ContentSubsection {
                 title: Translation.tr("Group style")
+                tooltip: Translation.tr("Island style makes the group background opaque when bar is transparent")
                 Layout.fillWidth: false
 
                 ConfigSelectionArray {
-                    currentValue: Config.options.bar.borderless
+                    register: true
+                    currentValue: Config.options.bar.barGroupStyle
                     onSelected: newValue => {
-                        Config.options.bar.borderless = newValue; // Update local copy
+                        Config.options.bar.barGroupStyle = newValue; // Update local copy
                     }
                     options: [
                         {
                             displayName: Translation.tr("Pills"),
                             icon: "location_chip",
-                            value: false
+                            value: 0
                         },
                         {
-                            displayName: Translation.tr("Line-separated"),
-                            icon: "split_scene",
-                            value: true
+                            displayName: Translation.tr("Island"),
+                            icon: "shadow",
+                            value: 1
+                        },
+                        {
+                            displayName: Translation.tr("Transparent"),
+                            icon: "opacity",
+                            value: 2
                         }
                     ]
                 }
@@ -229,6 +239,7 @@ ContentPage {
             Layout.fillWidth: false
 
             ConfigSelectionArray {
+                register: true
                 currentValue: Config.options.bar.barBackgroundStyle
                 onSelected: newValue => {
                     Config.options.bar.barBackgroundStyle = newValue;
@@ -339,6 +350,7 @@ ContentPage {
                 }
 
                 ConfigSelectionArray {
+                    register: true
                     Layout.fillWidth: false
                     currentValue: Config.options.bar.mediaPlayer.lyrics.style
                     onSelected: newValue => {

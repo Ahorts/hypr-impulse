@@ -69,8 +69,6 @@ StyledOverlayWidget {
         onTriggered: root.currentPlayer.positionChanged()
     }
 
-    
-
     contentItem: OverlayBackground {
         id: contentItem
         radius: root.contentRadius
@@ -134,6 +132,12 @@ StyledOverlayWidget {
                             height: artBackground.height
                             radius: artBackground.radius
                         }
+                    }
+
+                    MouseArea {
+                        cursorShape: Qt.PointingHandCursor
+                        anchors.fill: parent
+                        onClicked: root.updateArt()
                     }
 
                     StyledImage { // Art image

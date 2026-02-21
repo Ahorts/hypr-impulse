@@ -19,16 +19,20 @@ Flow {
             "displayName": "Option 1",
             "icon": "check",
             "shape": "Arch", // Optional (for material shape)
+            "symbol": "google-gemini-symbolic", // Optional (for custom icons)
             "value": 1
         },
         {
             "displayName": "Option 2",
             "icon": "close",
             "shape": "Circle", // Optional (for material shape)
+            "symbol": "mistral-symbolic", // Optional (for custom icons)
             "value": 2
         },
     ]
     property var currentValue: null
+    property var register: false // not registering every selection array
+
 
     signal selected(var newValue)
 
@@ -52,6 +56,7 @@ Flow {
             rightmost: index === root.options.length - 1
             buttonIcon: modelData.icon || ""
             buttonShape: modelData.shape || ""
+            buttonSymbol: modelData.symbol || ""
             buttonText: modelData.displayName
             toggled: root.currentValue == modelData.value
             releaseAction: modelData.releaseAction || ""

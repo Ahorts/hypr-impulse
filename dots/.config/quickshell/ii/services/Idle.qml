@@ -13,16 +13,18 @@ Singleton {
     property alias inhibit: idleInhibitor.enabled
     inhibit: false
 
-    Connections {
-        target: Persistent
-        function onReadyChanged() {
-            if (!Persistent.isNewHyprlandInstance) {
-                root.inhibit = Persistent.states.idle.inhibit;
-            } else {
-                Persistent.states.idle.inhibit = root.inhibit;
-            }
+    function restoreFromPersistent() {
+        if (Persistent.ready) {
+            root.inhibit = Persistent.states.idle.inhibit;
         }
     }
+
+    Connections {
+        target: Persistent
+        function onReadyChanged() { restoreFromPersistent(); }
+    }
+
+    Component.onCompleted: restoreFromPersistent()
 
     function toggleInhibit(active = null) {
         if (active !== null) {

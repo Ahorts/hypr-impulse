@@ -5,7 +5,15 @@
 
 
 
+<div align="center"> 
+     <h2>• screenshots •</h2>
 
+|  |  |
+| ----------- | ----------- |
+| <img width="1919" height="1078" alt="image" src="https://github.com/user-attachments/assets/9297bec7-63b4-47bf-8905-9a4baa8de4e9" /> | <img width="1916" height="1078" alt="image" src="https://github.com/user-attachments/assets/53c3b4be-9ba0-40dc-8570-c6a3a80c18cf" /> |  
+| <img width="1917" height="1078" alt="image" src="https://github.com/user-attachments/assets/b35f2b3d-3b8c-470b-aa9a-db85703944ce" /> | <img width="1920" height="1078" alt="image" src="https://github.com/user-attachments/assets/aa822b97-cc55-46fe-a2e0-3ebdbdb247c6" /> |
+
+</div>
 
 <div align="center">
     <h2>• warning •</h2>
@@ -44,19 +52,52 @@ Tip: You can see all flags you can use with `--help`:
     <h2>• updating •</h2>
 </div>
 
-### illogical-impulse<sup>Quickshell</sup>
+Run the setup script:
 
-This is the latest and only supported style. Other stuff are still there mostly for viewing pleasure and not actual use, but code is still available, see below.
+```
+./setup-ii-vynx.sh
+```
 
-Widget system: Quickshell | Support: Yes
+<div align="center">
+    <h2>• documentation •</h2>
+</div>
 
-[Showcase video](https://www.youtube.com/watch?v=RPwovTInagE)
+Please refer to [this repository's wiki](https://github.com/vaguesyntax/ii-vynx/wiki) for detailed component descriptions and further information.
 
-| AI, settings app | Some widgets |
-|:---|:---------------|
-| <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ea0154a1-e984-4bb6-a424-23247cefe3c6" /> | <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6eba0d57-2606-4cea-8993-e6f169e82e70" /> |
-| Window management | Built with love |
-| <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a7e6d29c-e82c-4934-98db-36c810ec999b" /> | <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/1b806b53-9310-4c63-84a9-cec9e311d439" /> |
+Please refer to [this wiki page about limitations](https://github.com/vaguesyntax/ii-vynx/wiki/Known-Issues-and-Limitations) to see current bugs, the details of known issues about this repo and limitations of hyprscrolling plugin implementation.
+
+
+<div align="center">
+    <h2>• hyprscrolling implementation •</h2>
+</div>
+
+
+A [Niri](https://github.com/YaLTeR/niri) like scrollable tiling layout.
+You have to use my hyprscrolling plugin in order to make shell communicate with plugin.
+
+- Realtime windows position and size communication with plugin
+- You can move windows in **different** workspaces
+- You can swap the places of windows **in the same row** 
+
+Follow the documentation on [my hyprscrolling plugin](https://github.com/vaguesyntax/hyprscrolling) to install and configure it.
+
+<div align="center">
+    <h2>• credits •</h2>
+</div>
+
+### **[end-4](https://github.com/end-4):** Creator of illogical-impulse, alien
+
+**[ii](https://github.com/end-4/dots-hyprland):** A perfect hyprland dots in material-3 style
+
+**[Quickshell](https://quickshell.org/):** Qt-Quick based widget system for hyprland
+
+**[Hyprland](https://hypr.land/):** Loves-to-crash wayland compositor
+
+
+**Since you scrolled all the way down here, can I get your star? ⭐**
+
+
+
 
 
 

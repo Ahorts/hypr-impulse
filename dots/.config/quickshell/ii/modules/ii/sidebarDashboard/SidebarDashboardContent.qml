@@ -235,13 +235,23 @@ Item {
                     colorize: true
                     color: Appearance.colors.colOnLayer0
                 }
-                StyledText {
+                ColumnLayout {
                     anchors.verticalCenter: parent.verticalCenter
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    color: Appearance.colors.colOnLayer0
-                    text: Translation.tr("Up %1").arg(DateTime.uptime)
-                    textFormat: Text.MarkdownText
+                    spacing: -4
+                    StyledText {
+                        font.pixelSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colOnLayer0
+                        text: Translation.tr("Up")
+                        textFormat: Text.MarkdownText
+                    }
+                    StyledText {
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: Appearance.colors.colSubtext
+                        text: DateTime.uptime
+                        textFormat: Text.MarkdownText
+                    }
                 }
+                
             }
         }
 
@@ -284,6 +294,33 @@ Item {
                 }
                 StyledToolTip {
                     text: Translation.tr("Settings")
+                }
+            }
+            QuickToggleButton {
+                id: updateButton
+                toggled: confirm
+                property bool confirm: false
+                buttonIcon: confirm ? "check" : "download"
+                Timer {
+                    id: confirmTimer
+                    interval: 2000
+                    onTriggered: {
+                        confirmTimer.stop();
+                        updateButton.confirm = false
+                    }
+                }
+                onClicked: {
+                    if (confirm) {
+                        GlobalStates.sidebarRightOpen = false;
+                        Quickshell.execDetached(["bash", "-c", Config.options.update.scriptPath + " " + Config.options.update.scriptFlags ]);
+                    } else {
+                        confirm = true
+                        confirmTimer.start()
+                    }
+                    
+                }
+                StyledToolTip {
+                    text: Translation.tr("Update the ii-vynx, make sure to set script path in settings")
                 }
             }
             QuickToggleButton {

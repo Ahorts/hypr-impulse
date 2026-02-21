@@ -149,6 +149,15 @@ Rectangle {
             }  
             PointingHandLinkHover {}  
         }  
+
+        Loader {
+            Layout.fillWidth: true
+            active: root.responseData.filePath && root.responseData.filePath.length > 0
+            sourceComponent: AttachedFileIndicator {
+                filePath: FileUtils.trimFileProtocol(root.responseData.filePath)
+                canRemove: false
+            }
+        }
           
         Repeater {  
             model: ScriptModel {  
