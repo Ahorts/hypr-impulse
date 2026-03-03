@@ -284,24 +284,11 @@ ContentPage {
         icon: "music_cast"
         title: Translation.tr("Media player")
 
-        ConfigSwitch {
-            enabled: !Config.options.bar.vertical
-            buttonIcon: "crop_free"
-            text: Translation.tr("Use custom size")
-            checked: Config.options.bar.mediaPlayer.useCustomSize
-            onCheckedChanged: {
-                Config.options.bar.mediaPlayer.useCustomSize = checked;
-            }
-            StyledToolTip {
-                text: Translation.tr("Only available in horizontal mode")
-            }
-        }
-
         ConfigRow {
             uniform: true
 
             ConfigSpinBox {
-                enabled: !Config.options.bar.vertical && Config.options.bar.mediaPlayer.useCustomSize
+                enabled: !Config.options.bar.vertical
                 icon: "width_full"
                 text: Translation.tr("Custom size")
                 value: Config.options.bar.mediaPlayer.customSize
@@ -314,7 +301,7 @@ ContentPage {
             }
 
             ConfigSpinBox {
-                enabled: !Config.options.bar.vertical && Config.options.bar.mediaPlayer.useCustomSize
+                enabled: !Config.options.bar.vertical
                 icon: "width_full"
                 text: Translation.tr("Lyrics custom size")
                 value: Config.options.bar.mediaPlayer.lyrics.customSize
@@ -350,7 +337,6 @@ ContentPage {
                 }
 
                 ConfigSelectionArray {
-                    register: true
                     Layout.fillWidth: false
                     currentValue: Config.options.bar.mediaPlayer.lyrics.style
                     onSelected: newValue => {
@@ -359,45 +345,27 @@ ContentPage {
                     options: [
                         {
                             displayName: Translation.tr("Static"),
-                            icon: "text_fields",
+                            icon: "format_size",
                             value: "static"
                         },
                         {
-                            displayName: Translation.tr("Scrolling"),
-                            icon: "swap_vert",
-                            value: "scrolling"
+                            displayName: Translation.tr("Scroller"),
+                            icon: "keyboard_double_arrow_up",
+                            value: "scroller"
                         }
                     ]
                 }
             }
 
-            ConfigRow {
-                uniform: true
-                ConfigSwitch {
-                    enabled: Config.options.bar.mediaPlayer.lyrics.enable && Config.options.bar.mediaPlayer.lyrics.style === "scrolling"
-                    buttonIcon: "gradient"
-                    text: Translation.tr("Use gradient mask")
-                    checked: Config.options.bar.mediaPlayer.lyrics.useGradientMask
-                    onCheckedChanged: {
-                        Config.options.bar.mediaPlayer.lyrics.useGradientMask = checked;
-                    }
-                }
-                ConfigSwitch {
-                    enabled: Config.options.bar.mediaPlayer.lyrics.enable
-                    buttonIcon: "clock_loader_60"
-                    text: Translation.tr("Show loading indicator")
-                    checked: Config.options.bar.mediaPlayer.lyrics.showLoadingIndicator
-                    onCheckedChanged: {
-                        Config.options.bar.mediaPlayer.lyrics.showLoadingIndicator = checked;
-                    }
-                    StyledToolTip {
-                        text: Translation.tr("Show an indicator while lyrics are being fetched")
-                    }
+            ConfigSwitch {
+                enabled: Config.options.bar.mediaPlayer.lyrics.enable && Config.options.bar.mediaPlayer.lyrics.style === "scroller"
+                buttonIcon: "gradient"
+                text: Translation.tr("Use gradient mask")
+                checked: Config.options.bar.mediaPlayer.lyrics.useGradientMask
+                onCheckedChanged: {
+                    Config.options.bar.mediaPlayer.lyrics.useGradientMask = checked;
                 }
             }
-
-            
-
             
         }
 

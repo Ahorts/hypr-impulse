@@ -11,7 +11,7 @@ Singleton {
     property string filePath: Directories.shellConfigPath
     property alias options: configOptionsJsonAdapter
     property bool ready: false
-    property int readWriteDelay: 50 // milliseconds
+    property int readWriteDelay: 75 // milliseconds
     property bool blockWrites: false
 
     function setNestedValue(nestedKey, value) {
@@ -246,6 +246,20 @@ Singleton {
                     property bool enableSidebar: true
                     property real widgetsFactor: 1.2
                 }
+                property JsonObject mediaMode: JsonObject {
+                    property bool togglePerMonitor: false
+                    property string backgroundShape: "Square"
+                    property bool enableBackgroundAnimation: true // It **may** cause nausea for someone
+                    property bool changeShellColor: true // Changes the shell color to the album color
+                    property JsonObject backgroundAnimation: JsonObject {
+                        property bool enable: true
+                        property int speedScale: 10 // 1: very slow, 10: default, 20: 2x speed etc.
+                    }
+                    property JsonObject syllable: JsonObject {
+                        property int textHighlightStyle: 0 // 0: vertical, 1: horizontal (not perfect bc its not synced in a word level, but a cool animation to have)
+                    }
+                    
+                }
             }
 
             property JsonObject bar: JsonObject {
@@ -273,13 +287,11 @@ Singleton {
                 property bool vertical: false
                 
                 property JsonObject mediaPlayer: JsonObject {
-                    property bool useCustomSize: false
                     property int customSize: 250
                     property JsonObject lyrics: JsonObject {
                         property bool enable: true
                         property int customSize: 400
-                        property string style: "scrolling" // Options: "static", "scrolling"
-                        property bool showLoadingIndicator: true
+                        property string style: "scroller" // Options: scroller, static
                         property bool useGradientMask: true
                     }
                 }
@@ -535,8 +547,7 @@ Singleton {
                 property string style: "classic" // Options: classic, scrolling
 
                 property JsonObject hyprscrollingImplementation: JsonObject {
-                    property bool enable: false
-                    property int maxWorkspaceWidth: 1200
+                    property int maxWorkspaceWidth: 1200 //TODO: remove this too
                 }
                 property JsonObject scrollingStyle: JsonObject {
                     
@@ -575,6 +586,12 @@ Singleton {
             property JsonObject resources: JsonObject {
                 property int updateInterval: 3000
                 property int historyLength: 60
+            }
+
+            property JsonObject lyricsService: JsonObject {
+                property bool enable: true
+                property bool enableGenius: true
+                property bool enableLrclib: true
             }
 
             property JsonObject tray: JsonObject {

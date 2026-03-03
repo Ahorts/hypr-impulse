@@ -8,10 +8,16 @@
 <div align="center"> 
      <h2>• screenshots •</h2>
 
-|  |  |
+| Overall view of widgets | Overlay and AI sidebar |
 | ----------- | ----------- |
 | <img width="1919" height="1078" alt="image" src="https://github.com/user-attachments/assets/9297bec7-63b4-47bf-8905-9a4baa8de4e9" /> | <img width="1916" height="1078" alt="image" src="https://github.com/user-attachments/assets/53c3b4be-9ba0-40dc-8570-c6a3a80c18cf" /> |  
-| <img width="1917" height="1078" alt="image" src="https://github.com/user-attachments/assets/b35f2b3d-3b8c-470b-aa9a-db85703944ce" /> | <img width="1920" height="1078" alt="image" src="https://github.com/user-attachments/assets/aa822b97-cc55-46fe-a2e0-3ebdbdb247c6" /> |
+
+| Media mode | Wallpaper service and settings |
+| ----------- | ----------- |
+| <img width="1920" height="1077" alt="image" src="https://github.com/user-attachments/assets/a966c5ca-ef0a-4ecf-882b-e7ef55dde74e" /> | <img width="1920" height="1078" alt="image" src="https://github.com/user-attachments/assets/aa822b97-cc55-46fe-a2e0-3ebdbdb247c6" /> |
+
+
+
 
 </div>
 
@@ -66,20 +72,6 @@ Please refer to [this repository's wiki](https://github.com/vaguesyntax/ii-vynx/
 
 Please refer to [this wiki page about limitations](https://github.com/vaguesyntax/ii-vynx/wiki/Known-Issues-and-Limitations) to see current bugs, the details of known issues about this repo and limitations of hyprscrolling plugin implementation.
 
-
-<div align="center">
-    <h2>• hyprscrolling implementation •</h2>
-</div>
-
-
-A [Niri](https://github.com/YaLTeR/niri) like scrollable tiling layout.
-You have to use my hyprscrolling plugin in order to make shell communicate with plugin.
-
-- Realtime windows position and size communication with plugin
-- You can move windows in **different** workspaces
-- You can swap the places of windows **in the same row** 
-
-Follow the documentation on [my hyprscrolling plugin](https://github.com/vaguesyntax/hyprscrolling) to install and configure it.
 
 <div align="center">
     <h2>• credits •</h2>

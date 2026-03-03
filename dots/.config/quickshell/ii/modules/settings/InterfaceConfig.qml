@@ -12,26 +12,6 @@ ContentPage {
     property bool register: parent.register ?? false
     forceWidth: true
 
-    property bool hyprscrollingPluginEnabled: false
-    property bool pluginStateFetched: false
-
-    Process {
-        running: page.contentY > 500 && !pluginStateFetched // fetching the content when scrolled a little to prevent lags
-        command: [ "hyprpm", "list"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let rawOutput = this.text;
-        
-                let cleanOutput = rawOutput.replace(/\x1B\[[0-9;]*[JKmsu]/g, '');
-                let flatText = cleanOutput.replace(/[│└─→]/g, ' ').replace(/\s+/g, ' ');
-
-                let pluginEnabled = flatText.includes("Plugin hyprscrolling enabled: true")
-                page.hyprscrollingPluginEnabled = pluginEnabled
-                page.pluginStateFetched = true
-            }
-        } 
-    }
-
     ContentSection {
         icon: "model_training"
         title: Translation.tr("AI")
@@ -995,7 +975,6 @@ ContentPage {
             }
 
             ConfigSpinBox {
-                enabled: Config.options.overview.hyprscrollingImplementation.enable
                 icon: "width"
                 text: Translation.tr("Max workspace width")
                 value: Config.options.overview.hyprscrollingImplementation.maxWorkspaceWidth
@@ -1091,53 +1070,6 @@ ContentPage {
                         value: "transparent"
                     }
                 ]
-            }
-        }
-
-
-
-        ContentSubsection {
-            title: Translation.tr("Hyprscrolling plugin implementation")
-
-            ConfigSwitch {
-                buttonIcon: "view_carousel"
-                text: Translation.tr("Use hyprscrolling implementation")
-                checked: Config.options.overview.hyprscrollingImplementation.enable
-                onCheckedChanged: {
-                    Config.options.overview.hyprscrollingImplementation.enable = checked;
-                }
-            }
-        }
-
-        RowLayout {
-            Layout.topMargin: 10
-            
-            StyledText {
-                Layout.preferredWidth: 150
-                property bool firstError: page.hyprscrollingPluginEnabled && !configEnabled
-                property bool secondError: !page.hyprscrollingPluginEnabled & configEnabled
-                property bool configEnabled: Config.options.overview.hyprscrollingImplementation.enable
-                Layout.leftMargin: 10
-                color: firstError || secondError ? Appearance.colors.colError : Appearance.colors.colSubtext
-                font.pixelSize: Appearance.font.pixelSize.smallie
-                text: firstError ? Translation.tr("Hyprscrolling plugin is installed. To ensure a better experience\nplease enable the ‘implementation’ option.") :
-                    secondError ? Translation.tr("Hyprscrolling plugin is not installed. To ensure a better experience\nplease disable the ‘implementation’ option.") :
-                    Translation.tr("Plese refer to documentation for more information about how to\nimplement hyprscrolling plugin to properly work with this shell")
-                    
-            }
-            Item {
-                Layout.fillWidth: true
-            }
-            RippleButtonWithIcon {
-                buttonRadius: Appearance.rounding.full
-                materialIcon: "open_in_new"
-                mainText: Translation.tr("Open docs")
-                onClicked: {
-                    Qt.openUrlExternally(`https://github.com/vaguesyntax/ii-vynx?tab=readme-ov-file#-hyprscrolling-implementation-`);
-                }
-                StyledToolTip {
-                    text: "github.com/vaguesyntax/ii-vynx"
-                }
             }
         }
     }

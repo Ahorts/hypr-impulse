@@ -59,6 +59,140 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "music_note"
+        title: Translation.tr("Media mode")
+        tooltip: Translation.tr("Toggle the mode with a keybind that executes 'quickshell:mediaModeToggle'\nExample: bindd = Super, Z, Toggle media mode, global, quickshell:mediaModeToggle")
+
+        ConfigRow {
+
+            ConfigSwitch {
+                Layout.fillWidth: true
+                buttonIcon: "monitor"
+                text: Translation.tr("Toggle per monitor")
+                checked: Config.options.background.mediaMode.togglePerMonitor
+                onCheckedChanged: {
+                    Config.options.background.mediaMode.togglePerMonitor = checked;
+                }
+            }
+
+            RippleButtonWithShape {
+                Layout.fillWidth: false
+
+                shapeString: Config.options.background.mediaMode.backgroundShape
+                implicitWidth: 60
+                extraIcon: "edit"
+
+                onClicked: {
+                    mediaModeBackgroundShapeLoader.active = !mediaModeBackgroundShapeLoader.active;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Edit the material shape")
+                }
+            }
+        }
+        
+
+        Loader { 
+            id: mediaModeBackgroundShapeLoader
+            active: false
+            visible: active
+            Layout.fillWidth: true
+            sourceComponent: ContentSubsection {
+                title: Translation.tr("Background shape")
+                
+                ConfigSelectionArray {
+                    currentValue: Config.options.background.mediaMode.backgroundShape
+                    onSelected: newValue => {
+                        Config.options.background.mediaMode.backgroundShape = newValue;
+                    }
+                    options: ([ 
+                        "Circle", "Square", "Slanted", "Arch", "Arrow", "SemiCircle", "Oval", "Pill", "Triangle",
+                        "Diamond", "ClamShell", "Pentagon", "Gem", "Sunny", "VerySunny", "Cookie4Sided", "Cookie6Sided", 
+                        "Cookie7Sided", "Cookie9Sided", "Cookie12Sided", "Ghostish", "Clover4Leaf", "Clover8Leaf", "Burst", 
+                        "SoftBurst", "Flower", "Puffy", "PuffyDiamond", "PixelCircle", "Bun", "Heart" 
+                    ]).map(icon => { 
+                        return { 
+                            displayName: "", 
+                            shape: icon, 
+                            value: icon 
+                        } 
+                    })
+                }
+            }
+        }
+
+        ConfigRow {
+            ConfigSwitch {
+                Layout.fillWidth: false
+                buttonIcon: "animation"
+                text: Translation.tr("Enable background animation")
+                checked: Config.options.background.mediaMode.backgroundAnimation.enable
+                onCheckedChanged: {
+                    Config.options.background.mediaMode.backgroundAnimation.enable = checked;
+                }
+            }
+
+            ConfigSpinBox {
+                enabled: Config.options.background.mediaMode.backgroundAnimation.enable
+                Layout.fillWidth: true
+                icon: "speed"
+                text: Translation.tr("Speed scale")
+                value: Config.options.background.mediaMode.backgroundAnimation.speedScale
+                from: 0
+                to: 100
+                stepSize: 5
+                onValueChanged: {
+                    Config.options.background.mediaMode.backgroundAnimation.speedScale = value;
+                }
+
+                MouseArea {
+                    z: -1
+                    id: spinBoxMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
+
+                StyledToolTip {
+                    extraVisibleCondition: spinBoxMouseArea.containsMouse
+                    text: Translation.tr("1: very slow | 10: default | 20: 2x speed...")
+                }
+            }
+        }
+        
+        ConfigSwitch {
+            buttonIcon: "format_color_fill"
+            text: Translation.tr("Change shell color to match album art")
+            checked: Config.options.background.mediaMode.changeShellColor
+            onCheckedChanged: {
+                Config.options.background.mediaMode.changeShellColor = checked;
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Text highlight style")
+            ConfigSelectionArray {
+                currentValue: Config.options.background.mediaMode.syllable.textHighlightStyle
+                onSelected: newValue => {
+                    Config.options.background.mediaMode.syllable.textHighlightStyle = newValue;
+                }
+                options: [
+                    {   
+                        displayName: Translation.tr("Vertical"),
+                        icon: "vertical_distribute",
+                        value: 0
+                    },
+                    {
+                        displayName: Translation.tr("Horizontal"),
+                        icon: "horizontal_distribute",
+                        value: 1
+                    }
+                ]
+            }
+        }
+        
+    }
+
+    ContentSection {
         id: settingsClock
         icon: "clock_loader_40"
         title: Translation.tr("Widget: Clock")
@@ -255,8 +389,8 @@ ContentPage {
                 value: Config.options.background.widgets.clock.digital.font.size
                 usePercentTooltip: false
                 buttonIcon: "format_size"
-                from: 70
-                to: 150
+                from: 50
+                to: 700
                 stopIndicatorValues: [90]
                 onValueChanged: {
                     Config.options.background.widgets.clock.digital.font.size = value;

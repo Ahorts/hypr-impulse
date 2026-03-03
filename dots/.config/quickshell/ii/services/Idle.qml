@@ -4,35 +4,38 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-/**
- * A nice wrapper for date and time strings.
- */
 Singleton {
     id: root
 
     property alias inhibit: idleInhibitor.enabled
     inhibit: false
 
-    function restoreFromPersistent() {
-        if (Persistent.ready) {
-            root.inhibit = Persistent.states.idle.inhibit;
+    readonly property string _sessionId: Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") || ""
+
+    Timer {
+        id: restoreTimer
+        interval: 0
+        repeat: false
+        onTriggered: {
+            if (!Persistent.ready) return
+            const storedId = Persistent.states.idle.sessionId || ""
+            if (storedId === root._sessionId) {
+                root.inhibit = Persistent.states.idle.inhibit ?? false
+            } else {
+                root.inhibit = false
+            }
         }
     }
 
     Connections {
         target: Persistent
-        function onReadyChanged() { restoreFromPersistent(); }
+        function onReadyChanged() { restoreTimer.restart() }
     }
 
-    Component.onCompleted: restoreFromPersistent()
-
     function toggleInhibit(active = null) {
-        if (active !== null) {
-            root.inhibit = active;
-        } else {
-            root.inhibit = !root.inhibit;
-        }
-        Persistent.states.idle.inhibit = root.inhibit;
+        root.inhibit = active !== null ? active : !root.inhibit
+        Persistent.states.idle.inhibit = root.inhibit
+        Persistent.states.idle.sessionId = root._sessionId
     }
 
     IdleInhibitor {

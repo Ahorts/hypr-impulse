@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.utils //FIXME. remove
 import qs.modules.common.widgets
 import qs.modules.common.widgets.widgetCanvas
 import qs.modules.common.functions as CF
@@ -22,6 +23,8 @@ import qs.modules.ii.background.widgets.media
 Variants {
     id: root
     model: Quickshell.screens
+
+    
 
     PanelWindow {
         id: bgRoot
@@ -141,11 +144,25 @@ Variants {
             }
         }
 
+        property bool mediaModeOpen: mediaModeLoader.active && MprisController.activePlayer
+        onMediaModeOpenChanged: {
+            if (!mediaModeOpen) {
+                Wallpapers.apply(Config.options.background.wallpaperPath)
+                LyricsService.shellColorChanged = false
+            }
+        }
+
+
         Item {
             id: wallpaperItem
             anchors.fill: parent
             clip: true
             scale: showOpeningAnimation && overviewOpen && Config.options.overview.style === "scrolling" ? zoomedRatio : defaultRatio
+            opacity: mediaModeOpen ? 0 : 1
+            
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
 
             Behavior on scale {
                 animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
@@ -349,6 +366,33 @@ Variants {
                         }
                     }
                 }
+            }
+        }
+
+        Component.onCompleted: {
+            Persistent.states.background.mediaMode.enabled = false // we use this persistent to access this from outside of this script, cannot be toggled
+        }
+
+        GlobalShortcut {
+            name: "mediaModeToggle"
+            description: "Toggles media mode on press"
+
+            onPressed: {
+                if (!monitor.focused && Config.options.background.mediaMode.togglePerMonitor) return
+                mediaModeLoader.active = !mediaModeLoader.active
+                Persistent.states.background.mediaMode.enabled = mediaModeLoader.active
+            }
+        }
+        
+        Loader {
+            id: mediaModeLoader
+            anchors.fill: parent
+            active: false
+            asynchronous: true
+            sourceComponent: MediaMode {}
+            opacity: status === Loader.Ready ? 1 : 0
+            Behavior on opacity {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
             }
         }
     }

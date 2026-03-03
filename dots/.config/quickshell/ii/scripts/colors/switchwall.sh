@@ -142,17 +142,23 @@ EOF
 }
 
 set_wallpaper_path() {
-  local path="$1"
-  if [ -f "$SHELL_CONFIG_FILE" ]; then
-    jq --arg path "$path" '.background.wallpaperPath = $path' "$SHELL_CONFIG_FILE" >"$SHELL_CONFIG_FILE.tmp" && mv "$SHELL_CONFIG_FILE.tmp" "$SHELL_CONFIG_FILE"
-  fi
+    local path="$1"
+    if [ -f "$SHELL_CONFIG_FILE" ]; then
+        jq --indent 4 --arg path "$path" '.background.wallpaperPath = $path' "$SHELL_CONFIG_FILE" > "$SHELL_CONFIG_FILE.tmp" && mv "$SHELL_CONFIG_FILE.tmp" "$SHELL_CONFIG_FILE"
+    fi
 }
 
 set_thumbnail_path() {
-  local path="$1"
-  if [ -f "$SHELL_CONFIG_FILE" ]; then
-    jq --arg path "$path" '.background.thumbnailPath = $path' "$SHELL_CONFIG_FILE" >"$SHELL_CONFIG_FILE.tmp" && mv "$SHELL_CONFIG_FILE.tmp" "$SHELL_CONFIG_FILE"
-  fi
+    local path="$1"
+    if [ -f "$SHELL_CONFIG_FILE" ]; then
+        jq --indent 4 --arg path "$path" '.background.thumbnailPath = $path' "$SHELL_CONFIG_FILE" > "$SHELL_CONFIG_FILE.tmp" && mv "$SHELL_CONFIG_FILE.tmp" "$SHELL_CONFIG_FILE"
+    fi
+}
+
+categorize_wallpaper() {
+    img_cat=$("$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$1")
+    # notify-send "Wallpaper category" "$img_cat"
+    echo "$img_cat" > "$STATE_DIR/user/generated/wallpaper/category.txt"
 }
 
 switch() {
@@ -322,9 +328,16 @@ main() {
   color=""
   noswitch_flag=""
 
-  get_type_from_config() {
-    jq -r '.appearance.palette.type' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "auto"
-  }
+    get_type_from_config() {
+        jq -r '.appearance.palette.type' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "auto"
+    }
+    get_accent_color_from_config() {
+        jq -r '.appearance.palette.accentColor' "$SHELL_CONFIG_FILE" 2>/dev/null || echo ""
+    }
+    set_accent_color() {
+        local color="$1"
+        jq --indent 4 --arg color "$color" '.appearance.palette.accentColor = $color' "$SHELL_CONFIG_FILE" > "$SHELL_CONFIG_FILE.tmp" && mv "$SHELL_CONFIG_FILE.tmp" "$SHELL_CONFIG_FILE"
+    }
 
   detect_scheme_type_from_image() {
     local img="$1"
@@ -390,11 +403,17 @@ main() {
     type_flag="auto"
   fi
 
-  # Only prompt for wallpaper if not using --color and not using --noswitch and no imgpath set
-  if [[ -z "$imgpath" && -z "$color_flag" && -z "$noswitch_flag" ]]; then
-    cd "$(xdg-user-dir PICTURES)/Wallpapers/showcase" 2>/dev/null || cd "$(xdg-user-dir PICTURES)/Wallpapers" 2>/dev/null || cd "$(xdg-user-dir PICTURES)" || return 1
-    imgpath="$(kdialog --getopenfilename . --title 'Choose wallpaper')"
-  fi
+    # Only prompt for wallpaper if not using --color and not using --noswitch and no imgpath set
+    if [[ -z "$imgpath" && -z "$color_flag" && -z "$noswitch_flag" ]]; then
+        cd "$(xdg-user-dir PICTURES)/Wallpapers/showcase" 2>/dev/null || cd "$(xdg-user-dir PICTURES)/Wallpapers" 2>/dev/null || cd "$(xdg-user-dir PICTURES)" || return 1
+        imgpath="$(kdialog --getopenfilename . --title 'Choose wallpaper')"
+    fi
+
+    if [[ -n "$imgpath" && -z "$noswitch_flag" ]]; then
+        set_accent_color ""
+        color_flag=""
+        color=""
+    fi
 
   if [[ -n "$imgpath" && -z "$noswitch_flag" ]]; then
     set_accent_color ""

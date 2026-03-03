@@ -186,13 +186,6 @@ ContentPage {
             spacing: 5
 
             RippleButtonWithIcon {
-                materialIcon: "auto_stories"
-                mainText: Translation.tr("Documentation")
-                onClicked: {
-                    Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/wiki")
-                }
-            }
-            RippleButtonWithIcon {
                 materialIcon: "adjust"
                 materialIconFill: false
                 mainText: Translation.tr("Issues")
@@ -200,6 +193,21 @@ ContentPage {
                     Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/issues")
                 }
             }
+            RippleButtonWithIcon {
+                materialIcon: "auto_stories"
+                mainText: Translation.tr("Documentation")
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/wiki")
+                }
+            }
+            RippleButtonWithIcon {
+                materialIcon: "bug_report"
+                mainText: Translation.tr("Known Issues")
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/wiki/Known-Issues-and-Limitations")
+                }
+            }
+            
 
             
         }
