@@ -400,7 +400,6 @@ ContentPage {
 
         ContentSubsection {
             title: Translation.tr("Bar background style")
-            tooltip: Translation.tr("Adaptive style makes the bar background transparent when there are no active windows")
             Layout.fillWidth: false
 
             ConfigSelectionArray {

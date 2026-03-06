@@ -164,6 +164,7 @@ Singleton {
             }
 
             property JsonObject background: JsonObject {
+                property bool enable: true // if someone wants to use an external wallpaper manager, note that its not fully tested but it should just disable background.qml from being loaded
                 property JsonObject widgets: JsonObject {
                     property JsonObject clock: JsonObject {
                         property bool enable: true
@@ -544,20 +545,12 @@ Singleton {
                 property list<var> workspaceMap: [0,10]
                 property bool showOpeningAnimation: true
 
-                property string style: "classic" // Options: classic, scrolling
-
-                property JsonObject hyprscrollingImplementation: JsonObject {
-                    property int maxWorkspaceWidth: 1200 //TODO: remove this too
-                }
                 property JsonObject scrollingStyle: JsonObject {
                     
                     property int dimPercentage: 50 // 0-75
                     property string backgroundStyle: "blur" // Options: transparent, blur, dim
                     property string zoomStyle: "in"         // Options: in, out
                 }
-                
-                property string position: "center" // Options: top, center, bottom
-                property int centerTopPaddingRatio: 3
             }
 
             property JsonObject regionSelector: JsonObject {

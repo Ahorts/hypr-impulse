@@ -38,6 +38,9 @@ Item {
     property real iconRatio: 0.8
     property bool showIcons: Config.options.bar.workspaces.showAppIcons
 
+    readonly property bool isScrollingLayout: GlobalStates.isScrollingLayout
+    property int maxWindowCount: isScrollingLayout ? Config.options.bar.workspaces.maxWindowCount : 1
+
     property bool showNumbersByMs: false
     Timer {
         id: showNumbersTimer

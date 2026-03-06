@@ -71,6 +71,8 @@ Variants {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
         }
 
+        readonly property bool isScrollingLayout: GlobalStates.isScrollingLayout
+
         property var zoomLevels: {  // has to be reverted compared to background
             "in": { default: 1.04, zoomed: 1 },
             "out": { default: 1, zoomed: 1.04 }
@@ -157,7 +159,7 @@ Variants {
             id: wallpaperItem
             anchors.fill: parent
             clip: true
-            scale: showOpeningAnimation && overviewOpen && Config.options.overview.style === "scrolling" ? zoomedRatio : defaultRatio
+            scale: showOpeningAnimation && overviewOpen && bgRoot.isScrollingLayout ? zoomedRatio : defaultRatio
             opacity: mediaModeOpen ? 0 : 1
             
             Behavior on opacity {
