@@ -130,11 +130,18 @@ MouseArea {
 
                 Loader {
                     id: similarImageButtonLoader
-                    active: root.getWallhavenId(fileModelData.fileName) && root.useThumbnail
+                    active: root.getWallhavenId(fileModelData.fileName) && root.useThumbnail && wallpaperTabIndex !== -1
                     
                     anchors.top: parent.top
                     anchors.right: parent.right
                     anchors.margins: 8
+
+                    property int wallpaperTabIndex: {
+                        let index = 0;
+                        if (Config.options.policies.ai !== 0) index++;
+                        if (Config.options.policies.translator !== 0) index++;
+                        return Config.options.policies.wallpapers !== 0 ? index : -1;
+                    }
 
                     asynchronous: true
                     sourceComponent: WallpaperActionButton {
@@ -143,23 +150,13 @@ MouseArea {
                         buttonFill: 1
                         tooltipText: Translation.tr("Search for similar images")
 
-                        
-
-                        property int wallpaperTabIndex: {
-                            let index = 0;
-                            if (Config.options.policies.ai !== 0) index++;
-                            if (Config.options.policies.translator !== 0) index++;
-                            return Config.options.policies.wallpapers !== 0 ? index : -1;
-                        }
-
                         onClicked: {
-                            if (button.wallpaperTabIndex === -1) {
-                                console.log("Wallpaper policies tab is disabled, cannot search for similar images. TODO: add an indicator to user");
+                            if (similarImageButtonLoader.wallpaperTabIndex === -1) {
                                 return;
                             }
                             WallpaperBrowser.addSimilarImageMessage(Translation.tr("Searching for a similar image:"), fileModelData.filePath)
                             WallpaperBrowser.moreLikeThisPicture(root.getWallhavenId(fileModelData.fileName), 1);
-                            Persistent.states.sidebar.policies.tab = button.wallpaperTabIndex;
+                            Persistent.states.sidebar.policies.tab = similarImageButtonLoader.wallpaperTabIndex;
                             
                             GlobalStates.policiesPanelOpen = true;
                             GlobalStates.wallpaperSelectorOpen = false;
