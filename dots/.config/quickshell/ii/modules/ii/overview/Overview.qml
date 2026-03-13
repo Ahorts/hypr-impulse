@@ -19,12 +19,15 @@ Scope {
 
     Variants {
         id: overviewVariant
-        model: Quickshell.screens
+
+        property var variantModel: Quickshell.screens
+
+        model: overviewVariant.variantModel
 
         LazyLoader {
             id: realOverviewLoader
             required property var modelData
-            property int monitorIndex: overviewVariant.model.indexOf(modelData)
+            property int monitorIndex: overviewVariant.variantModel.indexOf(modelData)
             property bool monitorIsFocused: (Hyprland.focusedMonitor?.id == monitorIndex)
             active: monitorIsFocused
 
