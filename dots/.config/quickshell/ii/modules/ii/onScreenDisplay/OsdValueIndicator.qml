@@ -51,10 +51,7 @@ Item {
 
                 MaterialShapeWrappedMaterialSymbol {
                     rotation: root.value * 360
-                    anchors {
-                        fill: parent
-                        margins: -5
-                    }
+                    anchors.centerIn: parent
                     iconSize: Appearance.font.pixelSize.huge
                     shape: root.shape
                     text: root.icon

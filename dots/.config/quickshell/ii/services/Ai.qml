@@ -267,18 +267,18 @@ Singleton {
     // - extraParams: Extra parameters to be passed to the model. This is a JSON object.
     property var models: Config.options.policies.ai === 2 ? {} : {
         "openrouter": aiModelComponent.createObject(this, {
-            name: `OpenRouter - ${currentModel}`,
-            icon: "openrouter-symbolic",
-            description: Translation.tr("Online via %1 | %2's model")
+            "name": `OpenRouter - ${currentModel}`,
+            "icon": "openrouter-symbolic",
+            "description": Translation.tr("Online via %1 | %2's model")
                 .arg("OpenRouter")
                 .arg("Google"),
-            homepage: `https://openrouter.ai/google/${currentModel}`, 
-            endpoint: "https://openrouter.ai/api/v1/chat/completions",
-            model: `${getModelProvider(Persistent.states.ai.provider,currentModel)}/${currentModel}`,
-            requires_key: true,
-            key_id: "openrouter",
-            key_get_link: "https://openrouter.ai/settings/keys",
-            key_get_description: Translation.tr(
+            "homepage": `https://openrouter.ai/google/${currentModel}`, 
+            "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+            "model": `${getModelProvider(Persistent.states.ai.provider,currentModel)}/${currentModel}`,
+            "requires_key": true,
+            "key_id": "openrouter",
+            "key_get_link": "https://openrouter.ai/settings/keys",
+            "key_get_description": Translation.tr(
                 "**Pricing**: Pay-as-you-go (token based).\n\n" +
                 "**Instructions**: Log into your OpenRouter account, " +
                 "go to Keys in the top-right menu, and create an API key."
@@ -309,7 +309,7 @@ Singleton {
             "key_get_link": "https://console.mistral.ai/api-keys",
             "key_get_description": Translation.tr("**Instructions**: Log into Mistral account, go to Keys on the sidebar, click Create new key"),
             "api_format": "mistral",
-        }),
+        })
     }
     property var modelList: Object.keys(root.models)
     property var currentModelId: Persistent.states?.ai?.provider || modelList[0]
@@ -777,6 +777,48 @@ Singleton {
         if (message.length === 0) return;
         root.addMessage(message, "user");
         requester.makeRequest();
+    }
+
+    Process {
+        id: decodeImageAndAttachProc
+        property string imageDecodePath: Directories.cliphistDecode
+        property string imageDecodeFileName: "image"
+        property string imageDecodeFilePath: `${imageDecodePath}/${imageDecodeFileName}`
+        function handleEntry(entry: string) {
+            imageDecodeFileName = parseInt(entry.match(/^(\d+)\t/)[1]);
+            decodeImageAndAttachProc.exec(["bash", "-c", `[ -f ${imageDecodeFilePath} ] || echo '${CF.StringUtils.shellSingleQuoteEscape(entry)}' | ${Cliphist.cliphistBinary} decode > '${imageDecodeFilePath}'`]);
+        }
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0) {
+                Ai.attachFile(imageDecodeFilePath);
+            } else {
+                console.error("[Ai] Failed to decode image in clipboard content");
+            }
+        }
+    }
+    
+    // This is being called by RegionSelection.qml
+    function handleClipboardAndAttach() {
+        handleClipboardTimer.start()
+    }
+    // We have to delay this a little to make sure the clipboard is updated
+    Timer {
+        id: handleClipboardTimer
+        interval: 450
+        onTriggered: {
+            const currentClipboardEntry = Cliphist.entries[0];
+            const cleanCliphistEntry = CF.StringUtils.cleanCliphistEntry(currentClipboardEntry);
+            if (/^\d+\t\[\[.*binary data.*\d+x\d+.*\]\]$/.test(currentClipboardEntry)) {
+                // First entry = currently copied entry = image?
+                decodeImageAndAttachProc.handleEntry(currentClipboardEntry);
+                return;
+            } else if (cleanCliphistEntry.startsWith("file://")) {
+                // First entry = currently copied entry = image?
+                const fileName = decodeURIComponent(cleanCliphistEntry);
+                Ai.attachFile(fileName);
+                return;
+            }
+        }
     }
 
     function attachFile(filePath: string) {

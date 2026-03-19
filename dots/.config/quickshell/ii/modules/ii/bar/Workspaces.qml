@@ -25,7 +25,9 @@ Item {
     readonly property int monitorIndex: barLoader.monitorIndex
     property int workspaceOffset: useWorkspaceMap ? workspaceMap[monitorIndex] : 0
 
-    readonly property int workspacesShown: Config.options.bar.workspaces.shown
+    readonly property int workspacesShown: dynamicWorkspaces
+    ? ((workspaceMap[monitorIndex + 1] ?? workspaceMap[monitorIndex] + Config.options.bar.workspaces.shown) - workspaceMap[monitorIndex])
+    : Config.options.bar.workspaces.shown
     readonly property int workspaceGroup: Math.floor((monitor?.activeWorkspace?.id - root.workspaceOffset - 1) / root.workspacesShown)
     property list<bool> workspaceOccupied: []
     property int workspaceIndexInGroup: (monitor?.activeWorkspace?.id - root.workspaceOffset - 1) % root.workspacesShown    
@@ -40,6 +42,25 @@ Item {
 
     readonly property bool isScrollingLayout: GlobalStates.isScrollingLayout
     property int maxWindowCount: isScrollingLayout ? Config.options.bar.workspaces.maxWindowCount : 1
+
+    readonly property bool dynamicWorkspaces: Config.options.bar.workspaces.dynamicWorkspaces
+
+    function isWorkspaceVisible(wsIndex) {
+        const wsId = workspaceGroup * workspacesShown + wsIndex + 1 + workspaceOffset
+        const isActive = wsId === effectiveActiveWorkspaceId
+        const isOccupied = workspaceOccupied[wsIndex]
+        return !dynamicWorkspaces || isActive || isOccupied
+    }
+
+    readonly property int visibleActiveIndex: {
+        if (!dynamicWorkspaces) return workspaceIndexInGroup
+        let count = 0
+        for (let i = 0; i < workspacesShown; i++) {
+            if (i === workspaceIndexInGroup) return count
+            if (isWorkspaceVisible(i)) count++
+        }
+        return count
+    }
 
     property bool showNumbersByMs: false
     Timer {
@@ -131,7 +152,7 @@ Item {
         
         AnimatedTabIndexPair {
             id: idxPair
-            index: root.workspaceIndexInGroup
+            index: root.visibleActiveIndex
         }
 
         function offsetFor(index) {
@@ -354,8 +375,10 @@ Item {
                     return root.vertical ? (item?.height ?? root.iconBoxWrapperSize) : (item?.width ?? root.iconBoxWrapperSize)
                 }
 
-                implicitWidth: root.vertical ? root.iconBoxWrapperSize : itemSize
-                implicitHeight: root.vertical ? itemSize : root.iconBoxWrapperSize
+                implicitWidth: root.vertical ? root.iconBoxWrapperSize : (wsBg.wsVisible ? itemSize : 0)
+                implicitHeight: root.vertical ? (wsBg.wsVisible ? itemSize : 0) : root.iconBoxWrapperSize
+                property bool wsVisible: root.isWorkspaceVisible(index)
+
 
                 Pill {
                     property real stretchAmount: 12 // not using multiplier because it mulitplies multi-windowed workspaces A LOT
@@ -437,9 +460,24 @@ Item {
             delegate: Item {
                 id: background
                 Layout.alignment: Qt.AlignCenter
-                implicitWidth: root.vertical ? root.iconBoxWrapperSize : Math.max(layout.implicitWidth + 8, root.iconBoxWrapperSize)
-                implicitHeight: root.vertical ? Math.max(layout.implicitHeight + 8, root.iconBoxWrapperSize) : root.iconBoxWrapperSize
+
+                visible: wsVisible
+                property bool wsVisible: root.isWorkspaceVisible(index)
+                implicitWidth: root.vertical 
+                    ? root.iconBoxWrapperSize 
+                    : (Math.max(layout.implicitWidth + 8, root.iconBoxWrapperSize))
+                implicitHeight: root.vertical 
+                    ? (Math.max(layout.implicitHeight + 8, root.iconBoxWrapperSize))
+                    : root.iconBoxWrapperSize
                 
+                Behavior on implicitWidth {
+                    animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
+                }
+                Behavior on implicitHeight {
+                    animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
+                }
+
+
                 WorkspaceBackgroundIndicator {
                     workspaceValue: workspaceOffset + workspaceGroup * workspacesShown + index + 1
                     activeWorkspace: monitor?.activeWorkspace?.id === workspaceValue

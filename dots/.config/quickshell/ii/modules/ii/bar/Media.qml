@@ -12,6 +12,8 @@ import qs.modules.common.utils
 
 Item {
     id: root
+    Layout.fillHeight: true
+
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property string cleanedTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || Translation.tr("No media")
     
@@ -19,13 +21,14 @@ Item {
     property int lyricsCustomSize: Config.options.bar.mediaPlayer.lyrics.customSize
     readonly property int maxWidth: 300
 
-    readonly property bool showLoadingIndicator: Config.options.bar.mediaPlayer.lyrics.showLoadingIndicator
+    property bool useFixedSize: Config.options.bar.mediaPlayer.useFixedSize
     readonly property bool lyricsEnabled: Config.options.bar.mediaPlayer.lyrics.enable
     readonly property bool useGradientMask: Config.options.bar.mediaPlayer.lyrics.useGradientMask
     readonly property string lyricsStyle: Config.options.bar.mediaPlayer.lyrics.style
 
-    Layout.fillHeight: true
-    implicitWidth: LyricsService.hasSyncedLines && root.lyricsEnabled ? lyricsCustomSize : customSize
+    property int textMetricsSpacing: 50 // text metrics returns width without spacing
+    property int textMetricsAdvance: Math.min(textMetrics.advanceWidth + textMetricsSpacing, 400)
+    implicitWidth: LyricsService.hasSyncedLines && root.lyricsEnabled ? lyricsCustomSize : useFixedSize ? customSize : textMetricsAdvance
     implicitHeight: Appearance.sizes.barHeight
 
     Behavior on implicitWidth {
@@ -81,6 +84,11 @@ Item {
                 color: Appearance.m3colors.m3onSecondaryContainer
             }
         }
+    }
+
+    TextMetrics {
+        id: textMetrics
+        text: `${cleanedTitle}${activePlayer?.trackArtist ? ' • ' + activePlayer.trackArtist : ''}`
     }
 
     StyledText {

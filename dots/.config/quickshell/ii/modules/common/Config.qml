@@ -108,7 +108,10 @@ Singleton {
                 property bool extraBackgroundTint: true
                 property int fakeScreenRounding: 2 // 0: None | 1: Always | 2: When not fullscreen | 3: Wrapped
                 property int wrappedFrameThickness: 10
+                property bool sharpMode: false
+                property bool toggleWindowRounding: true // Changes Hyprland window rounding to 0 if sharpMode is true
                 property JsonObject fonts: JsonObject {
+                    property bool enableCustom: false
                     property string main: "Google Sans Flex"
                     property string numbers: "Google Sans Flex"
                     property string title: "Google Sans Flex"
@@ -195,6 +198,8 @@ Singleton {
                             property bool showDate: true
                             property bool animateChange: true
                             property bool vertical: false
+                            property bool colorful: false
+                            property bool showColon: true
                             property JsonObject font: JsonObject {
                                 property string family: "Google Sans Flex"
                                 property real weight: 350
@@ -288,9 +293,10 @@ Singleton {
                 property bool vertical: false
                 
                 property JsonObject mediaPlayer: JsonObject {
+                    property bool useFixedSize: false
                     property int customSize: 250
                     property JsonObject lyrics: JsonObject {
-                        property bool enable: true
+                        property bool enable: false
                         property int customSize: 400
                         property string style: "scroller" // Options: scroller, static
                         property bool useGradientMask: true
@@ -331,6 +337,7 @@ Singleton {
                     property int maxWindowCount: 5 // Maximum windows to show in one workspace
                     property bool useNerdFont: false
                     property int activeIndicatorOpacity: 100 // 0-100
+                    property bool dynamicWorkspaces: false
                 }
                 property JsonObject weather: JsonObject {
                     property bool enable: false
@@ -345,33 +352,22 @@ Singleton {
                     }
                 }
                 property JsonObject layouts: JsonObject {
-                    // Only adding place-essential components to left-center-right and adding the dynamic components to leftover
-                    // Not adding default values, they are initialized later
-                    // Scrolling is defined through component's id
-                    property list<var> availableComps: [
-                        { id: "record_indicator", icon: "screen_record", title: "Record indicator", visible: false },
-                        { id: "screen_share_indicator", icon: "screen_share", title: "Screen share indicator", visible: false },
-                        { id: "date", icon: "date_range", title: "Date" },
-                        { id: "battery", icon: "battery_android_6", title: "Battery" },
-                        { id: "timer", icon: "timer", title: "Timer & Pomodoro" },
-                        { id: "weather", icon: "weather_mix", title: "Weather" },
-                        { id: "utility_buttons", icon: "build", title: "Utility buttons" }
-                    ]
+                    // Only storing id and layout-specific flags (visible, centered)
+                    // Component display info (icon, title) comes from BarComponentRegistry
                     property list<var> left: [
-                        { id: "policies_panel_button", icon: "star", title: "Policies panel button" },
-                        { id: "active_window", icon: "label", title: "Active window" }
+                        { id: "policies_panel_button" },
+                        { id: "active_window" }
                     ]
                     property list<var> center: [
-                        { id: "music_player", icon: "music_note", title: "Music player" },
-                        { id: "workspaces", icon: "workspaces", title: "Workspaces", centered: true },
-                        { id: "system_monitor", icon: "monitor_heart", title: "System monitor" }
+                        { id: "music_player" },
+                        { id: "workspaces", centered: true },
+                        { id: "system_monitor" }
                     ]
                     property list<var> right: [
-                        { id: "clock", icon: "nest_clock_farsight_analog", title: "Clock" }, 
-                        { id: "system_tray", icon: "system_update_alt", title: "System tray" },
-                        { id: "dashboard_panel_button", icon: "notifications", title: "Dashboard panel button" }
+                        { id: "clock" },
+                        { id: "system_tray" },
+                        { id: "dashboard_panel_button" }
                     ]
-
                 }
                 property JsonObject tooltips: JsonObject {
                     property bool clickToShow: false
@@ -725,6 +721,9 @@ Singleton {
             
             property JsonObject wallpaperSelector: JsonObject {
                 property bool useSystemFileDialog: false
+                property list<var> directories: [
+                    {"icon": "wallpaper", "name": "Wallpapers", "path": `${Directories.pictures}/Wallpapers`}
+                ]
             }
             
             property JsonObject windows: JsonObject {

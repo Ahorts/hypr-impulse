@@ -36,12 +36,8 @@ ContentPage {
             ConfigListView {
                 barSection: 0
                 listModel: Config.options.bar.layouts.left
-                sourceListModel: Config.options.bar.layouts.availableComps
                 onUpdated: (newList) => {
                     Config.options.bar.layouts.left = newList
-                } 
-                onSourceUpdated: (newList) => {
-                    Config.options.bar.layouts.availableComps = newList
                 }
             }
         }
@@ -51,12 +47,8 @@ ContentPage {
             ConfigListView {
                 barSection: 1
                 listModel: Config.options.bar.layouts.center
-                sourceListModel: Config.options.bar.layouts.availableComps
                 onUpdated: (newList) => {
                     Config.options.bar.layouts.center = newList
-                } 
-                onSourceUpdated: (newList) => {
-                    Config.options.bar.layouts.availableComps = newList
                 }
             }
         }
@@ -66,13 +58,9 @@ ContentPage {
             ConfigListView {
                 barSection: 2
                 listModel: Config.options.bar.layouts.right
-                sourceListModel: Config.options.bar.layouts.availableComps
                 onUpdated: (newList) => {
                     Config.options.bar.layouts.right = newList
                 }
-                onSourceUpdated: (newList) => {
-                    Config.options.bar.layouts.availableComps = newList
-                } 
             }
         }
     }
@@ -176,7 +164,6 @@ ContentPage {
                 Layout.fillWidth: true
 
                 ConfigSelectionArray {
-                    register: true
                     currentValue: Config.options.bar.cornerStyle
                     onSelected: newValue => {
                         Config.options.bar.cornerStyle = newValue; // Update local copy
@@ -207,7 +194,6 @@ ContentPage {
                 Layout.fillWidth: false
 
                 ConfigSelectionArray {
-                    register: true
                     currentValue: Config.options.bar.barGroupStyle
                     onSelected: newValue => {
                         Config.options.bar.barGroupStyle = newValue; // Update local copy
@@ -239,7 +225,6 @@ ContentPage {
             Layout.fillWidth: false
 
             ConfigSelectionArray {
-                register: true
                 currentValue: Config.options.bar.barBackgroundStyle
                 onSelected: newValue => {
                     Config.options.bar.barBackgroundStyle = newValue;
@@ -287,8 +272,17 @@ ContentPage {
         ConfigRow {
             uniform: true
 
+            ConfigSwitch {
+                buttonIcon: "crop_free"
+                text: Translation.tr("Use fixed size")
+                checked: Config.options.bar.mediaPlayer.useFixedSize
+                onCheckedChanged: {
+                    Config.options.bar.mediaPlayer.useFixedSize = checked;
+                }
+            }   
+
             ConfigSpinBox {
-                enabled: !Config.options.bar.vertical
+                enabled: !Config.options.bar.vertical && Config.options.bar.mediaPlayer.useFixedSize
                 icon: "width_full"
                 text: Translation.tr("Custom size")
                 value: Config.options.bar.mediaPlayer.customSize
@@ -299,22 +293,21 @@ ContentPage {
                     Config.options.bar.mediaPlayer.customSize = value;
                 }
             }
+        }
 
-            ConfigSpinBox {
-                enabled: !Config.options.bar.vertical
-                icon: "width_full"
-                text: Translation.tr("Lyrics custom size")
-                value: Config.options.bar.mediaPlayer.lyrics.customSize
-                from: 100
-                to: 750
-                stepSize: 25
-                onValueChanged: {
-                    Config.options.bar.mediaPlayer.lyrics.customSize = value;
-                }
+        ConfigSpinBox {
+            enabled: !Config.options.bar.vertical
+            icon: "width_full"
+            text: Translation.tr("Lyrics width")
+            value: Config.options.bar.mediaPlayer.lyrics.customSize
+            from: 100
+            to: 750
+            stepSize: 25
+            onValueChanged: {
+                Config.options.bar.mediaPlayer.lyrics.customSize = value;
             }
         }
         
-
         ContentSubsection {
             title: Translation.tr("Lyrics")
 
@@ -516,47 +509,68 @@ ContentPage {
         icon: "workspaces"
         title: Translation.tr("Workspaces")
 
-        ConfigSwitch {
-            buttonIcon: "counter_1"
-            text: Translation.tr('Always show numbers')
-            checked: Config.options.bar.workspaces.alwaysShowNumbers
-            onCheckedChanged: {
-                Config.options.bar.workspaces.alwaysShowNumbers = checked;
+        ConfigRow {
+            uniform: true
+
+            ConfigSwitch {
+                buttonIcon: "grid_3x3"
+                text: Translation.tr('Use workspace map')
+                checked: Config.options.bar.workspaces.useWorkspaceMap
+                onCheckedChanged: {
+                    Config.options.bar.workspaces.useWorkspaceMap = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Only for multi-monitor setups, you must edit the workspace map manually in config.json\n Refer to the repo wiki for more information")
+                }
+            }
+
+            ConfigSwitch {
+                buttonIcon: "counter_1"
+                text: Translation.tr('Always show numbers')
+                checked: Config.options.bar.workspaces.alwaysShowNumbers
+                onCheckedChanged: {
+                    Config.options.bar.workspaces.alwaysShowNumbers = checked;
+                }
+            }
+        }
+
+        ConfigRow {
+            uniform: true
+
+            ConfigSwitch {
+                buttonIcon: "award_star"
+                text: Translation.tr('Show app icons')
+                checked: Config.options.bar.workspaces.showAppIcons
+                onCheckedChanged: {
+                    Config.options.bar.workspaces.showAppIcons = checked;
+                }
+            }
+
+            ConfigSwitch {
+                enabled: Config.options.bar.workspaces.showAppIcons
+                buttonIcon: "colors"
+                text: Translation.tr('Tint app icons')
+                checked: Config.options.bar.workspaces.monochromeIcons
+                onCheckedChanged: {
+                    Config.options.bar.workspaces.monochromeIcons = checked;
+                }
             }
         }
 
         ConfigSwitch {
-            buttonIcon: "award_star"
-            text: Translation.tr('Show app icons')
-            checked: Config.options.bar.workspaces.showAppIcons
+            buttonIcon: "hdr_weak"
+            text: Translation.tr("Dynamic workspaces")
+            checked: Config.options.bar.workspaces.dynamicWorkspaces
             onCheckedChanged: {
-                Config.options.bar.workspaces.showAppIcons = checked;
-            }
-        }
-
-        ConfigSwitch {
-            buttonIcon: "colors"
-            enabled: Config.options.bar.workspaces.showAppIcons
-            text: Translation.tr('Tint app icons')
-            checked: Config.options.bar.workspaces.monochromeIcons
-            onCheckedChanged: {
-                Config.options.bar.workspaces.monochromeIcons = checked;
-            }
-        }
-        
-        ConfigSwitch {
-            buttonIcon: "grid_3x3"
-            text: Translation.tr('Use workspace map')
-            checked: Config.options.bar.workspaces.useWorkspaceMap
-            onCheckedChanged: {
-                Config.options.bar.workspaces.useWorkspaceMap = checked;
+                Config.options.bar.workspaces.dynamicWorkspaces = checked;
             }
             StyledToolTip {
-                text: Translation.tr("Only for multi-monitor setups, you must edit the workspace map manually in config.json\n Refer to the repo wiki for more information")
+                text: Translation.tr("Hides the empty workspaces and only shows the ones with windows")
             }
         }
 
         ConfigSpinBox {
+            enabled: !Config.options.bar.workspaces.dynamicWorkspaces
             icon: "view_column"
             text: Translation.tr("Workspaces shown")
             value: Config.options.bar.workspaces.shown
