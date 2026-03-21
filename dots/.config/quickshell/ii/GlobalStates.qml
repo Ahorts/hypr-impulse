@@ -75,6 +75,16 @@ Singleton {
         
     }
 
+    // Dock
+    readonly property string dockEffectivePosition: {
+        const pos = Config.options?.dock.position ?? "bottom"
+        if (pos !== "auto") return pos
+        return (Config.options?.bar.bottom && !Config.options?.bar.vertical) ? "top" : "bottom"
+    }
+
+    readonly property bool dockIsVertical: dockEffectivePosition === "left" || dockEffectivePosition === "right"
+    property bool dockIsResizing: false
+
     GlobalShortcut {
         name: "workspaceNumber"
         description: "Hold to show workspace numbers, release to show icons"

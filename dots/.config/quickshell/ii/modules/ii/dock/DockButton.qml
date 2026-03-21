@@ -4,10 +4,17 @@ import QtQuick
 import QtQuick.Layouts
 
 RippleButton {
-    Layout.fillHeight: true
-    Layout.topMargin: Appearance.sizes.elevationMargin - Appearance.sizes.hyprlandGapsOut
-    implicitWidth: implicitHeight - topInset - bottomInset
+    property real buttonSize: Appearance.sizes.dockButtonSize
+    width:  buttonSize
+    height: buttonSize
     buttonRadius: Appearance.rounding.normal
+    background.implicitWidth:  buttonSize
+    background.implicitHeight: buttonSize
+    padding: 0
 
-    background.implicitHeight: 50
+    rippleEnabled: false
+    colBackground: "transparent"
+    colBackgroundHover: "transparent"
+    colBackgroundToggled: "transparent"
+    colBackgroundToggledHover: "transparent"
 }
