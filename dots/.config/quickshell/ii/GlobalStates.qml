@@ -83,7 +83,7 @@ Singleton {
     }
 
     readonly property bool dockIsVertical: dockEffectivePosition === "left" || dockEffectivePosition === "right"
-    property bool dockIsResizing: false
+    property bool dockIsResizing: false // TODO this is how i tried to improve the reising, by blocking the animations while, it's resizing, i didn't apply it to all the dock components yet as i don't know if it's the best approach
 
     GlobalShortcut {
         name: "workspaceNumber"

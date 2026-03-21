@@ -98,6 +98,7 @@ Singleton {
 
     // ── Icon theme refresh ────────────────────────────────────────────────
     // Bumped several times after a theme change to force icon reload across the dock
+    // TODO if loading the wallpaper takes too much time, the icons fail to change, i didn't find a better way
     property int iconThemeRevision: 0
 
     Timer {

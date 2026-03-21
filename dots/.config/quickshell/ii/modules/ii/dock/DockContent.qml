@@ -228,7 +228,7 @@ Item {
                 pinned.splice(f, 1)
                 pinned.splice(toIdx, 0, appId)
                 Config.options.dock.pinnedApps = pinned
-                updateModel()
+                updateModel() // this is needed to avoid the hidden app reppearing for an instant
             }
         }
 
@@ -340,7 +340,7 @@ Item {
             const toPath   = root.processedFiles[toIdx]?.path
             if (fromPath && toPath) {
                 TaskbarApps.reorderPinnedFile(fromPath, toPath)
-                updateFileModel()
+                updateFileModel() // this is needed to avoid the hidden file/folder reppearing for an instant
             }
         }
 
