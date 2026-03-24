@@ -14,13 +14,9 @@ import Quickshell.Services.Mpris
 Item {
     id: root
 
-    // ── Signals ───────────────────────────────────────────────────────────
     signal togglePinRequested()
 
-    // ── Screen ────────────────────────────────────────────────────────────
     property var currentScreen: null
-
-    // ── Dock state ────────────────────────────────────────────────────────
     property bool isPinned: false
 
     readonly property real dockPadding: 0
@@ -52,7 +48,6 @@ Item {
         ? unpinButtonWrapper.y + unpinButtonWrapper.height / 2
         : unpinButtonWrapper.x + unpinButtonWrapper.width / 2
 
-    // ── Hover / popup state ───────────────────────────────────────────────
     property bool anyContextMenuOpen: false
     property bool popupIsResizing: false
     property Item lastHoveredButton: null
@@ -76,11 +71,9 @@ Item {
             )
     }
 
-    // ── External drag (files from file manager) ───────────────────────────
     property string externalDragIcon: ""
     property bool externalDragOver: false
 
-    // ── Music player ──────────────────────────────────────────────────────
     readonly property var activePlayer: MprisController.activePlayer
     readonly property string rawTitle: StringUtils.cleanMusicTitle(activePlayer?.trackTitle) || ""
     readonly property bool hasRealData: activePlayer !== null && rawTitle !== ""
@@ -104,7 +97,6 @@ Item {
         onTriggered: { if (!root.hasRealData) root.showMusicPlayer = false }
     }
 
-    // ── App model ─────────────────────────────────────────────────────────
     property var processedPinnedApps: []
     property var processedRunningApps: []
     property bool _ignoringAppsChanged: false
@@ -228,7 +220,7 @@ Item {
                 pinned.splice(f, 1)
                 pinned.splice(toIdx, 0, appId)
                 Config.options.dock.pinnedApps = pinned
-                updateModel() // this is needed to avoid the hidden app reppearing for an instant
+                root.updateModel() // this is needed to avoid the hidden app reppearing for an instant
             }
         }
 
@@ -261,7 +253,6 @@ Item {
         }
     }
 
-    // ── File model ────────────────────────────────────────────────────────
     property var processedFiles: []
     property bool _ignoringFilesChanged: false
     property bool fileSuppressAnim: false
@@ -369,7 +360,8 @@ Item {
     implicitWidth: mainLayout.implicitWidth
     implicitHeight: mainLayout.implicitHeight
 
-    // ── Main layout ───────────────────────────────────────────────────────
+    readonly property real buttonSlotSize: Appearance.sizes.dockButtonSize + dotMargin * 2
+
     GridLayout {
         id: mainLayout
         anchors.fill: parent
@@ -379,11 +371,10 @@ Item {
         rowSpacing: 0
         columnSpacing: 0
 
-        // ── 1. Fixed leading section ──────────────────────────────────────
         Item {
             id: pinButtonWrapper
-            Layout.preferredWidth: Appearance.sizes.dockButtonSize + root.dotMargin * 2
-            Layout.preferredHeight: Appearance.sizes.dockButtonSize + root.dotMargin * 2
+            Layout.preferredWidth: root.buttonSlotSize
+            Layout.preferredHeight: root.buttonSlotSize
             Layout.alignment: Qt.AlignCenter
 
             DockActionButton {
@@ -403,21 +394,8 @@ Item {
             }
         }
 
-        // ── Pin separator ──
-        Item {
-            visible: root.processedPinnedApps.length > 0 || root.processedRunningApps.length > 0 || root.processedFiles.length > 0
-            Layout.preferredWidth: root.isVertical ? Appearance.sizes.dockButtonSize + root.dotMargin * 1.9 : root.sepThickness
-            Layout.preferredHeight: root.isVertical ? root.sepThickness : Appearance.sizes.dockButtonSize + root.dotMargin * 2
-            Layout.alignment: Qt.AlignCenter
+        PinSeparator {}
 
-            DockSeparator { 
-                anchors.fill: parent 
-                isVertical: root.isVertical
-                marginScale: 0.15 
-            }
-        }
-
-        // ── 2. Scrollable middle section ──────────────────────────────────
         Flickable {
             id: scrollArea
 
@@ -426,11 +404,11 @@ Item {
 
             // Math.max(1, ...) prevents zero-size crashes on Wayland
             Layout.preferredWidth: Math.max(1, root.isVertical
-                ? (Appearance.sizes.dockButtonSize + root.dotMargin * 2)
+                ? (root.buttonSlotSize)
                 : middleContent.implicitWidth)
             Layout.preferredHeight: Math.max(1, root.isVertical
                 ? middleContent.implicitHeight
-                : (Appearance.sizes.dockButtonSize + root.dotMargin * 2))
+                : (root.buttonSlotSize))
 
             clip: true
             contentWidth: middleContent.width
@@ -462,7 +440,7 @@ Item {
                 rowSpacing: 0
                 columnSpacing: 0
 
-                // A. Pinned apps
+                // Pinned apps
                 StyledListView {
                     id: pinnedListView
                     orientation: root.isVertical ? ListView.Vertical : ListView.Horizontal
@@ -471,11 +449,11 @@ Item {
                     spacing: 0
 
                     implicitWidth: root.isVertical
-                        ? Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                        ? root.buttonSlotSize
                         : Math.max(1, contentWidth)
                     implicitHeight: root.isVertical
                         ? Math.max(1, contentHeight)
-                        : Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                        : root.buttonSlotSize
 
                     cacheBuffer: 99999
                     interactive: false
@@ -521,7 +499,7 @@ Item {
                             if (!root.dragActive) return
                             if (!TaskbarApps.isPinned(root.draggedAppId)) return
 
-                            const step = Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                            const step = root.buttonSlotSize
 
                             // The list grows from the far edge, so measure distance from the opposite side
                             let pos
@@ -552,7 +530,7 @@ Item {
                     }
                 }
 
-                // B. Pinned / running separator
+                // Pinned / running separator
                 Item {
                     id: appSepWrapper
                     Layout.alignment: Qt.AlignCenter
@@ -581,18 +559,18 @@ Item {
                     }
                 }
 
-                // C. Running apps
+                // Running apps
                 StyledListView {
                     id: runningListView
                     orientation: root.isVertical ? ListView.Vertical : ListView.Horizontal
                     spacing: 0
 
                     implicitWidth: root.isVertical
-                        ? Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                        ? root.buttonSlotSize
                         : Math.max(1, contentWidth)
                     implicitHeight: root.isVertical
                         ? Math.max(1, contentHeight)
-                        : Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                        : root.buttonSlotSize
 
                     cacheBuffer: 99999
                     interactive: false
@@ -642,7 +620,7 @@ Item {
                     }
                 }
 
-                // D. File separator
+                // File separator
                 Item {
                     id: fileSepWrapper
                     Layout.alignment: Qt.AlignCenter
@@ -674,16 +652,16 @@ Item {
                     }
                 }
 
-                // E. File list (wrapped in a Loader for safe Wayland initialization)
+                // File list (wrapped in a Loader for safe Wayland initialization)
                 Item {
                     id: fileListWrapper
                     Layout.alignment: Qt.AlignCenter
                     Layout.preferredWidth: root.isVertical
-                        ? Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                        ? root.buttonSlotSize
                         : (root.processedFiles.length > 0 ? (fileListLoader.item?.implicitWidth ?? 0) : 0)
                     Layout.preferredHeight: root.isVertical
                         ? (root.processedFiles.length > 0 ? (fileListLoader.item?.implicitHeight ?? 0) : 0)
-                        : Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                        : root.buttonSlotSize
                     opacity: root.processedFiles.length > 0 ? 1.0 : 0.0
                     visible: opacity > 0
                     clip: true
@@ -705,81 +683,70 @@ Item {
                         anchors.centerIn: parent
                         active: fileListWrapper.visible
 
-                        readonly property var listView: item?.listViewItem ?? null
+                        readonly property var listView: item
 
-                        sourceComponent: Component {
-                            Item {
-                                property alias listViewItem: fileListView
+                        sourceComponent: StyledListView {
+                            orientation: root.isVertical ? ListView.Vertical : ListView.Horizontal
+                            spacing: 0
 
-                                implicitWidth: fileListView.implicitWidth
-                                implicitHeight: fileListView.implicitHeight
+                            implicitWidth: root.isVertical
+                                ? root.buttonSlotSize
+                                : Math.max(1, contentWidth)
+                            implicitHeight: root.isVertical
+                                ? Math.max(1, contentHeight)
+                                : root.buttonSlotSize
 
-                                StyledListView {
-                                    id: fileListView
-                                    orientation: root.isVertical ? ListView.Vertical : ListView.Horizontal
-                                    spacing: 0
+                            cacheBuffer: 99999
+                            interactive: false
+                            clip: false
+                            animateAppearance: false
+                            animateMovement: false
+                            popin: false
+                            removeOvershoot: 0
+                            ScrollBar.vertical: null
 
-                                    implicitWidth: root.isVertical
-                                        ? Appearance.sizes.dockButtonSize + root.dotMargin * 2
-                                        : Math.max(1, contentWidth)
-                                    implicitHeight: root.isVertical
-                                        ? Math.max(1, contentHeight)
-                                        : Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                            Behavior on implicitWidth {
+                                enabled: !root.fileDragActive
+                                animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                            }
+                            Behavior on implicitHeight {
+                                enabled: !root.fileDragActive
+                                animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                            }
 
-                                    cacheBuffer: 99999
-                                    interactive: false
-                                    clip: false
-                                    animateAppearance: false
-                                    animateMovement: false
-                                    popin: false
-                                    removeOvershoot: 0
-                                    ScrollBar.vertical: null
-
-                                    Behavior on implicitWidth {
-                                        enabled: !root.fileDragActive
-                                        animation: Appearance.animation.elementMove.numberAnimation.createObject(fileListView)
-                                    }
-                                    Behavior on implicitHeight {
-                                        enabled: !root.fileDragActive
-                                        animation: Appearance.animation.elementMove.numberAnimation.createObject(fileListView)
-                                    }
-
-                                    DropArea {
-                                        anchors.fill: parent
-                                        keys: ["dock-file-reorder"]
-                                        enabled: !root.externalDragOver
-                                        onPositionChanged: (drag) => {
-                                            if (!root.fileDragActive) return
-                                            const step = Appearance.sizes.dockButtonSize + root.dotMargin * 2
-                                            const pos = isVertical ? drag.y : drag.x
-                                            root.fileDropIndex = Math.max(0, Math.min(
-                                                root.processedFiles.length - 1,
-                                                Math.floor(pos / step)
-                                            ))
-                                        }
-                                    }
-
-                                    model: ScriptModel {
-                                        objectProp: "uniqueKey"
-                                        values: root.processedFiles
-                                    }
-
-                                    delegate: DockFileButton {
-                                        required property var modelData
-                                        required property int index
-                                        filePath: modelData.path
-                                        dockContent: root
-                                        delegateIndex: index
-                                    }
+                            DropArea {
+                                anchors.fill: parent
+                                keys: ["dock-file-reorder"]
+                                enabled: !root.externalDragOver
+                                onPositionChanged: (drag) => {
+                                    if (!root.fileDragActive) return
+                                    const step = root.buttonSlotSize
+                                    const pos = isVertical ? drag.y : drag.x
+                                    root.fileDropIndex = Math.max(0, Math.min(
+                                        root.processedFiles.length - 1,
+                                        Math.floor(pos / step)
+                                    ))
                                 }
+                            }
+
+                            model: ScriptModel {
+                                objectProp: "uniqueKey"
+                                values: root.processedFiles
+                            }
+
+                            delegate: DockFileButton {
+                                required property var modelData
+                                required property int index
+                                filePath: modelData.path
+                                dockContent: root
+                                delegateIndex: index
                             }
                         }
                     }
+
                 }
             }
         }
-
-        // ── 3. Fixed trailing section ─────────────────────────────────────
 
         // Music player separator
         Item {
@@ -825,11 +792,11 @@ Item {
             readonly property bool showWidget: (Config.options?.dock?.enableMediaWidget ?? false) && root.showMusicPlayer
 
             Layout.preferredWidth: root.isVertical
-                ? Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                ? root.buttonSlotSize
                 : (showWidget ? innerW : 0)
             Layout.preferredHeight: root.isVertical
                 ? (showWidget ? innerH : 0)
-                : Appearance.sizes.dockButtonSize + root.dotMargin * 2
+                : root.buttonSlotSize
 
             opacity: showWidget ? 1.0 : 0.0
 
@@ -838,24 +805,15 @@ Item {
             clip: true
 
             Behavior on opacity {
-                NumberAnimation {
-                    duration: Appearance.animation.elementMoveFast.duration
-                    easing.type: Appearance.animation.elementMoveFast.type
-                }
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
             }
             Behavior on Layout.preferredWidth {
                 enabled: !root.isVertical
-                NumberAnimation {
-                    duration: Appearance.animation.elementMoveFast.duration
-                    easing.type: Appearance.animation.elementMoveFast.type
-                }
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
             }
             Behavior on Layout.preferredHeight {
                 enabled: root.isVertical
-                NumberAnimation {
-                    duration: Appearance.animation.elementMoveFast.duration
-                    easing.type: Appearance.animation.elementMoveFast.type
-                }
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
             }
 
             Loader {
@@ -866,25 +824,12 @@ Item {
             }
         }
 
-        // ── Unpin separator ──
-        Item {
-            visible: root.processedPinnedApps.length > 0 || root.processedRunningApps.length > 0 || root.processedFiles.length > 0
-            Layout.preferredWidth: root.isVertical ? Appearance.sizes.dockButtonSize + root.dotMargin * 1.9 : root.sepThickness
-            Layout.preferredHeight: root.isVertical ? root.sepThickness : Appearance.sizes.dockButtonSize + root.dotMargin * 2
-            Layout.alignment: Qt.AlignCenter
+        PinSeparator {}
 
-            DockSeparator { 
-                anchors.fill: parent 
-                isVertical: root.isVertical
-                marginScale: 0.15 
-            }
-        }
-
-        // Unpin button
         Item {
             id: unpinButtonWrapper
-            Layout.preferredWidth: Appearance.sizes.dockButtonSize + root.dotMargin * 2
-            Layout.preferredHeight: Appearance.sizes.dockButtonSize + root.dotMargin * 2
+            Layout.preferredWidth: root.buttonSlotSize
+            Layout.preferredHeight: root.buttonSlotSize
             Layout.alignment: Qt.AlignCenter
 
             DockActionButton {
@@ -902,10 +847,9 @@ Item {
         }
     }
 
-    // ── Drag ghost & preview popup ────────────────────────────────────────
     readonly property var draggedFileDelegate: {
         if (!root.fileDragActive || root.fileDraggedIndex < 0) return null
-        return fileListLoader.item?.listViewItem?.itemAtIndex(root.fileDraggedIndex) ?? null
+        return fileListLoader.item?.itemAtIndex(root.fileDraggedIndex) ?? null
     }
 
     DockDragGhost {
@@ -945,6 +889,19 @@ Item {
                 dockWindow: root.QsWindow.window
                 appTopLevel: root.lastHoveredButton?.appToplevel
             }
+        }
+    }
+
+    component PinSeparator: Item {
+        visible: root.processedPinnedApps.length > 0 || root.processedRunningApps.length > 0 || root.processedFiles.length > 0
+        Layout.preferredWidth: root.isVertical ? Appearance.sizes.dockButtonSize + root.dotMargin * 1.9 : root.sepThickness
+        Layout.preferredHeight: root.isVertical ? root.sepThickness : root.buttonSlotSize
+        Layout.alignment: Qt.AlignCenter
+
+        DockSeparator { 
+            anchors.fill: parent 
+            isVertical: root.isVertical
+            marginScale: 0.15 
         }
     }
 }
