@@ -93,9 +93,9 @@ DockButton {
         if (root.isImage) return ""
 
         if (root.cachedXdgIcon !== "")
-            return Quickshell.iconPath(root.cachedXdgIcon, "application-x-generic")
+            return Quickshell.iconPath(root.cachedXdgIcon, "text-x-generic")
 
-        return Quickshell.iconPath("application-x-generic", "")
+        return Quickshell.iconPath("text-x-generic", "application-x-generic")
     }
 
     // ── Drag state ────────────────────────────────────────────────────────
