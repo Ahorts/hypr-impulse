@@ -466,25 +466,30 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                                 symbol: "openrouter-symbolic",
                                 value: "openrouter"
                             },
-                            "mistral": {
-                                displayName: "Mistral",
-                                symbol: "mistral-symbolic",
-                                value: "mistral"
+                            "others": {
+                                displayName: Translation.tr("Others"),
+                                icon: "more_horiz",
+                                value: "others"
                             }
                         })
-
-                        readonly property list<string> showProviders: Config.options.sidebar.ai.showProviders
                         
-                        options: {
-                            var result = [];
-                            for (var i = 0; i < showProviders.length; i++) {
-                                var providerKey = showProviders[i];
-                                if (allProviderOptions[providerKey]) {
-                                    result.push(allProviderOptions[providerKey]);
-                                }
+                        options: [
+                            {
+                                displayName: "Google",
+                                symbol: "spark-symbolic",
+                                value: "google"
+                            },
+                            {
+                                displayName: "OpenRouter",
+                                symbol: "openrouter-symbolic",
+                                value: "openrouter"
+                            },
+                            {
+                                displayName: Translation.tr("Others"),
+                                icon: "more_horiz",
+                                value: "others"
                             }
-                            return result;
-                        }
+                        ]
                     }
 
 

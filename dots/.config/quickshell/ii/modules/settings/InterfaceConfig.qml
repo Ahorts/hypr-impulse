@@ -105,6 +105,7 @@ ContentPage {
             }
         }
     }
+
     ContentSection {
         icon: "call_to_action"
         title: Translation.tr("Dock")
@@ -113,9 +114,21 @@ ContentPage {
             buttonIcon: "check"
             text: Translation.tr("Enable")
             checked: Config.options.dock.enable
-            onCheckedChanged: {
-                Config.options.dock.enable = checked;
-            }
+            onCheckedChanged: { Config.options.dock.enable = checked; }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "desktop_windows"
+            text: Translation.tr("Isolate monitors")
+            checked: Config.options.dock.isolateMonitors ?? false
+            onCheckedChanged: { Config.options.dock.isolateMonitors = checked; }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "ad"
+            text: Translation.tr("Enable windows preview")
+            checked: Config.options.dock.enablePreview
+            onCheckedChanged: { Config.options.dock.enablePreview = checked; }
         }
 
         ConfigRow {
@@ -124,25 +137,69 @@ ContentPage {
                 buttonIcon: "highlight_mouse_cursor"
                 text: Translation.tr("Hover to reveal")
                 checked: Config.options.dock.hoverToReveal
-                onCheckedChanged: {
-                    Config.options.dock.hoverToReveal = checked;
-                }
+                onCheckedChanged: { Config.options.dock.hoverToReveal = checked; }
             }
             ConfigSwitch {
                 buttonIcon: "keep"
                 text: Translation.tr("Pinned on startup")
                 checked: Config.options.dock.pinnedOnStartup
-                onCheckedChanged: {
-                    Config.options.dock.pinnedOnStartup = checked;
+                onCheckedChanged: { Config.options.dock.pinnedOnStartup = checked; }
+            }
+        }
+
+        ConfigRow {
+            uniform: true
+            ConfigSwitch {
+                buttonIcon: "colors"
+                text: Translation.tr("Tint app icons")
+                checked: Config.options.dock.monochromeIcons
+                onCheckedChanged: { Config.options.dock.monochromeIcons = checked; }
+            }
+            ConfigSwitch {
+                buttonIcon: "contrast"
+                text: Translation.tr("Dim inactive app icons")
+                enabled: !Config.options.dock.monochromeIcons
+                checked: Config.options.dock.dimInactiveIcons
+                onCheckedChanged: { Config.options.dock.dimInactiveIcons = checked; }
+                StyledToolTip {
+                    text: Translation.tr("Greyscale icons for pinned apps that are not running.\nDisabled when 'Tint app icons' is active.")
                 }
             }
         }
+
         ConfigSwitch {
-            buttonIcon: "colors"
-            text: Translation.tr("Tint app icons")
-            checked: Config.options.dock.monochromeIcons
-            onCheckedChanged: {
-                Config.options.dock.monochromeIcons = checked;
+            buttonIcon: "play_pause"
+            text: Translation.tr("Enable media widget")
+            checked: Config.options.dock.enableMediaWidget
+            onCheckedChanged: { Config.options.dock.enableMediaWidget = checked; }
+        }
+
+        ConfigSpinBox {
+            icon: "height"
+            text: Translation.tr("Dock height")
+            value: Config.options.dock.height
+            from: 40
+            to: 80
+            stepSize: 1
+            onValueChanged: { Config.options.dock.height = value; }
+        }
+        
+        ConfigRow {
+            ContentSubsection {
+                title: Translation.tr("Dock position")
+                ConfigSelectionArray {
+                    currentValue: Config.options.dock.position
+                    onSelected: newValue => {
+                        Config.options.dock.position = newValue;
+                    }
+                    options: [
+                        { displayName: Translation.tr("Auto"), icon: "expand", value: "auto" },
+                        { displayName: Translation.tr("Bottom"), icon: "vertical_align_bottom", value: "bottom" },
+                        { displayName: Translation.tr("Top"), icon: "vertical_align_top", value: "top" },
+                        { displayName: Translation.tr("Left"), icon: "keyboard_tab_rtl", value: "left" },
+                        { displayName: Translation.tr("Right"), icon: "keyboard_tab", value: "right" }
+                    ]
+                }
             }
         }
     }

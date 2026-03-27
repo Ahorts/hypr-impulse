@@ -9,29 +9,26 @@ import qs.modules.common.widgets
 
 Item {
     id: root
-    property real visualWidth: showOverflowMenu ? gridLayout.implicitWidth / 1.5 : gridLayout.implicitWidth
-    property real visualHeight: showOverflowMenu ? gridLayout.implicitHeight / 1.5 : gridLayout.implicitHeight
-    implicitWidth: visualWidth
-    implicitHeight: visualHeight
+    implicitWidth: gridLayout.implicitWidth
+    implicitHeight: gridLayout.implicitHeight
     property bool vertical: false
-    property bool invertSide: Config?.options.bar.bottom
+    property bool invertSide: false
     property bool trayOverflowOpen: false
     property bool showSeparator: true
-    property bool showOverflowMenu: !Config.options.tray.invertPinnedItems
+    property bool showOverflowMenu: true
     property var activeMenu: null
 
     property list<var> pinnedItems: TrayService.pinnedItems
     property list<var> unpinnedItems: TrayService.unpinnedItems
+    onPinnedItemsChanged: updateVisibility()
+    onUnpinnedItemsChanged: updateVisibility()
 
-    onUnpinnedItemsChanged: {
-        if (unpinnedItems.length == 0) root.closeOverflowMenu();
-        if (showOverflowMenu) {
-            rootItem.toggleVisible(unpinnedItems.length > 0);
-        }
-    }
-    onPinnedItemsChanged: {
-        if (!showOverflowMenu) {
-            rootItem.toggleVisible(pinnedItems.length > 0);
+    function updateVisibility() {
+        const hasAnyItems = pinnedItems.length > 0 || unpinnedItems.length > 0;
+        rootItem.toggleVisible(hasAnyItems);
+
+        if (unpinnedItems.length === 0) {
+            root.closeOverflowMenu();
         }
     }
 
@@ -40,6 +37,11 @@ Item {
     }
 
     function setExtraWindowAndGrabFocus(window) {
+        if (root.activeMenu && root.activeMenu !== window) {
+            if (typeof root.activeMenu.close === "function")
+                root.activeMenu.close();
+            root.activeMenu = null;
+        }
         root.activeMenu = window;
         root.grabFocus();
     }
@@ -71,12 +73,10 @@ Item {
         }
     }
 
-    
-
     GridLayout {
         id: gridLayout
         columns: root.vertical ? 1 : -1
-        anchors.centerIn: parent
+        anchors.fill: parent
         rowSpacing: 8
         columnSpacing: 15
 
@@ -153,13 +153,5 @@ Item {
                 }
             }
         }
-
-        /* StyledText { //? its a bit useless for me
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-            font.pixelSize: Appearance.font.pixelSize.larger
-            color: Appearance.colors.colSubtext
-            text: "•"
-            visible: root.showSeparator && SystemTray.items.values.length > 0
-        } */
     }
 }

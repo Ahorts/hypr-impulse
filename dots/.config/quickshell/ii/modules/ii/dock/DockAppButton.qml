@@ -1,140 +1,210 @@
 import qs.services
 import qs.modules.common
+import qs.modules.common.widgets
 import qs.modules.common.functions
-import Qt5Compat.GraphicalEffects
+import qs
 import QtQuick
-import QtQuick.Layouts
-import Quickshell
-import Quickshell.Widgets
+
+import "./widgets"
 
 DockButton {
     id: root
-    property var appToplevel
-    property var appListRoot
+
+    property var appToplevel: null
+    property var dockContent: null
+    property int delegateIndex: -1
     property int lastFocused: -1
-    property real iconSize: 35
-    property real countDotWidth: 10
-    property real countDotHeight: 4
-    property bool appIsActive: appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
 
-    readonly property bool isSeparator: appToplevel.appId === "SEPARATOR"
-    property var desktopEntry: DesktopEntries.heuristicLookup(appToplevel.appId)
-    enabled: !isSeparator
-    implicitWidth: isSeparator ? 1 : implicitHeight - topInset - bottomInset
+    readonly property real dockHeight: Config.options?.dock.height ?? 60
+    property int dotMargin: Math.round(dockHeight * 0.2)
 
-    Connections {
-        target: DesktopEntries
+    readonly property var desktopEntry: appToplevel ? TaskbarApps.getCachedDesktopEntry(appToplevel.appId) : null
+    property bool isVertical: dockContent?.isVertical ?? false
 
-        function onApplicationsChanged() {
-            root.desktopEntry = DesktopEntries.heuristicLookup(appToplevel.appId);
+
+    readonly property bool appIsActive: focusedWindowIndex >= 0
+    readonly property int focusedWindowIndex: { // this is computed every frame, we have to somehow cache this
+        if (!appToplevel || !appToplevel.toplevels) return -1
+        for (let i = 0; i < appToplevel.toplevels.length; i++) {
+            if (appToplevel.toplevels[i].activated) return i
+        }
+        return -1
+    }
+
+    readonly property bool isDragging: dockContent?.draggedAppId === appToplevel?.appId
+    readonly property string dockPos: dock.dockEffectivePosition
+    readonly property bool appIsRunning: appToplevel && appToplevel.toplevels && appToplevel.toplevels.length > 0
+
+    pointingHandCursor: false
+
+    width: buttonSize + dotMargin * 2
+    height: buttonSize + dotMargin * 2
+
+    opacity: isDragging ? 0.0 : 1.0
+
+    Behavior on opacity {
+        enabled: !isDragging && !(dockContent?.suppressAnimation ?? false)
+        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+    }
+
+    z: isDragging ? 100 : 0
+
+    // Computes how much this delegate should shift to make room for the dragged item
+    readonly property real shiftOffset: {
+        if (!dockContent || !dockContent.dragActive) return 0
+        if (delegateIndex === dockContent.draggedIndex) return 0
+
+        const step = buttonSize + dotMargin * 2
+        const isThisPinned = TaskbarApps.isPinned(appToplevel?.appId ?? "")
+        const isDraggedPinned = TaskbarApps.isPinned(dockContent.draggedAppId)
+        const intent = dockContent.dragIntent
+
+        // Case 1: reordering among pinned apps
+        if (isThisPinned && isDraggedPinned) {
+            const d = dockContent.draggedIndex
+
+            if (intent === "unpin") {
+                if (delegateIndex > d) return step
+                return 0
+            }
+
+            if (intent === "reorder") {
+                const t = dockContent.dropTargetIndex
+                if (t > d && delegateIndex > d && delegateIndex <= t) return step
+                if (t < d && delegateIndex >= t && delegateIndex < d) return -step
+            }
+            return 0
+        }
+
+        // Case 2: pinning a running app — shift running delegates out of the way
+        if (!isDraggedPinned && !isThisPinned && intent === "pin") {
+            if (delegateIndex > dockContent.draggedIndex) return -step
+        }
+
+        return 0
+    }
+
+    transform: Translate {
+        x: root.isVertical ? 0 : root.shiftOffset
+        y: root.isVertical ? root.shiftOffset : 0
+
+        Behavior on x {
+            enabled: !root.isDragging && !(dockContent?.suppressAnimation ?? false)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+        }
+        Behavior on y {
+            enabled: !root.isDragging && !(dockContent?.suppressAnimation ?? false)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
     }
 
-    Loader {
-        active: isSeparator
-        anchors {
-            fill: parent
-            topMargin: dockVisualBackground.margin + dockRow.padding + Appearance.rounding.normal
-            bottomMargin: dockVisualBackground.margin + dockRow.padding + Appearance.rounding.normal
-        }
-        sourceComponent: DockSeparator {}
-    }
+    MouseArea {
+        id: mainMouseArea
+        width: root.buttonSize
+        height: root.buttonSize
+        anchors.centerIn: parent
+        cursorShape: Qt.PointingHandCursor
 
-    Loader {
-        anchors.fill: parent
-        active: appToplevel.toplevels.length > 0
-        sourceComponent: MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.NoButton
-            onEntered: {
-                appListRoot.lastHoveredButton = root
-                appListRoot.buttonHovered = true
+        hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        preventStealing: drag.active
+
+        drag.target: appToplevel ? dockContent.dragGhostItem : null
+        drag.axis: root.isVertical ? Drag.YAxis : Drag.XAxis
+        drag.threshold: 4
+
+        readonly property real ghostHalf: (dockContent?.dragGhostItem?.width ?? 0) / 2
+
+        drag.minimumX: root.isVertical ? 0 : (dockContent?.pinButtonCenter ?? 0) - ghostHalf
+        drag.maximumX: root.isVertical ? 0 : (dockContent?.unpinButtonCenter ?? 0) - ghostHalf
+        drag.minimumY: root.isVertical ? (dockContent?.pinButtonCenter ?? 0) - ghostHalf : 0
+        drag.maximumY: root.isVertical ? (dockContent?.unpinButtonCenter ?? 0) - ghostHalf : 0
+
+        property bool wasDragging: false
+
+        onEntered: {
+            if (dockContent?.suppressHover) return
+            if (appToplevel?.toplevels?.length > 0) {
+                dockContent.lastHoveredButton = root
+                dockContent.buttonHovered = true
+            } else {
+                dockContent.buttonHovered = false
+                dockContent.popupIsResizing = false
+            }
+            if (appToplevel && appToplevel.toplevels)
                 lastFocused = appToplevel.toplevels.length - 1
-            }
-            onExited: {
-                if (appListRoot.lastHoveredButton === root) {
-                    appListRoot.buttonHovered = false
-                }
+        }
+
+        onExited: {
+            if (dockContent?.lastHoveredButton === root)
+                dockContent.buttonHovered = false
+        }
+
+        onPressed: (mouse) => {
+            wasDragging = false
+            if (dockContent?.dragGhostItem && appToplevel) {
+                const p = root.mapToItem(dockContent, 0, 0)
+                dockContent.dragGhostItem.x = p.x + root.dotMargin
+                dockContent.dragGhostItem.y = p.y + root.dotMargin
             }
         }
-    }
 
-    onClicked: {
-        if (appToplevel.toplevels.length === 0) {
-            root.desktopEntry?.execute();
-            return;
+        onPositionChanged: (mouse) => {
+            if (!drag.active || !appToplevel) return
+            if (!wasDragging) {
+                wasDragging = true
+                dockContent.startDrag(root.appToplevel.appId, root.delegateIndex)
+            }
+            dockContent.moveDrag()
         }
-        lastFocused = (lastFocused + 1) % appToplevel.toplevels.length
-        appToplevel.toplevels[lastFocused].activate()
-    }
 
-    middleClickAction: () => {
-        root.desktopEntry?.execute();
+        onReleased: (mouse) => {
+            if (wasDragging) {
+                wasDragging = false
+                dockContent.endDrag()
+                return
+            }
+            if (mouse.button === Qt.RightButton) {
+                dockContent.buttonHovered = false
+                dockContent.lastHoveredButton = null
+                dockContextMenu.open()
+                return
+            }
+            if (mouse.button === Qt.MiddleButton) {
+                root.desktopEntry?.execute()
+                return
+            }
+            if (!appToplevel || appToplevel.toplevels.length === 0) {
+                root.desktopEntry?.execute()
+                return
+            }
+            // Cycle through open windows on left click
+            lastFocused = (lastFocused + 1) % appToplevel.toplevels.length
+            appToplevel.toplevels[lastFocused].activate()
+        }
     }
 
     altAction: () => {
-        TaskbarApps.togglePin(appToplevel.appId);
+        dockContent.buttonHovered = false
+        dockContent.lastHoveredButton = null
+        dockContextMenu.open()
     }
 
-    contentItem: Loader {
-        active: !isSeparator
-        sourceComponent: Item {
-            anchors.centerIn: parent
+    DockContextMenu {
+        id: dockContextMenu
+        appToplevel: root.appToplevel
+        desktopEntry: root.desktopEntry
+        anchorItem: root
+    }
 
-            Loader {
-                id: iconImageLoader
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    verticalCenter: parent.verticalCenter
-                }
-                active: !root.isSeparator
-                sourceComponent: IconImage {
-                    source: Quickshell.iconPath(AppSearch.guessIcon(appToplevel.appId), "image-missing")
-                    implicitSize: root.iconSize
-                }
-            }
-
-            Loader {
-                active: Config.options.dock.monochromeIcons
-                anchors.fill: iconImageLoader
-                sourceComponent: Item {
-                    Desaturate {
-                        id: desaturatedIcon
-                        visible: false // There's already color overlay
-                        anchors.fill: parent
-                        source: iconImageLoader
-                        desaturation: 0.8
-                    }
-                    ColorOverlay {
-                        anchors.fill: desaturatedIcon
-                        source: desaturatedIcon
-                        color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.9)
-                    }
-                }
-            }
-
-            RowLayout {
-                spacing: 3
-                anchors {
-                    top: iconImageLoader.bottom
-                    topMargin: 2
-                    horizontalCenter: parent.horizontalCenter
-                }
-                Repeater {
-                    model: Math.min(appToplevel.toplevels.length, 3)
-                    delegate: Rectangle {
-                        required property int index
-                        radius: Appearance.rounding.full
-                        implicitWidth: (appToplevel.toplevels.length <= 3) ? 
-                            root.countDotWidth : root.countDotHeight // Circles when too many
-                        implicitHeight: root.countDotHeight
-                        color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
-                    }
-                }
-            }
+    Connections {
+        target: dockContextMenu
+        function onActiveChanged() {
+            if (dockContent)
+                dockContent.anyContextMenuOpen = dockContextMenu.active
         }
     }
+
+    DockAppIcon {}
+    DockAppIndicator {}
 }

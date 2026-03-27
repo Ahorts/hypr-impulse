@@ -59,6 +59,40 @@ log_verbose() {
     fi
 }
 
+setup_hyprland_source() {
+    local II_VYNX_DIR="$HOME/.local/share/ii-vynx"
+    local II_VYNX_CONF="$II_VYNX_DIR/hyprland.conf"
+    local MAIN_HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
+    local REPO_HYPR_CONF="$SCRIPT_DIR/dots/.local/share/ii-vynx/hyprland.conf"
+
+    echo -e "${NC}• Checking for custom ii-vynx config in Hyprland config file 'source' settings...${NC}"
+
+    if [ ! -d "$II_VYNX_DIR" ]; then
+        log_verbose "Creating directory: $II_VYNX_DIR"
+        mkdir -p "$II_VYNX_DIR"
+    fi
+
+    if [ -f "$REPO_HYPR_CONF" ]; then
+        cp "$REPO_HYPR_CONF" "$II_VYNX_CONF"
+        log_verbose "Copied $REPO_HYPR_CONF to $II_VYNX_CONF"
+    else
+        echo -e "${RED}⚠ Error: Couldn't find Hyprland config ($REPO_HYPR_CONF), please report this bug!${NC}"
+        return 1
+    fi
+
+    if [ -f "$MAIN_HYPR_CONF" ]; then
+        if grep -q "# ii-vynx" "$MAIN_HYPR_CONF"; then
+            log_verbose "Source already exists in $MAIN_HYPR_CONF, skipping append."
+        else
+            cp "$MAIN_HYPR_CONF" "${MAIN_HYPR_CONF}.bak" # Backup the original file
+            echo -e "\n# ii-vynx\nsource = $II_VYNX_CONF" >> "$MAIN_HYPR_CONF"
+            echo -e "${GREEN}✓ Successfully appended source to $MAIN_HYPR_CONF.${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠ Warning: Couldn't find Hyprland config ($MAIN_HYPR_CONF). WTF IS THIS? ${NC}"
+    fi
+}
+
 install_original_dots() {
     echo -e "${RED}Original dots are not installed! Do you want to install them? (y/n): ${NC}"
     read -r setup_response
@@ -243,6 +277,7 @@ cp -r "$SOURCE_DIR/." "$TARGET_DIR/"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Successfully copied: $TARGET_DIR${NC}"
+    setup_hyprland_source
 else
     echo -e "${RED}✗ An error occurred while copying!${NC}"
     exit 1
@@ -270,7 +305,6 @@ if [ $? -eq 0 ]; then
     echo -e "${RED}         Setup completed!    ${NC}"
     echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "${RED}WARNING: You might need to reset your config if your shell looks broken (refer to wiki).${NC}"
     echo -e "${BLUE}Press SUPER+CTRL+R if your shell does not starts.${NC}"
     echo ""
     log_verbose "Script completed successfully"
