@@ -205,4 +205,21 @@ Singleton {
         return Qt.rgba(clamp01(r), clamp01(g), clamp01(b), overlayOpacity);
     }
 
+    /**
+     * Calculates the distance between two colors using a simple weighted RGB Euclidean formula.
+     *
+     * @param {string} color1 - The first color.
+     * @param {string} color2 - The second color.
+     * @returns {number} The distance (0 to ~1).
+     */
+    function calculateDistance(color1, color2) {
+        let c1 = Qt.color(color1);
+        let c2 = Qt.color(color2);
+        
+        let dr = c1.r - c2.r;
+        let dg = c1.g - c2.g;
+        let db = c1.b - c2.b;
+        
+        return Math.sqrt(dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11);
+    }
 }

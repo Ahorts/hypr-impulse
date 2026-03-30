@@ -24,6 +24,7 @@ Rectangle {
 
     property bool showBrightness: Config.options.sidebar.quickSliders.showBrightness 
     property bool showVolume: Config.options.sidebar.quickSliders.showVolume 
+    property bool showGamma: Config.options.sidebar.quickSliders.showGamma
     property bool showMic: Config.options.sidebar.quickSliders.showMic 
 
     RowLayout {
@@ -59,7 +60,24 @@ Rectangle {
                 setVal: (v) => { Audio.sink.audio.volume = v } },
                 { show: showMic, icon: "mic", 
                 getVal: () => Audio.source.audio.volume, 
-                setVal: (v) => { Audio.source.audio.volume = v } }
+                setVal: (v) => { Audio.source.audio.volume = v } },
+                { show: showGamma, icon: "light_mode",  secondaryIcon: "wb_twilight",
+                getVal: () => Hyprsunset.gamma === 100? 0.3 + root.brightnessMonitor?.brightness * 0.7 : Hyprsunset.gamma / 100 * 0.3, 
+                setVal: (v) => {
+                    if (v >= 0.3) {
+                        // 0.3 - 1.0 brightness
+                        root.brightnessMonitor.setBrightness((v - 0.3) / 0.7);
+                        if (Hyprsunset.gamma !== 100) {
+                            Hyprsunset.setGamma(100);
+                        }
+                    } else {
+                        // 0 - 0.3 gamma
+                        if (root.brightnessMonitor.brightness !== 0) {
+                            root.brightnessMonitor.setBrightness(0);
+                        }
+                        Hyprsunset.setGamma(v * 100 / 0.3);
+                    }
+                } }
             ]
 
             QuickSlider {
@@ -67,6 +85,7 @@ Rectangle {
                 Layout.fillWidth: true
                 visible: modelData.show
                 materialSymbol: modelData.icon
+                secondaryMaterialSymbol: modelData?.secondaryIcon ?? "" 
                 value: modelData.getVal()
                 onMoved: modelData.setVal(value)
             }
@@ -76,16 +95,18 @@ Rectangle {
     component QuickSlider: StyledSlider { 
         id: quickSlider
         required property string materialSymbol
+        property string secondaryMaterialSymbol
         configuration: StyledSlider.Configuration.M
         stopIndicatorValues: []
+        dividerValues: secondaryMaterialSymbol.length > 0 ? [secondaryIcon.iconLocation] : []
         
         MaterialSymbol {
             id: icon
             property bool nearFull: quickSlider.value >= 0.82
             anchors {
-                verticalCenter: parent.verticalCenter
-                right: nearFull ? quickSlider.handle.right : parent.right
-                rightMargin: quickSlider.nearFull ? 14 : 8
+                verticalCenter: quickSlider.verticalCenter
+                right: nearFull ? quickSlider.handle.right : quickSlider.right
+                rightMargin: nearFull ? 14 : 8
             }
             iconSize: 20
             color: nearFull ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondaryContainer
@@ -97,7 +118,25 @@ Rectangle {
             Behavior on anchors.rightMargin {
                 animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
             }
+        }
 
+        MaterialSymbol {
+            id: secondaryIcon
+            visible: secondaryMaterialSymbol.length > 0
+            property real iconLocation: 0.3
+            property bool nearIcon: iconLocation - quickSlider.value <= 0.1 && iconLocation - quickSlider.value > (quickSlider.handleWidth + 8 - 14) / quickSlider.effectiveDraggingWidth
+            anchors {
+                verticalCenter: quickSlider.verticalCenter
+                right: nearIcon ? quickSlider.handle.right : quickSlider.right
+                rightMargin: nearIcon ? 14 : (1 - iconLocation) * quickSlider.effectiveDraggingWidth + quickSlider.rightPadding + 8
+            }
+            iconSize: 20
+            color: quickSlider.value >= iconLocation - 0.1 ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondaryContainer
+            text: secondaryMaterialSymbol
+
+            Behavior on color {
+                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+            }
         }
     }
 }

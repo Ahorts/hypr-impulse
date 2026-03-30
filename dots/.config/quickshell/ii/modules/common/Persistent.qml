@@ -89,6 +89,10 @@ Singleton {
                 property string provider: "yandere"
             }
 
+            property JsonObject hyprland: JsonObject {
+                property string layout: "dwindle"
+            }
+
             property JsonObject idle: JsonObject {
                 property bool inhibit: false
                 property string sessionId: ""

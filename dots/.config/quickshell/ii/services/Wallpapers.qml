@@ -17,6 +17,7 @@ Singleton {
 
     property string thumbgenScriptPath: `${FileUtils.trimFileProtocol(Directories.scriptPath)}/thumbnails/thumbgen-venv.sh`
     property string generateThumbnailsMagickScriptPath: `${FileUtils.trimFileProtocol(Directories.scriptPath)}/thumbnails/generate-thumbnails-magick.sh`
+    property string extractColorsScriptPath: FileUtils.trimFileProtocol(Directories.extractColorsScriptPath)
     property alias directory: folderModel.folder
     readonly property string effectiveDirectory: FileUtils.trimFileProtocol(folderModel.folder.toString())
     property url defaultFolder: Qt.resolvedUrl(`${Directories.pictures}/Wallpapers`)
@@ -28,6 +29,7 @@ Singleton {
     property list<string> wallpapers: [] // List of absolute file paths (without file://)
     readonly property bool thumbnailGenerationRunning: thumbgenProc.running
     property real thumbnailGenerationProgress: 0
+    property var colorCache: ({})
 
     signal changed()
     signal thumbnailGenerated(directory: string)
@@ -194,6 +196,38 @@ Singleton {
         onExited: (exitCode, exitStatus) => {
             // print("[Wallpapers] Thumbnail generation completed with exit code", exitCode)
             root.thumbnailGenerated(thumbgenProc.directory)
+        }
+    }
+
+    Process {
+        id: readColorCacheProc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text && text.trim().length > 0) {
+                    try {
+                        root.colorCache = JSON.parse(text);
+                    } catch (e) {
+                        console.error("[Wallpapers] Failed to parse color cache:", e);
+                    }
+                }
+            }
+        }
+    }
+
+    function loadColorCache() {
+        const path = Directories.colorCachePath;
+        readColorCacheProc.exec(["cat", path]);
+    }
+
+    Component.onCompleted: {
+        root.loadColorCache();
+    }
+
+    IpcHandler {
+        target: "wallpapers"
+
+        function apply(path: string): void {
+            root.apply(path);
         }
     }
 }

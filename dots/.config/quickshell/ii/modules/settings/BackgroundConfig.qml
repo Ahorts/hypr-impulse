@@ -22,6 +22,7 @@ ContentPage {
             text: Translation.tr("Vertical")
             checked: Config.options.background.parallax.vertical
             onCheckedChanged: {
+                HyprlandSettings.changeAnimation("workspaces", checked ? "slidevert" : "slide");
                 Config.options.background.parallax.vertical = checked;
             }
         }
@@ -54,6 +55,14 @@ ContentPage {
             stepSize: 1
             onValueChanged: {
                 Config.options.background.parallax.workspaceZoom = value / 100;
+            }
+        }
+        ConfigSwitch {
+            buttonIcon: "masked_transitions"
+            text: Translation.tr("Animate wallpaper changes")
+            checked: Config.options.background.animateWallpaperChanges
+            onCheckedChanged: {
+                Config.options.background.animateWallpaperChanges = checked;
             }
         }
     }
@@ -167,6 +176,20 @@ ContentPage {
                 Config.options.background.mediaMode.changeShellColor = checked;
             }
         }
+
+        ConfigSpinBox {
+            Layout.fillWidth: true
+            icon: "opacity"
+            text: Translation.tr("Background album art opacity (%)")
+            value: Config.options.background.mediaMode.backgroundOpacity
+            from: 0
+            to: 100
+            stepSize: 10
+            onValueChanged: {
+                Config.options.background.mediaMode.backgroundOpacity = value;
+            }
+        }
+
 
         ContentSubsection {
             title: Translation.tr("Text highlight style")
@@ -467,7 +490,7 @@ ContentPage {
                     Config.options.background.widgets.clock.cookie.constantlyRotate = checked;
                 }
                 StyledToolTip {
-                    text: "Makes the clock always rotate. This is extremely expensive\n(expect 50% usage on Intel UHD Graphics) and thus impractical."
+                    text: Translation.tr("Makes the clock always rotate. This is extremely expensive\n(expect 50% usage on Intel UHD Graphics) and thus impractical.")
                 }
             }
 
@@ -485,7 +508,7 @@ ContentPage {
                         Config.options.background.widgets.clock.cookie.hourMarks = checked;
                     }
                     StyledToolTip {
-                        text: "Can only be turned on using the 'Dots' or 'Full' dial style for aesthetic reasons"
+                        text: Translation.tr("Can only be turned on using the 'Dots' or 'Full' dial style for aesthetic reasons")
                     }
                 }
 
@@ -501,7 +524,7 @@ ContentPage {
                         Config.options.background.widgets.clock.cookie.timeIndicators = checked;
                     }
                     StyledToolTip {
-                        text: "Can't be turned on when using 'Numbers' dial style for aesthetic reasons"
+                        text: Translation.tr("Can't be turned on when using 'Numbers' dial style for aesthetic reasons")
                     }
                 }
             }

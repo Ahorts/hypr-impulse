@@ -118,6 +118,7 @@ Singleton {
                 property int fakeScreenRounding: 2 // 0: None | 1: Always | 2: When not fullscreen | 3: Wrapped
                 property int wrappedFrameThickness: 10
                 property bool sharpMode: false
+                property int defaultBorderRadius: 18
                 property bool toggleWindowRounding: true // Changes Hyprland window rounding to 0 if sharpMode is true
                 property JsonObject fonts: JsonObject {
                     property bool enableCustom: false
@@ -250,6 +251,7 @@ Singleton {
                         property real y: 100
                     }
                 }
+                property bool animateWallpaperChanges: true
                 property string wallpaperPath: ""
                 property string thumbnailPath: ""
                 property bool hideWhenFullscreen: true
@@ -266,6 +268,7 @@ Singleton {
                     property string backgroundShape: "Square"
                     property bool enableBackgroundAnimation: true // It **may** cause nausea for someone
                     property bool changeShellColor: true // Changes the shell color to the album color
+                    property int backgroundOpacity: 50 // In percent
                     property JsonObject backgroundAnimation: JsonObject {
                         property bool enable: true
                         property int speedScale: 10 // 1: very slow, 10: default, 20: 2x speed etc.
@@ -305,6 +308,9 @@ Singleton {
                     property bool useFixedSize: false
                     property int customSize: 250
                     property int maxSize: 400
+                    property JsonObject artwork: JsonObject {
+                        property bool enable: false
+                    }
                     property JsonObject lyrics: JsonObject {
                         property bool enable: false
                         property int customSize: 400
@@ -442,6 +448,10 @@ Singleton {
                     "org.kde.dolphin", "kitty",]
                 property list<string> ignoredAppRegexes: []
                 property list<string> pinnedFiles: []
+            }
+
+            property JsonObject hyprland: JsonObject {
+                property string defaultHyprlandLayout: "dwindle" // Options: dwindle, monocle, master // It's best to not use scrolling
             }
 
             property JsonObject interactions: JsonObject {
@@ -690,8 +700,9 @@ Singleton {
                 property JsonObject quickSliders: JsonObject {
                     property bool enable: true
                     property bool showMic: true
+                    property bool showGamma: true
                     property bool showVolume: true
-                    property bool showBrightness: true
+                    property bool showBrightness: false // gamma setting also works for brightness
                 }
             }
 

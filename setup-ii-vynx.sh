@@ -9,6 +9,45 @@ NC='\033[0m' # white
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+INVOKED_AS="$(basename "$0")"
+if [[ "$INVOKED_AS" == "vynx" ]]; then
+    _SOURCE="${BASH_SOURCE[0]}"
+    while [ -L "$_SOURCE" ]; do
+        _DIR="$(cd -P "$(dirname "$_SOURCE")" && pwd)"
+        _SOURCE="$(readlink "$_SOURCE")"
+        [[ "$_SOURCE" != /* ]] && _SOURCE="$_DIR/$_SOURCE"
+    done
+    SCRIPT_DIR="$(cd -P "$(dirname "$_SOURCE")" && pwd)"
+
+    LIB_DIR="$SCRIPT_DIR/sdata/cli/lib"
+    BASE_DIR="$SCRIPT_DIR"
+    VERBOSE=false
+    TEMP_ARGS=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -v|--verbose) VERBOSE=true; shift ;;
+            *) TEMP_ARGS+=("$1"); shift ;;
+        esac
+    done
+    set -- "${TEMP_ARGS[@]}"
+
+    COMMAND="$1"; shift
+    case "$COMMAND" in
+        run|restart|update|remove-cli|hyprset)
+            if [ -f "$LIB_DIR/${COMMAND}.sh" ]; then
+                source "$LIB_DIR/${COMMAND}.sh" "$@"
+                exit $?
+            else
+                echo -e "${RED}Error: $COMMAND not found${NC}"; exit 1
+            fi
+            ;;
+        "")
+            echo "Usage: vynx [-v] {run|restart|update|remove-cli|hyprset}"; exit 1 ;;
+        *)
+            echo -e "${RED}Invalid command: $COMMAND${NC}"; exit 1 ;;
+    esac
+fi
+
 DO_PULL=true
 VERBOSE=false
 FORCE_INSTALL=false
@@ -64,27 +103,57 @@ setup_hyprland_source() {
     local II_VYNX_CONF="$II_VYNX_DIR/hyprland.conf"
     local MAIN_HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
     local REPO_HYPR_CONF="$SCRIPT_DIR/dots/.local/share/ii-vynx/hyprland.conf"
-
+    local HYPRMERGE="$SCRIPT_DIR/sdata/cli/lib/hyprmerge.sh"
+ 
+    local II_VYNX_DIR="$HOME/.local/share/ii-vynx"
+    local II_VYNX_CONF="$II_VYNX_DIR/hyprland.conf"
+    local MAIN_HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
+    local REPO_HYPR_CONF="$SCRIPT_DIR/dots/.local/share/ii-vynx/hyprland.conf"
+    local HYPRMERGE="$SCRIPT_DIR/sdata/cli/lib/hyprmerge.sh"
+ 
     echo -e "${NC}• Checking for custom ii-vynx config in Hyprland config file 'source' settings...${NC}"
-
+ 
     if [ ! -d "$II_VYNX_DIR" ]; then
         log_verbose "Creating directory: $II_VYNX_DIR"
         mkdir -p "$II_VYNX_DIR"
     fi
-
-    if [ -f "$REPO_HYPR_CONF" ]; then
-        cp "$REPO_HYPR_CONF" "$II_VYNX_CONF"
-        log_verbose "Copied $REPO_HYPR_CONF to $II_VYNX_CONF"
-    else
+ 
+    if [ ! -f "$REPO_HYPR_CONF" ]; then
         echo -e "${RED}⚠ Error: Couldn't find Hyprland config ($REPO_HYPR_CONF), please report this bug!${NC}"
         return 1
     fi
+ 
+    # Fresh install: local config doesn't exist yet → just copy
+    if [ ! -f "$II_VYNX_CONF" ]; then
+        cp "$REPO_HYPR_CONF" "$II_VYNX_CONF"
+        echo -e "${GREEN}✓ Fresh install: copied hyprland.conf${NC}"
+        log_verbose "Copied $REPO_HYPR_CONF to $II_VYNX_CONF"
+    else
+        # Update: merge repo config into existing local config
+        echo -e "${BLUE}• Merging hyprland.conf (preserving local changes)...${NC}"
+        if [ -f "$HYPRMERGE" ]; then
+            
+            if [ "$VERBOSE" = true ]; then
+                log_verbose "Firing hyprmerge with full verbose power..."
+                export VERBOSE=true
+                bash "$HYPRMERGE" "$REPO_HYPR_CONF" "$II_VYNX_CONF" -v
+            else
+                export VERBOSE=false
+                bash "$HYPRMERGE" "$REPO_HYPR_CONF" "$II_VYNX_CONF"
+            fi
 
+        else
+            echo -e "${YELLOW}⚠ hyprmerge.sh not found at $HYPRMERGE, falling back to cp${NC}"
+            cp "$REPO_HYPR_CONF" "$II_VYNX_CONF"
+            echo -e "${GREEN}✓ Copied hyprland.conf (fallback)${NC}"
+        fi
+    fi
+ 
     if [ -f "$MAIN_HYPR_CONF" ]; then
-        if grep -q "# ii-vynx" "$MAIN_HYPR_CONF"; then
+        if grep -q "$II_VYNX_CONF" "$MAIN_HYPR_CONF"; then
             log_verbose "Source already exists in $MAIN_HYPR_CONF, skipping append."
         else
-            cp "$MAIN_HYPR_CONF" "${MAIN_HYPR_CONF}.bak" # Backup the original file
+            cp "$MAIN_HYPR_CONF" "${MAIN_HYPR_CONF}.bak"
             echo -e "\n# ii-vynx\nsource = $II_VYNX_CONF" >> "$MAIN_HYPR_CONF"
             echo -e "${GREEN}✓ Successfully appended source to $MAIN_HYPR_CONF.${NC}"
         fi
@@ -92,6 +161,7 @@ setup_hyprland_source() {
         echo -e "${YELLOW}⚠ Warning: Couldn't find Hyprland config ($MAIN_HYPR_CONF). WTF IS THIS? ${NC}"
     fi
 }
+
 
 install_original_dots() {
     echo -e "${RED}Original dots are not installed! Do you want to install them? (y/n): ${NC}"
@@ -135,6 +205,27 @@ ${NC}"
         exit 1
     fi
 }
+
+install_cli() {
+    local BIN_PATH="/usr/local/bin"
+    local CLI_NAME="vynx"
+
+    echo -e "${BLUE}• Installing Vynx CLI tool...${NC}"
+    chmod +x "$SCRIPT_DIR/setup-ii-vynx.sh"
+    if [ -d "$SCRIPT_DIR/sdata/cli/lib" ]; then
+        chmod +x "$SCRIPT_DIR/sdata/cli/lib/"*.sh
+    fi
+    sudo ln -sf "$SCRIPT_DIR/setup-ii-vynx.sh" "$BIN_PATH/$CLI_NAME"
+    echo -e "${GREEN}✓ Successfully installed $CLI_NAME to $BIN_PATH${NC}"
+}
+
+# Clear sudo timestamp and request fresh credentials
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${BLUE}This script requires sudo permissions for some installation steps.${NC}"
+    sudo -v || exit 1
+    # Keep-alive: update existing sudo time stamp until script has finished
+    while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+fi
 
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -270,6 +361,24 @@ else
     echo -e "${RED}Skipping the backup process...${NC}"
 fi
 
+if command -v vynx &> /dev/null; then
+    install_cli
+else
+    if [ "$NO_CONFIRM" = true ]; then
+        install_cli
+    else
+        echo ""
+        echo -e "${BLUE}• Vynx CLI is not installed. CLI is required for some features yet still optional. ${NC}"
+        echo -e "${BLUE}• Do you want to install it? (y/n): ${NC}"
+        read -r cli_response
+        if [[ "$cli_response" =~ ^[Yy]$ ]]; then
+            install_cli
+        else
+            echo -e "${YELLOW}⚠ Skipping CLI installation.${NC}"
+        fi
+    fi
+fi
+
 echo ""
 echo -e "${NC}• Copying...${NC}"
 log_verbose "Copying from $SOURCE_DIR to $TARGET_DIR"
@@ -277,6 +386,7 @@ cp -r "$SOURCE_DIR/." "$TARGET_DIR/"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Successfully copied: $TARGET_DIR${NC}"
+    sleep 1.0
     setup_hyprland_source
 else
     echo -e "${RED}✗ An error occurred while copying!${NC}"

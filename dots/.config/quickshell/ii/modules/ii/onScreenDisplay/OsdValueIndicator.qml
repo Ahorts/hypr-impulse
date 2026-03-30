@@ -12,6 +12,8 @@ Item {
     property var shape
     property bool rotateIcon: false
     property bool scaleIcon: false
+    property alias from: valueProgressBar.from
+    property alias to: valueProgressBar.to
 
     property real valueIndicatorVerticalPadding: 9
     property real valueIndicatorLeftPadding: 15
