@@ -9,12 +9,10 @@ add_newline = false
 # $directory $fill $git_branch $cmd_duration
 #  $character"""
 format = """
-$cmd_duration 󰜥 $directory $git_branch
-$character"""
+$cmd_duration 󰜥 $directory $git_branch$git_status $username$hostname$all $nodejs${custom.nextjs} ${custom.typescript}${custom.react}${custom.tailwind}
 
-[fill]
-symbol = '-'
-style = 'fg:245'
+$character
+"""
 
 [fill]
 symbol = '-'
