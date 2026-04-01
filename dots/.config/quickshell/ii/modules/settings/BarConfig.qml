@@ -18,7 +18,8 @@ ContentPage {
         "utility_buttons": utilityButtons,
         "system_tray": systemTray,
         "workspaces": workspaces,
-        "timer": timerAndPomodoro
+        "timer": indicators,
+        "record_indicator": indicators
     })
 
     function scrollTo(stringId) {
@@ -417,30 +418,46 @@ ContentPage {
     }
 
     ContentSection {
-        id: timerAndPomodoro
-        icon: "timer_play"
-        title: Translation.tr("Timer & Pomodoro")
+        id: indicators
+        icon: "ad"
+        title: Translation.tr("Indicators")
 
-        ConfigRow {
-            uniform: true
-            ConfigSwitch {
-                buttonIcon: "timer"
-                text: Translation.tr("Show stopwatch")
-                checked: Config.options.bar.timers.showStopwatch
-                onCheckedChanged: {
-                    Config.options.bar.timers.showStopwatch = checked;
+        ContentSubsection {
+            title: Translation.tr("Timer and pomodoro")
+
+            ConfigRow {
+                uniform: true
+                ConfigSwitch {
+                    buttonIcon: "timer"
+                    text: Translation.tr("Show stopwatch")
+                    checked: Config.options.bar.timers.showStopwatch
+                    onCheckedChanged: {
+                        Config.options.bar.timers.showStopwatch = checked;
+                    }
                 }
-            }
-            ConfigSwitch {
-                buttonIcon: "search_activity"
-                text: Translation.tr("Show pomodoro")
-                checked: Config.options.bar.timers.showPomodoro
-                onCheckedChanged: {
-                    Config.options.bar.timers.showPomodoro = checked;
+                ConfigSwitch {
+                    buttonIcon: "search_activity"
+                    text: Translation.tr("Show pomodoro")
+                    checked: Config.options.bar.timers.showPomodoro
+                    onCheckedChanged: {
+                        Config.options.bar.timers.showPomodoro = checked;
+                    }
                 }
             }
         }
+        
+        ContentSubsection {
+            title: Translation.tr("Record")
 
+            ConfigSwitch {
+                buttonIcon: "check_indeterminate_small"
+                text: Translation.tr("Minimal mode")
+                checked: Config.options.bar.indicators.record.minimal
+                onCheckedChanged: {
+                    Config.options.bar.indicators.record.minimal = checked;
+                }
+            }
+        }
     }
 
     ContentSection {

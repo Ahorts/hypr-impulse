@@ -366,6 +366,9 @@ Singleton {
                     property JsonObject notifications: JsonObject {
                         property bool showUnreadCount: false
                     }
+                    property JsonObject record: JsonObject {
+                        property bool minimal: false
+                    }
                 }
                 property JsonObject layouts: JsonObject {
                     // Only storing id and layout-specific flags (visible, centered)

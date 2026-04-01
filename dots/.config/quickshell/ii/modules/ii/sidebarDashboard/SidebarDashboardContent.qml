@@ -313,7 +313,7 @@ Item {
                 }
                 onClicked: {
                     if (confirm) {
-                        updateProcess.startDetached();
+                        Quickshell.execDetached([Directories.cliPath, "update", "--no-confirm", "--no-backup"]);
                         GlobalStates.sidebarRightOpen = false;
                     } else {
                         confirm = true
@@ -324,13 +324,6 @@ Item {
                 StyledToolTip {
                     text: Translation.tr("Update the ii-vynx, make sure you have the vynx-cli installed")
                 }
-
-                Process {
-                    id: updateProcess
-                    running: false
-                    command: ["bash", "-c", `nohup setsid ${Directories.vynxUpdateScriptPath}`]
-                }
-
             }
             QuickToggleButton {
                 toggled: false

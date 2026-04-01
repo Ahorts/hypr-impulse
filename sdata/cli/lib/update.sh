@@ -9,6 +9,7 @@ DO_PULL=true
 BACKUP=true
 FORCE_INSTALL=false
 FULL_INSTALL=false
+NO_CONFIRM=false
 
 for arg in "$@"; do
     case $arg in
@@ -16,9 +17,10 @@ for arg in "$@"; do
         --no-backup)     BACKUP=false ;;
         --force-install) FORCE_INSTALL=true ;;
         --full-install)  FULL_INSTALL=true ;;
+        --no-confirm)    NO_CONFIRM=true ;;
         *)
             echo -e "${RED}Unknown flag: $arg${NC}"
-            echo "Usage: vynx update [--no-pull] [--no-backup] [--force-install] [--full-install]"
+            echo "Usage: vynx update [--no-pull] [--no-backup] [--force-install] [--full-install] [--no-confirm]"
             exit 1
             ;;
     esac
@@ -30,6 +32,7 @@ SETUP_FLAGS=""
 [[ "$BACKUP" == "false" ]]      && SETUP_FLAGS="$SETUP_FLAGS --no-backup"
 [[ "$FORCE_INSTALL" == "true" ]] && SETUP_FLAGS="$SETUP_FLAGS --force-install"
 [[ "$FULL_INSTALL" == "true" ]]  && SETUP_FLAGS="$SETUP_FLAGS --full-install"
+[[ "$NO_CONFIRM" == "true" ]]   && SETUP_FLAGS="$SETUP_FLAGS --no-confirm"
 
 if [ -d "$BASE_DIR" ]; then
     cd "$BASE_DIR"

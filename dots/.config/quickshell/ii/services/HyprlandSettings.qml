@@ -47,7 +47,7 @@ Singleton {
             const field = parts[1].trim()
 
             
-            sedCmd = `vynx hyprset key '${section}:${field}' '${value}' >/dev/null 2>&1 || true`
+            sedCmd = `${Directories.cliPath} hyprset key '${section}:${field}' '${value}' >/dev/null 2>&1 || true`
         } else {
             // idk.. put smthng here
         }
@@ -72,7 +72,7 @@ Singleton {
         const tmpPath = "/tmp/hypr_config_write.tmp"
         const path = root.hyprlandConfigPath
 
-        const sedCmd = `vynx hyprset anim '${animName}' '${style}' >/dev/null 2>&1 || true`
+        const sedCmd = `${Directories.cliPath} hyprset anim '${animName}' '${style}' >/dev/null 2>&1 || true`
 
         configWriter.pendingCommand = sedCmd
         configWriter.startDetached()

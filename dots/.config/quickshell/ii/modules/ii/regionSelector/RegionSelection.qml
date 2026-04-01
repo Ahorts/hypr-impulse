@@ -292,17 +292,17 @@ PanelWindow {
             screenshotAction, //
             screenshotDir
         )
-        snipProc.command = command;
-
-        snipProc.startDetached();
-
-        // Ask AI
+        Quickshell.execDetached(command);
         if (root.action === RegionSelection.SnipAction.AskAI) {
             Ai.handleClipboardAndAttach();
             GlobalStates.policiesPanelOpen = true
         }
-
-        root.dismiss();
+        if (root.action == RegionSelection.SnipAction.Record || root.action == RegionSelection.SnipAction.RecordWithSound) {
+            root.phase = RegionSelection.Phase.Post
+            root.selectionMode = RegionSelection.SelectionMode.RectCorners
+        } else {
+            root.dismiss();
+        }
     }
 
     // Dont use anything like stdout here, this is being called detached

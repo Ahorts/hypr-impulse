@@ -154,6 +154,11 @@ Variants {
             }
         }
 
+        Component.onCompleted: {
+            if (!mediaModeOpen) {
+                Wallpapers.apply(Config.options.background.wallpaperPath)
+            }
+        }
 
         Item {
             id: wallpaperItem

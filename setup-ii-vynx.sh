@@ -207,25 +207,43 @@ ${NC}"
 }
 
 install_cli() {
-    local BIN_PATH="/usr/local/bin"
+    local BIN_PATH="$HOME/.local/bin"
     local CLI_NAME="vynx"
+    local TARGET="$BIN_PATH/$CLI_NAME"
 
-    echo -e "${BLUE}• Installing Vynx CLI tool...${NC}"
+    echo -e "${BLUE}• Installing Vynx CLI tool (user mode)...${NC}"
+
+    if [ ! -d "$BIN_PATH" ]; then
+        mkdir -p "$BIN_PATH"
+        echo -e "${GREEN}✓ Created $BIN_PATH${NC}"
+    fi
+
+    if [[ ":$PATH:" != *":$BIN_PATH:"* ]]; then
+        echo ""
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${RED}    ⚠ CLI is not in your PATH!${NC}"
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo ""
+        echo -e "${RED}You won't be able to use CLI globally. But shell integration is still available.${NC}"
+        echo -e "${RED}Add this line to your shell config (~/.bashrc, ~/.zshrc, refer to wiki for fish shell):${NC}"
+        echo -e "${GREEN}   export PATH=\"\$HOME/.local/bin:\$PATH\"${NC}"
+        echo ""
+        echo -e "${CYAN}Continuing...${NC}"
+        if [ "$NO_CONFIRM" = false ]; then
+            sleep 3.0
+        fi
+        echo ""
+    fi
+
     chmod +x "$SCRIPT_DIR/setup-ii-vynx.sh"
     if [ -d "$SCRIPT_DIR/sdata/cli/lib" ]; then
         chmod +x "$SCRIPT_DIR/sdata/cli/lib/"*.sh
     fi
-    sudo ln -sf "$SCRIPT_DIR/setup-ii-vynx.sh" "$BIN_PATH/$CLI_NAME"
-    echo -e "${GREEN}✓ Successfully installed $CLI_NAME to $BIN_PATH${NC}"
-}
 
-# Clear sudo timestamp and request fresh credentials
-if [[ $EUID -ne 0 ]]; then
-    echo -e "${BLUE}This script requires sudo permissions for some installation steps.${NC}"
-    sudo -v || exit 1
-    # Keep-alive: update existing sudo time stamp until script has finished
-    while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
-fi
+    ln -sf "$SCRIPT_DIR/setup-ii-vynx.sh" "$TARGET"
+
+    echo -e "${GREEN}✓ Symlinked $CLI_NAME → $TARGET${NC}"
+}
 
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -253,6 +271,7 @@ if [ "$NO_CONFIRM" = true ]; then
     echo -e "${RED}Skipping all confirmations...${NC}"
     echo -e "${RED}WARNING: This may cause issues!${NC}"
     echo ""
+    sleep 4.0
 fi
 
 if [ "$FULL_INSTALL" = true ]; then
@@ -368,7 +387,7 @@ else
         install_cli
     else
         echo ""
-        echo -e "${BLUE}• Vynx CLI is not installed. CLI is required for some features yet still optional. ${NC}"
+        echo -e "${BLUE}• Vynx CLI is not installed or not in your PATH. CLI is required for some features yet still optional. ${NC}"
         echo -e "${BLUE}• Do you want to install it? (y/n): ${NC}"
         read -r cli_response
         if [[ "$cli_response" =~ ^[Yy]$ ]]; then

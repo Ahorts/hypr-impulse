@@ -8,7 +8,6 @@ import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
 
-
 RippleButton {
     id: root
     readonly property string builtInThemeDirectory: Directories.defaultThemes
@@ -19,23 +18,18 @@ RippleButton {
 
     property bool builtInTheme: false
     readonly property string builtInThemeFilePath: builtInThemeDirectory + "/" + colorScheme + ".json"
-    readonly property string builtInThemeCommand: ` jq -r '.primary, .primary_container, .secondary' ${builtInThemeFilePath}`
+    readonly property string builtInThemeCommand: `jq -r '.primary, .primary_container, .secondary' ${builtInThemeFilePath}`
 
     property bool customTheme: false
     readonly property string customThemeFilePath: customThemeDirectory + "/" + colorScheme + ".json"
-    readonly property string customThemeCommand: ` jq -r '.primary, .primary_container, .secondary' ${customThemeFilePath}`  
-
-    property color accentColor
-    readonly property bool toggled: Config.options.appearance.palette.type === root.colorScheme
+    readonly property string customThemeCommand: `jq -r '.primary, .primary_container, .secondary' ${customThemeFilePath}`  
 
     readonly property string wallpaperPath: Config.options.background.wallpaperPath
     readonly property string scriptPath: FileUtils.trimFileProtocol(`${Directories.scriptPath}/colors/generate_colors_material.py`)
-    readonly property string grepCommand: "grep -E '^[[:space:]]*(primary|primaryContainer|secondary)[[:space:]]*:' | grep -oE '#[0-9A-Fa-f]{6}'" // some magic to extract hex colors from the script output
-    property string scriptArguments: ` --scheme ${root.colorScheme} --debug | ${root.grepCommand}`
 
-    property string fullCommand: `python3 ${root.scriptPath} --color "$(${root.accentColorCommand})" ${root.scriptArguments}`
-    readonly property string accentColorCommand: `python3 ${root.scriptPath} --path ${Config.options.background.wallpaperPath} --debug | grep "Accent color" | awk '{print $NF}'`
+    property string fullCommand: `python3 ${root.scriptPath} --path ${root.wallpaperPath} --scheme ${root.colorScheme} --preview`
 
+    // these are not actually primary, secondary and tertiary, they are just the three colors we get from the script
     property color primaryColor: "transparent"
     property color secondaryColor: "transparent"
     property color tertiaryColor: "transparent"
@@ -43,6 +37,7 @@ RippleButton {
     property bool loaded: false
     property bool shouldLoad: false
 
+    readonly property bool toggled: Config.options.appearance.palette.type === root.colorScheme
     readonly property bool sharpMode: Config.options.appearance.sharpMode
 
     colBackground: toggled ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer2
@@ -67,26 +62,43 @@ RippleButton {
         }
     }
 
-    property var effectiveCommand: root.customTheme ? root.customThemeCommand : root.builtInTheme ? root.builtInThemeCommand : root.fullCommand
+    property var effectiveCommand:  root.customTheme ? root.customThemeCommand
+                                    : root.builtInTheme ? root.builtInThemeCommand
+                                    : root.fullCommand
 
     onShouldLoadChanged: {
         if (shouldLoad && !loaded) {
-            colorFetchProccess.running = true
+            colorFetchProcess.running = true
         }
     }
 
     Process {
-        id: colorFetchProccess
+        id: colorFetchProcess
         running: false
-        command: [ "bash", "-c", root.effectiveCommand ]
+        command: ["bash", "-c", root.effectiveCommand]
+
         stdout: StdioCollector {
             onStreamFinished: {
-                const colors = this.text.split("\n")
-                root.primaryColor   = colors[0]?.trim()
-                root.secondaryColor = colors[1]?.trim()
-                root.tertiaryColor  = colors[2]?.trim()
-                root.loaded = true;
-                myCanvas.requestPaint()
+                try {
+                    //console.log("[ColorPreviewButton] Command:", root.effectiveCommand)
+                    if (root.customTheme || root.builtInTheme) {
+                        const colors = this.text.trim().split("\n")
+                        root.primaryColor   = colors[0] || "transparent"
+                        root.secondaryColor = colors[1] || "transparent"
+                        root.tertiaryColor  = colors[2] || "transparent"
+                    } else {
+                        const data = JSON.parse(this.text)
+
+                        root.primaryColor   = data.primary   || "transparent"
+                        root.secondaryColor = data.primary_container || "transparent"
+                        root.tertiaryColor  = data.secondary  || "transparent"
+                    }
+
+                    root.loaded = true
+                    myCanvas.requestPaint()
+                } catch (e) {
+                    console.log("[ColorPreviewButton] Parse error:", this.text)
+                }
             }
         }
     }
@@ -96,7 +108,6 @@ RippleButton {
     }
 
     Item {
-        id: myRect
         anchors.fill: parent
 
         StyledText {
@@ -111,13 +122,12 @@ RippleButton {
 
         Canvas {
             id: myCanvas
-            anchors {
-                centerIn: parent
-                margins: 8
-            }    
+            anchors.centerIn: parent
+            anchors.margins: 8
+
             implicitWidth: root.implicitHeight - 16
             implicitHeight: root.implicitHeight - 16
-            
+
             antialiasing: true
 
             onPaint: {
@@ -128,47 +138,35 @@ RippleButton {
 
                 ctx.reset();
 
-                // there should be a better way than this...
                 if (root.sharpMode) {
-                    ctx.beginPath();
                     ctx.fillStyle = root.primaryColor;
-                    ctx.rect(0, 0, width, centerY);
-                    ctx.fill();
+                    ctx.fillRect(0, 0, width, centerY);
 
-                    ctx.beginPath();
                     ctx.fillStyle = root.secondaryColor;
-                    ctx.rect(centerX, centerY, centerX, centerY);
-                    ctx.fill();
+                    ctx.fillRect(centerX, centerY, centerX, centerY);
 
-                    ctx.beginPath();
                     ctx.fillStyle = root.tertiaryColor;
-                    ctx.rect(0, centerY, centerX, centerY);
-                    ctx.fill();
+                    ctx.fillRect(0, centerY, centerX, centerY);
                 } else {
                     ctx.beginPath();
                     ctx.fillStyle = root.primaryColor;
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
-                    ctx.closePath();
                     ctx.fill();
 
                     ctx.beginPath();
                     ctx.fillStyle = root.secondaryColor;
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, 0, Math.PI / 2, false);
-                    ctx.closePath();
                     ctx.fill();
 
                     ctx.beginPath();
                     ctx.fillStyle = root.tertiaryColor;
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, Math.PI / 2, Math.PI, false);
-                    ctx.closePath();
                     ctx.fill();
                 }
             }
         }
-
     }
-
 }
