@@ -6,10 +6,10 @@ add_newline = false
 # Random noise 🬖🬥🬔🬗
 
 # format = """
-# $directory $fill $git_branch $cmd_duration
+#data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg> $directory $fill $git_branch $cmd_duration
 #  $character"""
 format = """
-$cmd_duration 󰜥 $directory $git_branch$git_status $username$hostname$all $nodejs${custom.nextjs} ${custom.typescript}${custom.react}${custom.tailwind}
+$cmd_duration 󰜥 $directory $git_branch$git_status $username$hostname $all $nodejs${custom.nextjs} ${custom.typescript}${custom.react}${custom.tailwind}
 
 $character
 """
@@ -19,7 +19,7 @@ symbol = '-'
 style = 'fg:245'
 
 # Replace the "❯" symbol in the prompt with "➜"
-[character]                            # The name of the module we are configuring is "character"
+[character] # The name of the module we are configuring is "character"
 success_symbol = "[ ](bold fg:255)"
 error_symbol = "[ ](bold fg:249)"
 
@@ -53,7 +53,7 @@ deleted = " 🗑 "
 
 [hostname]
 ssh_only = false
-format =  "[•$hostname](bg:252 bold fg:235)[](bold fg:252)"
+format = "[•$hostname](bg:252 bold fg:235)[](bold fg:252)"
 trim_at = ".companyname.com"
 disabled = false
 
@@ -325,7 +325,6 @@ detect_files = ['next.config.js', 'next.config.mjs', 'package.json']
 format = '[$output ](bold white)'
 
 
-
 [custom.tailwind]
 command = '''
 sh -c '
@@ -337,5 +336,11 @@ if [ -f package.json ]; then
 fi
 '
 '''
-detect_files = ['tailwind.config.js', 'tailwind.config.cjs', 'tailwind.config.mjs', 'tailwind.config.ts','package.json']
+detect_files = [
+  'tailwind.config.js',
+  'tailwind.config.cjs',
+  'tailwind.config.mjs',
+  'tailwind.config.ts',
+  'package.json',
+]
 format = '[$output ](bold cyan)'
