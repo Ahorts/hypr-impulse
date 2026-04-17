@@ -19,8 +19,14 @@ Singleton {
 	property real swapFree: 0
 	property real swapUsed: swapTotal - swapFree
     property real swapUsedPercentage: swapTotal > 0 ? (swapUsed / swapTotal) : 0
+    property real diskTotal: 1
+    property real diskUsed: 0
+    property real diskUsedPercentage: diskTotal > 0 ? (diskUsed / diskTotal) : 0
     property real cpuUsage: 0
     property var previousCpuStats
+    property string cpuModel: "Unknown CPU"
+    property string cpuFreq: "-- MHz"
+    property string cpuTemp: "--°C"
 
     property string maxAvailableMemoryString: kbToGbString(ResourceUsage.memoryTotal)
     property string maxAvailableSwapString: kbToGbString(ResourceUsage.swapTotal)
@@ -60,7 +66,7 @@ Singleton {
     }
 
 	Timer {
-		interval: 1
+		interval: Config.options?.resources?.updateInterval ?? 3000
         running: true 
         repeat: true
 		onTriggered: {
@@ -92,13 +98,34 @@ Singleton {
                 previousCpuStats = { total, idle }
             }
 
+            // Parse CPU info
+            fileCpuInfo.reload()
+            const textCpu = fileCpuInfo.text()
+            if (root.cpuModel === "Unknown CPU" && textCpu.length > 0) {
+                const modelMatch = textCpu.match(/model name\s+:\s+(.*)/)
+                if (!modelMatch) return
+                // i hope these are enough to shorten the string
+                root.cpuModel = modelMatch[1]
+                    .replace(/\(.*?\)/g, "")              // (R), (TM) vs
+                    .replace(/with.*$/i, "")              // with Radeon...
+                    .replace(/@\s*[\d.]+\s*GHz/i, "")     // @ 2.60GHz
+                    .replace(/\b\d+-Core\b/gi, "")        // 6-Core
+                    .replace(/\b\d+\s*Cores?\b/gi, "")    // 6 Cores
+                    .replace(/\bCPU\b/gi, "")
+                    .replace(/\bProcessor\b/gi, "")
+                    .replace(/\s+/g, " ")
+                    .trim() 
+            }
+            const freqMatch = textCpu.match(/cpu MHz\s+:\s+([\d.]+)/)
+            if (freqMatch) root.cpuFreq = parseInt(freqMatch[1]) + " MHz"
+
             root.updateHistories()
-            interval = Config.options?.resources?.updateInterval ?? 3000
         }
 	}
 
 	FileView { id: fileMeminfo; path: "/proc/meminfo" }
     FileView { id: fileStat; path: "/proc/stat" }
+    FileView { id: fileCpuInfo; path: "/proc/cpuinfo" }
 
     Process {
         id: findCpuMaxFreqProc
@@ -114,5 +141,52 @@ Singleton {
                 root.maxAvailableCpuString = (parseFloat(outputCollector.text) / 1000).toFixed(0) + " GHz"
             }
         }
+    }
+    
+    Process {
+        id: diskProc
+        command: ["bash", "-c", "df -k / | awk 'NR==2{print $2, $3}'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text.length > 0) {
+                    var parts = text.trim().split(/\s+/);
+                    if (parts.length === 2) {
+                        root.diskTotal = parseInt(parts[0]); // KB
+                        root.diskUsed = parseInt(parts[1]);  // KB
+                    }
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: diskProc.running = true
+    }
+
+    Process {
+        id: tempProc
+        command: ["bash", "-c", "sensors | awk '/Tctl:/ {print $2}; /Package id 0:/ {print $4}' | head -1 | tr -d '+' | cut -d'.' -f1"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text.length > 0) {
+                    root.cpuTemp = text.trim() + "°C";
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: tempProc.running = true
+    }
+
+    Component.onCompleted: {
+        diskProc.running = true
+        tempProc.running = true
     }
 }

@@ -41,8 +41,21 @@ Item {
         anchors.fill: parent
         hoverEnabled: !Config.options.bar.tooltips.clickToShow
 
-        ClockWidgetPopup {
-            hoverTarget: mouseArea
+        Loader {
+            active: true
+            sourceComponent: Config.options.bar.tooltips.compactPopups ? clockPopupCompact : clockPopup
+        }
+        Component {
+            id: clockPopup
+            ClockWidgetPopup {
+                hoverTarget: mouseArea
+            }
+        }
+        Component {
+            id: clockPopupCompact
+            ClockWidgetPopupCompact {
+                hoverTarget: mouseArea
+            }
         }
     }
 }

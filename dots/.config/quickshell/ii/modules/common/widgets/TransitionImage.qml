@@ -13,6 +13,13 @@ Item {
     property var fillMode: Image.PreserveAspectCrop
     property bool animated: true
     property bool imgAIsBack: true
+    
+    property var sourceSize: Qt.size(0, 0)
+    property bool cache: false
+    property bool antialiasing: true
+    property bool asynchronous: true
+    property bool smooth: true
+    property bool mipmap: true
 
     onImageSourceChanged: fadeTo(imageSource)
     Component.onCompleted: imgA.source = imageSource
@@ -53,7 +60,8 @@ Item {
         id: imgA
         anchors.fill: parent
         fillMode: root.fillMode
-        cache: false; antialiasing: true; asynchronous: true
+        sourceSize: root.sourceSize
+        cache: root.cache; antialiasing: root.antialiasing; asynchronous: root.asynchronous; smooth: root.smooth; mipmap: root.mipmap
     }
 
     Image {
@@ -61,6 +69,7 @@ Item {
         anchors.fill: parent
         opacity: 0
         fillMode: root.fillMode
-        cache: false; antialiasing: true; asynchronous: true
+        sourceSize: root.sourceSize
+        cache: root.cache; antialiasing: root.antialiasing; asynchronous: root.asynchronous; smooth: root.smooth; mipmap: root.mipmap
     }
 }

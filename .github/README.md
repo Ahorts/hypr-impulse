@@ -26,14 +26,11 @@
     <h2>• warning •</h2>
 </div>
 
-These dots are not mine! You can access original dots from : https://github.com/end-4/dots-hyprland. 
+These dots are based on **illogical-impulse**. You can access original **illogical-impulse** dots from [here](https://github.com/end-4/dots-hyprland)
 
-This repo contains my PRs and tweaks to original dots. (mostly up to date with original dots). This is my current daily driver.
-However there can (and will) be bugs **so don't expect stability here**. Use these dots if you know what you are doing.
+This dots contains my tweaks to original illogical-impulse dots. It's mostly up to date with original dots and my daily driver. However there may be bugs and stability issues. You can join this [ii-vynx channel](https://discord.com/channels/1393080422245863506/1457739857240653961) in end-4's official discord server to report the bugs and chat about this repository. Use [Github Issues](https://github.com/vaguesyntax/ii-vynx/issues) for real issue though.
 
-Before saying “these dots are bloated,” keep in mind that there’s a toggle for everything.
-
-You can join this [**ii-vynx channel**](https://discord.com/channels/1393080422245863506/1457739857240653961) in end-4's official discord server to ask/chat about this repository.
+**P.S.** Before saying _"These dots are bloated"_, keep in mind that there’s a toggle for everything.
 
 <div align="center">
     <h2>• installation •</h2>
@@ -62,10 +59,21 @@ Tip: You can see all flags with `--help`:
 </div>
 
 Run the setup script:
-
-```
+  
+```bash
 ./setup-ii-vynx.sh
 ```
+
+Run the cli (if it's installed):
+  
+```bash
+vynx update
+```
+
+Use the update button:
+  
+<img width="354" height="78" alt="image" src="https://github.com/user-attachments/assets/77d9d962-00b3-48a4-b9d5-1d3d0c053e86" />
+
 
 <div align="center">
     <h2>• documentation •</h2>
