@@ -3,70 +3,43 @@ import qs.modules.common.widgets
 import qs.services
 import QtQuick
 import QtQuick.Layouts
+import "./cards"
 
 StyledPopup {
     id: root
-    
-    ColumnLayout {
-        id: columnLayout
+    popupRadius: Appearance.rounding.large
+
+    function formatTime(seconds) {
+        var h = Math.floor(seconds / 3600);
+        var m = Math.floor((seconds % 3600) / 60);
+        if (h > 0)
+            return `${h}h, ${m}m`;
+        else
+            return `${m}m`;
+    }
+
+    animate: false
+    contentItem: HeroCard {
+        id: mediaHero
+        compactMode: true
+        adaptiveWidth: true
         anchors.centerIn: parent
-        spacing: 4
+        icon: "battery_android_full"
 
-        // Header
-        StyledPopupHeaderRow {
-            icon: "battery_android_full"
-            label: Translation.tr("Battery")
-        }
-
-        StyledPopupValueRow {
-            visible: {
-                let timeValue = Battery.isCharging ? Battery.timeToFull : Battery.timeToEmpty;
-                let power = Battery.energyRate;
-                return !(Battery.chargeState == 4 || timeValue <= 0 || power <= 0.01);
-            }
-            icon: "schedule"
-            label: Battery.isCharging ? Translation.tr("Time to full:") : Translation.tr("Time to empty:")
-            value: {
-                function formatTime(seconds) {
-                    var h = Math.floor(seconds / 3600);
-                    var m = Math.floor((seconds % 3600) / 60);
-                    if (h > 0)
-                        return `${h}h, ${m}m`;
-                    else
-                        return `${m}m`;
-                }
-                if (Battery.isCharging)
-                    return formatTime(Battery.timeToFull);
-                else
-                    return formatTime(Battery.timeToEmpty);
+        title: {
+            if (Battery.chargeState == 4) {
+                return Translation.tr("Fully charged");
+            } else if (Battery.chargeState == 1) {
+                return Translation.tr("Charging:") + ` ${Battery.energyRate.toFixed(2)}W`;
+            } else {
+                return Translation.tr("Discharging:") + ` ${Battery.energyRate.toFixed(2)}W`;
             }
         }
-
-        StyledPopupValueRow {
-            visible:  !(Battery.chargeState != 4 && Battery.energyRate == 0)
-            icon: "bolt"
-            label: {
-                if (Battery.chargeState == 4) {
-                    return Translation.tr("Fully charged");
-                } else if (Battery.chargeState == 1) {
-                    return Translation.tr("Charging:");
-                } else {
-                    return Translation.tr("Discharging:");
-                }
-            }
-            value: {
-                if (Battery.chargeState == 4) {
-                    return "";
-                } else {
-                    return `${Battery.energyRate.toFixed(2)}W`;
-                }
-            }
+        subtitle: { 
+            Battery.isCharging ? Translation.tr("Time to full:") + ` ${formatTime(Battery.timeToFull)}` : Translation.tr("Time to empty:") + ` ${formatTime(Battery.timeToEmpty)}`;
         }
 
-        StyledPopupValueRow {
-            icon: "heart_check"
-            label: Translation.tr("Health:")
-            value: `${(Battery.health).toFixed(1)}%`
-        }
+        pillText: `${(Battery.health).toFixed(1)}%`
+        pillIcon: "battery_android_full"
     }
 }

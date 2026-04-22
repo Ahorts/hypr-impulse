@@ -10,7 +10,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.preferredHeight: implicitHeight
     Layout.preferredWidth: implicitWidth
-    implicitWidth: adaptiveWidth ? Math.max(Math.max(220 + titleMetrics.width, 180 + subtitleMetrics.width), 380) : 380  // fixed sizes to keep consistency
+    implicitWidth: adaptiveWidth ? Math.min(Math.max(220 + titleMetrics.width, 180 + subtitleMetrics.width, 380), 550) : 380  // fixed sizes to keep consistency
     implicitHeight: compactMode ? 150 : 180
 
     radius: Appearance.rounding.normal
@@ -142,6 +142,6 @@ Rectangle {
         color: heroCardRoot.textColor
         horizontalAlignment: Text.AlignRight
         elide: Text.ElideRight
-        width: adaptiveWidth ? heroCardRoot.width : 200
+        width: adaptiveWidth ? heroCardRoot.width - 160 : 200
     }
 }
