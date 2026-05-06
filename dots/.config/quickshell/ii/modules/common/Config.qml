@@ -422,6 +422,7 @@ Singleton {
                 property JsonObject tooltips: JsonObject {
                     property bool clickToShow: false
                     property bool compactPopups: false
+                    property bool showSwap: false
                 }
                 property JsonObject sizes: JsonObject {
                     property int height: 40 // horizontal mode

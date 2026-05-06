@@ -30,11 +30,14 @@ StyledPopup {
             pillIcon: "device_thermostat"
         }
 
-        RowLayout {
+        ColumnLayout {
             Layout.fillWidth: true
+            spacing: 8
 
             RowLayout {
                 Layout.fillWidth: true
+                spacing: 8
+
                 ResourceCard {
                     title: Translation.tr("RAM")
                     icon: "memory"
@@ -47,7 +50,41 @@ StyledPopup {
                     resourcePercentage: ResourceUsage.memoryUsedPercentage
                     highlightColor: Appearance.colors.colSecondary
                 }
-                
+
+                ResourceCard {
+                    visible: Config.options.bar.tooltips.showSwap
+                    title: Translation.tr("Swap")
+                    icon: "swap_horiz"
+                    shapeString: "Ghostish"
+                    shapeColor: Appearance.colors.colPrimaryContainer
+                    symbolColor: Appearance.colors.colOnPrimaryContainer
+
+                    resourceName: Translation.tr("Used")
+                    resourceValueText: `${Math.round(ResourceUsage.swapUsedPercentage * 100)}%`
+                    resourcePercentage: ResourceUsage.swapUsedPercentage
+                    highlightColor: Appearance.colors.colPrimary
+                }
+
+                ResourceCard {
+                    visible: !Config.options.bar.tooltips.showSwap
+                    title: Translation.tr("Storage")
+                    icon: "hard_drive"
+                    shapeString: "Cookie9Sided"
+                    shapeColor: Appearance.colors.colTertiaryContainer
+                    symbolColor: Appearance.colors.colOnTertiaryContainer
+
+                    resourceName: Translation.tr("Disk")
+                    resourceValueText: `${root.formatGB(ResourceUsage.diskUsed).split(" ")[0]} / ${root.formatGB(ResourceUsage.diskTotal)}`
+                    resourcePercentage: ResourceUsage.diskUsedPercentage
+                    highlightColor: Appearance.colors.colTertiary
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                visible: Config.options.bar.tooltips.showSwap
+
                 ResourceCard {
                     title: Translation.tr("Storage")
                     icon: "hard_drive"

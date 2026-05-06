@@ -669,20 +669,37 @@ ContentPage {
     ContentSection {
         icon: "tooltip"
         title: Translation.tr("Tooltips")
-        ConfigSwitch {
-            buttonIcon: "ads_click"
-            text: Translation.tr("Click to show")
-            checked: Config.options.bar.tooltips.clickToShow
-            onCheckedChanged: {
-                Config.options.bar.tooltips.clickToShow = checked;
+        ConfigRow {
+            ConfigSwitch {
+                buttonIcon: "ads_click"
+                text: Translation.tr("Click to show")
+                Layout.fillWidth: true
+                checked: Config.options.bar.tooltips.clickToShow
+                onCheckedChanged: {
+                    Config.options.bar.tooltips.clickToShow = checked;
+                }
+            }
+            ConfigSwitch {
+                buttonIcon: "compress"
+                text: Translation.tr("Compact popups")
+                Layout.fillWidth: true
+                checked: Config.options.bar.tooltips.compactPopups
+                onCheckedChanged: {
+                    Config.options.bar.tooltips.compactPopups = checked;
+                }
             }
         }
-        ConfigSwitch {
-            buttonIcon: "compress"
-            text: Translation.tr("Compact popups")
-            checked: Config.options.bar.tooltips.compactPopups
-            onCheckedChanged: {
-                Config.options.bar.tooltips.compactPopups = checked;
+
+        ContentSubsection {
+            title: Translation.tr("Resources")
+            ConfigSwitch {
+                buttonIcon: "swap_horiz"
+                text: Translation.tr("Show Swap")
+                Layout.fillWidth: true
+                checked: Config.options.bar.tooltips.showSwap
+                onCheckedChanged: {
+                    Config.options.bar.tooltips.showSwap = checked;
+                }
             }
         }
     }
