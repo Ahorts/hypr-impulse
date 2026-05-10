@@ -8,7 +8,7 @@ Rectangle {
     Layout.fillWidth: true
     implicitHeight: 64
     radius: Appearance.rounding.full
-    color: LocalSend.serverRunning ? Appearance.colors.colPrimaryContainer : Appearance.colors.colErrorContainer
+    color: LocalSend.serverRunning ? Appearance.colors.colPrimaryContainer : Appearance.colors.colSecondaryContainer
 
     MaterialShape {
         shapeString: "Circle"
@@ -20,7 +20,7 @@ Rectangle {
             anchors.centerIn: parent
             text: "devices"
             iconSize: Appearance.font.pixelSize.huge
-            color: LocalSend.serverRunning ? Appearance.colors.colOnPrimary : Appearance.colors.colOnError
+            color: LocalSend.serverRunning ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondary
             fill: 1
         }
     }
@@ -34,7 +34,7 @@ Rectangle {
             font.pixelSize: Appearance.font.pixelSize.large
             font.family: Appearance.font.family.title
             font.weight: Font.Bold
-            color: LocalSend.serverRunning ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnErrorContainer
+            color: LocalSend.serverRunning ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnSecondaryContainer
             horizontalAlignment: Text.AlignHCenter
         }
     }
@@ -45,8 +45,8 @@ Rectangle {
         implicitWidth: 40
         implicitHeight: 40
         buttonRadius: Appearance.rounding.full
-        colBackground: LocalSend.serverRunning ? Appearance.colors.colPrimary : Appearance.colors.colError
-        colBackgroundHover: LocalSend.serverRunning ? Appearance.colors.colPrimaryHover : Appearance.colors.colErrorHover
+        colBackground: LocalSend.serverRunning ? Appearance.colors.colPrimary : Appearance.colors.colSecondary
+        colBackgroundHover: LocalSend.serverRunning ? Appearance.colors.colPrimaryHover : Appearance.colors.colSecondaryHover
         onClicked: {
             if (LocalSend.serverRunning) LocalSend.stopServer()
             else LocalSend.startServer()
@@ -59,7 +59,7 @@ Rectangle {
             }
             text: LocalSend.serverRunning ? "stop_circle" : "play_circle"
             iconSize: Appearance.font.pixelSize.huge
-            color: LocalSend.serverRunning ? Appearance.colors.colOnPrimary : Appearance.colors.colOnError
+            color: LocalSend.serverRunning ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondary
             fill: 1
         }
     }

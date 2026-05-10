@@ -197,6 +197,7 @@ Singleton {
 
     function startServer(): void {
         if (!root.available) {
+            Quickshell.execDetached(["notify-send", Translation.tr("LocalSend Error"), Translation.tr("localsend-cli is not available. You can install it with <tt>pip install localsend-cli</tt>. Check the docs for further details."), "-a", "LocalSend"])
             console.warn("[LocalSend] localsend-cli is not available")
             return
         }

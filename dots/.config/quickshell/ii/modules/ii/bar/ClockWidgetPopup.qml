@@ -102,7 +102,9 @@ StyledPopup {
                 icon: TimerService.pomodoroBreak ? "coffee" : root.stopwatchPaused ? "timer_pause" : TimerService.stopwatchRunning ? "timer_play" : "timer"
             }
 
-            LocalSendPill {}
+            LocalSendPill {
+                visible: LocalSend.available
+            }
         }
 
         Component {
