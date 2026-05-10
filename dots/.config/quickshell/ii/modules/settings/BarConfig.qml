@@ -756,7 +756,7 @@ ContentPage {
                     }
                 }
             }
-        }
+
             ContentSubsection {
                 title: Translation.tr("Performance & Layout")
                 ConfigSpinBox {
@@ -769,5 +769,6 @@ ContentPage {
                     onValueChanged: { Config.options.bar.networkSpeed.updateInterval = value; }
                 }
             }
+        }
     }
 }
