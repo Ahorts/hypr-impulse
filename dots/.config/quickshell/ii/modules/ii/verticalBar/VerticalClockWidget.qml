@@ -19,6 +19,13 @@ Item {
                 rootItem.toggleHighlight(false)
             }
         }
+        onDroppedFilesChanged: {
+            if (LocalSend.droppedFiles.length > 0) {
+                rootItem.toggleHighlight(true)
+            } else {
+                rootItem.toggleHighlight(false)
+            }
+        }
     }
 
     ColumnLayout {
@@ -34,7 +41,7 @@ Item {
                 font.pixelSize: modelData.match(/am|pm/i) ? 
                     Appearance.font.pixelSize.smaller // Smaller "am"/"pm" text
                     : Appearance.font.pixelSize.large
-                color: dropArea.containsDrag ? Appearance.colors.colPrimary : LocalSend.currentTransfer ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSurface
+                color: dropArea.containsDrag ? Appearance.colors.colPrimary : rootItem.highlighted ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSurface
                 text: modelData.padStart(2, "0")
             }
         }

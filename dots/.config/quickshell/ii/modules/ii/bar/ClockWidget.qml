@@ -9,12 +9,19 @@ Item {
     property bool showDate: Config.options.bar.verbose
     implicitWidth: rowLayout.implicitWidth + rowLayout.spacing * 10
     implicitHeight: Appearance.sizes.barHeight
-    property color colText: dropArea.containsDrag ? Appearance.colors.colPrimary : LocalSend.currentTransfer ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer1
+    property color colText: dropArea.containsDrag ? Appearance.colors.colPrimary : rootItem.highlighted ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer1
 
     Connections {
         target: LocalSend
         onCurrentTransferChanged: {
             if (LocalSend.currentTransfer) {
+                rootItem.toggleHighlight(true)
+            } else {
+                rootItem.toggleHighlight(false)
+            }
+        }
+        onDroppedFilesChanged: {
+            if (LocalSend.droppedFiles.length > 0) {
                 rootItem.toggleHighlight(true)
             } else {
                 rootItem.toggleHighlight(false)

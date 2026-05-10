@@ -5,7 +5,7 @@ import QtQuick
 import QtQuick.Layouts
 
 SectionCard {
-    title: Translation.tr("Gönderilecek Dosyalar")
+    title: Translation.tr("Dropped Files")
     icon: "attach_file"
     shapeColor: Appearance.colors.colPrimaryContainer
     symbolColor: Appearance.colors.colOnPrimaryContainer
@@ -52,18 +52,9 @@ SectionCard {
             }
         }
 
-        // Divider + Devices section
-        Rectangle {
-            Layout.fillWidth: true
-            height: 2
-            visible: LocalSend.discoveredDevices.length > 0
-            color: Appearance.colors.colSurfaceContainerHighest
-            radius: 1
-        }
-
         StyledText {
             visible: LocalSend.discoveredDevices.length > 0
-            text: Translation.tr("Cihazlar")
+            text: Translation.tr("Devices")
             font.pixelSize: Appearance.font.pixelSize.small
             font.weight: Font.Bold
             color: Appearance.colors.colOnSurfaceVariant
@@ -101,9 +92,14 @@ SectionCard {
                     }
                 }
 
+                Item {
+                    Layout.fillWidth: true
+                }
+
                 RippleButton {
                     buttonRadius: Appearance.rounding.normal
                     colBackground: Appearance.colors.colPrimary
+                    colBackgroundHover: Appearance.colors.colPrimaryHover
                     enabled: !LocalSend.sending
                     onClicked: LocalSend.sendToDevice(modelData.ip)
                     contentItem: RowLayout {
@@ -113,10 +109,9 @@ SectionCard {
                             text: "send"
                             iconSize: 14
                             color: Appearance.colors.colOnPrimary
-                            fill: 1
                         }
                         StyledText {
-                            text: Translation.tr("Gönder")
+                            text: Translation.tr("Send")
                             color: Appearance.colors.colOnPrimary
                             font.pixelSize: Appearance.font.pixelSize.small
                         }
@@ -128,7 +123,7 @@ SectionCard {
         // Sending indicator
         StyledText {
             visible: LocalSend.sending
-            text: Translation.tr("Gönderiliyor...")
+            text: Translation.tr("Sending... (Check your device for the status)")
             font.pixelSize: Appearance.font.pixelSize.small
             color: Appearance.colors.colPrimary
             horizontalAlignment: Text.AlignHCenter
@@ -138,7 +133,7 @@ SectionCard {
         // No devices placeholder
         StyledText {
             visible: LocalSend.discoveredDevices.length === 0 && LocalSend.serverRunning
-            text: Translation.tr("Cihaz bekleniyor...")
+            text: Translation.tr("Devices waiting...")
             font.pixelSize: Appearance.font.pixelSize.normal
             color: Appearance.colors.colSubtext
             horizontalAlignment: Text.AlignHCenter
@@ -147,7 +142,7 @@ SectionCard {
 
         StyledText {
             visible: LocalSend.discoveredDevices.length === 0 && !LocalSend.serverRunning
-            text: Translation.tr("LocalSend sunucusu kapalı")
+            text: Translation.tr("LocalSend server is offline")
             font.pixelSize: Appearance.font.pixelSize.normal
             color: Appearance.colors.colSubtext
             horizontalAlignment: Text.AlignHCenter
