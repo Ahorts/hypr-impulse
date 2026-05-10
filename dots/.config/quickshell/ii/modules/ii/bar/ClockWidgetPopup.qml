@@ -14,6 +14,7 @@ StyledPopup {
     property string formattedUptime: DateTime.uptime
     property string todosSection: getUpcomingTodos(Todo.list)
     property bool todosEmpty: todosSection === ""
+    stickyHover: true
 
     property bool stopwatchPaused: !TimerService.stopwatchRunning && TimerService.stopwatchTime > 0
 

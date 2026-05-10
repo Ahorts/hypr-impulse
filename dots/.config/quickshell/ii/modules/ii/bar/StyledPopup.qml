@@ -13,8 +13,45 @@ LazyLoader {
     property real popupBackgroundMargin: 0
     property int popupRadius: Appearance.rounding.large
     property bool animate: true
+    property bool stickyHover: false
 
-    active: hoverTarget && hoverTarget.containsMouse
+    property bool _popupHovered: false
+    property bool _stickyActive: false
+    property bool _targetHovered: hoverTarget ? hoverTarget.containsMouse : false
+
+    active: stickyHover ? _stickyActive : (hoverTarget && hoverTarget.containsMouse)
+
+    // I have NO FUCKING IDEA why we cant use a normal timer here
+    // Because if we do, we FUCKING cannot reference the timer from anywhere
+    property QtObject _timers: QtObject {
+        property Timer grace: Timer {
+            interval: 100
+            onTriggered: {
+                root._popupHovered = false;
+                root._stickyActive = false;
+            }
+        }
+    }
+
+    function _evaluateStickyState() {
+        if (!stickyHover) return;
+
+        if (_targetHovered || _popupHovered) {
+            _stickyActive = true;
+            _timers.grace.stop();
+        } else if (_stickyActive && !_timers.grace.running) {
+            _timers.grace.start();
+        }
+    }
+
+    on_TargetHoveredChanged: _evaluateStickyState()
+
+    onActiveChanged: {
+        if (!active) {
+            _popupHovered = false;
+            _timers.grace.stop();
+        }
+    }
 
     component: PanelWindow {
         id: popupWindow
@@ -165,6 +202,16 @@ LazyLoader {
                             });
                         }
                     }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                acceptedButtons: Qt.NoButton
+                onContainsMouseChanged: {
+                    root._popupHovered = containsMouse;
+                    root._evaluateStickyState();
                 }
             }
 
