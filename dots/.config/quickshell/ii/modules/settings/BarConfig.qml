@@ -111,6 +111,10 @@ ContentPage {
                         const newVertical = (newValue & 2) !== 0;
                         if (newVertical && !Config.options.bar.vertical) {
                             Config.options.bar.networkSpeed.displayMode = 5;
+                        } else if (!newVertical && Config.options.bar.vertical) {
+                            if (Config.options.bar.networkSpeed.displayMode === 5) {
+                                Config.options.bar.networkSpeed.displayMode = 0;
+                            }
                         }
                         Config.options.bar.bottom = (newValue & 1) !== 0;
                         Config.options.bar.vertical = newVertical;
@@ -727,7 +731,7 @@ ContentPage {
                     { displayName: Translation.tr("Upload"), icon: "arrow_upward", value: 2, tooltip: Translation.tr("Show only upload speed"), enabled: !Config.options.bar.vertical },
                     { displayName: Translation.tr("Both"), icon: "unfold_more", value: 3, tooltip: Translation.tr("Show download and upload side-by-side"), enabled: !Config.options.bar.vertical },
                     { displayName: Translation.tr("Icon"), icon: "wifi", value: 4, tooltip: Translation.tr("Show only the speed indicator arrows") },
-                    { displayName: Translation.tr("Rotated"), icon: "rotate_right", value: 5, tooltip: Translation.tr("Rotate text 90 degrees on vertical bars") }
+                    { displayName: Translation.tr("Rotated"), icon: "rotate_right", value: 5, tooltip: Translation.tr("Rotate text 90 degrees on vertical bars"), enabled: Config.options.bar.vertical }
                 ]
             }
         }
