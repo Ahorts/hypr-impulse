@@ -9,6 +9,25 @@ Item {
     property bool showDate: Config.options.bar.verbose
     implicitWidth: rowLayout.implicitWidth + rowLayout.spacing * 10
     implicitHeight: Appearance.sizes.barHeight
+    property color colText: dropArea.containsDrag ? Appearance.colors.colPrimary : rootItem.highlighted ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer1
+
+    Connections {
+        target: LocalSend
+        onCurrentTransferChanged: {
+            if (LocalSend.currentTransfer) {
+                rootItem.toggleHighlight(true)
+            } else {
+                rootItem.toggleHighlight(false)
+            }
+        }
+        onDroppedFilesChanged: {
+            if (LocalSend.droppedFiles.length > 0) {
+                rootItem.toggleHighlight(true)
+            } else {
+                rootItem.toggleHighlight(false)
+            }
+        }
+    }
 
     RowLayout {
         id: rowLayout
@@ -17,22 +36,34 @@ Item {
 
         StyledText {
             font.pixelSize: Appearance.font.pixelSize.large
-            color: Appearance.colors.colOnLayer1
+            color: root.colText
             text: DateTime.time
         }
 
         StyledText {
             visible: root.showDate
             font.pixelSize: Appearance.font.pixelSize.small
-            color: Appearance.colors.colOnLayer1
+            color: root.colText
             text: "•"
         }
 
         StyledText {
             visible: root.showDate
             font.pixelSize: Appearance.font.pixelSize.small
-            color: Appearance.colors.colOnLayer1
+            color: root.colText
             text: DateTime.longDate
+        }
+    }
+
+    DropArea {
+        id: dropArea
+        anchors.fill: parent
+        keys: ["text/uri-list"]
+        onDropped: (drop) => {
+            if (!drop.hasUrls) return
+            for (let i = 0; i < drop.urls.length; i++)
+                LocalSend.addDroppedFile(drop.urls[i])
+            drop.accept(Qt.CopyAction)
         }
     }
 
@@ -41,21 +72,9 @@ Item {
         anchors.fill: parent
         hoverEnabled: !Config.options.bar.tooltips.clickToShow
 
-        Loader {
-            active: true
-            sourceComponent: Config.options.bar.tooltips.compactPopups ? clockPopupCompact : clockPopup
-        }
-        Component {
-            id: clockPopup
-            ClockWidgetPopup {
-                hoverTarget: mouseArea
-            }
-        }
-        Component {
-            id: clockPopupCompact
-            ClockWidgetPopupCompact {
-                hoverTarget: mouseArea
-            }
+        ClockWidgetPopup {
+            compact: Config.options.bar.tooltips.compactPopups
+            hoverTarget: mouseArea
         }
     }
 }
