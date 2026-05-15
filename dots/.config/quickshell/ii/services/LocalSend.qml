@@ -9,6 +9,12 @@ import Quickshell.Io
 /**
  * LocalSend service for receiving/sending files via localsend-cli.
  * Monitors incoming file transfers, scans for devices, and sends files.
+ * 
+ * Note for the process':
+ * I have no idea why, but we have to use bash -lc and also set the PATH environment variable manually
+ * Or else it cannot detect localsend-cli and cannot use it's functionalities. 
+ * The stupid part is that when we run the shell from the terminal "qs -c ii", everything works perfectly fine without the need of "bash -lc" or setting the PATH. 
+ * But it doesnt work when we run it from the keybind. So it may be the problem of the lua integration of hyprland or pip's installation path idk.
  */
 Singleton {
     id: root
@@ -72,7 +78,7 @@ Singleton {
         if (!root.available || root.sending || root.droppedFiles.length === 0) return
         root.sending = true
         const filePaths = root.droppedFiles.map(f => f.path)
-        sendProc.command = ["localsend-cli", "send", deviceIp].concat(filePaths).concat(["--json"])
+        sendProc.command = ["bash", "-lc",`localsend-cli send ${deviceIp} ${filePaths.join(" ")} --json`]
         sendProc.running = true
     }
 
@@ -85,7 +91,10 @@ Singleton {
     Process {
         id: checkAvailabilityProc
         running: true
-        command: ["which", "localsend-cli"]
+        command: ["bash", "-lc", "which localsend-cli"]
+        environment: ({
+            "PATH": "/home/vaguesyntax/.local/bin:/usr/local/bin:/usr/bin:/bin"
+        })
         onExited: (exitCode, exitStatus) => {
             root.available = (exitCode === 0)
             if (root.available && root.autoStart) {
@@ -140,6 +149,10 @@ Singleton {
         running: false
         stdinEnabled: true
 
+        environment: ({
+            "PATH": "/home/vaguesyntax/.local/bin:/usr/local/bin:/usr/bin:/bin"
+        })
+
         stdout: SplitParser {
             onRead: line => {
                 if (!line || line.trim().length === 0) return
@@ -168,6 +181,10 @@ Singleton {
     Process {
         id: sendProc
         running: false
+
+        environment: ({
+            "PATH": "/home/vaguesyntax/.local/bin:/usr/local/bin:/usr/bin:/bin"
+        })
 
         stdout: SplitParser {
             onRead: line => {
@@ -299,7 +316,7 @@ Singleton {
         id: serverStartDelayTimer
         interval: 500
         onTriggered: {
-            receiveProc.command = ["localsend-cli", "receive", "--interactive-json", "--output", root.downloadPath]
+            receiveProc.command = ["bash", "-lc", `localsend-cli receive --interactive-json --output ${root.downloadPath}`]
             console.log("[LocalSend] Starting receive server with output dir:", root.downloadPath)
             receiveProc.running = true
         }
