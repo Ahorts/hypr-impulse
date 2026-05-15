@@ -294,6 +294,16 @@ Singleton {
                 break
         }
     }
+    
+    Timer {
+        id: serverStartDelayTimer
+        interval: 500
+        onTriggered: {
+            receiveProc.command = ["localsend-cli", "receive", "--interactive-json", "--output", root.downloadPath]
+            console.log("[LocalSend] Starting receive server with output dir:", root.downloadPath)
+            receiveProc.running = true
+        }
+    }
 
     function startServer(): void {
         if (!root.available) {
@@ -305,10 +315,11 @@ Singleton {
             console.log("[LocalSend] Server is already running")
             return
         }
-        // Set command with current downloadPath
-        receiveProc.command = ["localsend-cli", "receive", "--interactive-json", "--output", root.downloadPath]
-        console.log("[LocalSend] Starting receive server with output dir:", root.downloadPath)
-        receiveProc.running = true
+
+        // kill any existing servers
+        // or else it gives an error saying "address already in use" and doesn't start
+        Quickshell.execDetached(["pkill", "-f", "localsend-cli"])
+        serverStartDelayTimer.restart()
     }
 
     function stopServer(): void {
