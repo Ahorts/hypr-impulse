@@ -227,7 +227,7 @@ hl.animation({
     enabled = true,
     speed = 7,
     bezier = "menu_decel",
-    style = "slide"
+    style = "slidevert"
 })
 -- specialWorkspace
 hl.animation({
