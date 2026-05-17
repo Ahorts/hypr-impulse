@@ -93,7 +93,7 @@ Singleton {
         running: true
         command: ["bash", "-lc", "which localsend-cli"]
         environment: ({
-            "PATH": "/home/vaguesyntax/.local/bin:/usr/local/bin:/usr/bin:/bin"
+            "PATH": Directories.home + "/.local/bin:/usr/local/bin:/usr/bin:/bin"
         })
         onExited: (exitCode, exitStatus) => {
             root.available = (exitCode === 0)
@@ -150,7 +150,7 @@ Singleton {
         stdinEnabled: true
 
         environment: ({
-            "PATH": "/home/vaguesyntax/.local/bin:/usr/local/bin:/usr/bin:/bin"
+            "PATH": Directories.home + "/.local/bin:/usr/local/bin:/usr/bin:/bin"
         })
 
         stdout: SplitParser {
@@ -183,7 +183,7 @@ Singleton {
         running: false
 
         environment: ({
-            "PATH": "/home/vaguesyntax/.local/bin:/usr/local/bin:/usr/bin:/bin"
+            "PATH": Directories.home + "/.local/bin:/usr/local/bin:/usr/bin:/bin"
         })
 
         stdout: SplitParser {
