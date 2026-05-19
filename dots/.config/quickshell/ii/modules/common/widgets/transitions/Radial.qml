@@ -46,8 +46,8 @@ Item {
         target: circleMask
         property: "scale"
         duration: effect.duration
-        easing.type: Easing.BezierSpline
-        easing.bezierCurve: [0.12, 1.0, 0.4, 1.0]
+        easing.type: Easing.Bezier
+        easing.bezierCurve: [0.227, 0.877, 0.959, 0.310, 1.0, 1.0]
         onFinished: effect.finished()
     }
 

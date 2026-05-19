@@ -30,7 +30,7 @@ Item {
     property Item backImg: imgAIsBack ? imgA : imgB
     property Item frontImg: imgAIsBack ? imgB : imgA
 
-    property int status: backImg.status
+    property int status: (imgA.status === Image.Ready || imgB.status === Image.Ready) ? Image.Ready : frontImg.status
 
     Component.onCompleted: ready = true
 
@@ -39,7 +39,7 @@ Item {
     function fadeTo(newSrc) {
         if (!newSrc || newSrc === backImg.source) return
 
-        if (root.animated && ready && root.width > 0 && root.height > 0) {
+        if (root.animated && ready && root.width > 0 && root.height > 0 && String(backImg.source) !== "") {
             cleanupTransition()
             
             // Flip AT THE START so frontImg is ALWAYS the new image with z=1

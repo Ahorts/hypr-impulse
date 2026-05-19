@@ -65,6 +65,37 @@ ContentPage {
                 Config.options.background.animateWallpaperChanges = checked;
             }
         }
+        
+        ContentSubsection {
+            visible: Config.options.background.animateWallpaperChanges
+            title: Translation.tr("Wallpaper transition style")
+            ConfigSelectionArray {
+                currentValue: Config.options.background.transitionType
+                onSelected: newValue => {
+                    Config.options.background.transitionType = newValue;
+                }
+                options: [
+                    {
+                        displayName: Translation.tr("Radial Wipe"),
+                        icon: "circle",
+                        value: "radial",
+                        tooltip: Translation.tr("Expands a circle outward from the center to reveal the new wallpaper")
+                    },
+                    {
+                        displayName: Translation.tr("Crossfade"),
+                        icon: "blur_on",
+                        value: "crossfade",
+                        tooltip: Translation.tr("Smoothly blends the old wallpaper into the new one")
+                    },
+                    {
+                        displayName: Translation.tr("Linear Wipe"),
+                        icon: "swap_horiz",
+                        value: "wipe",
+                        tooltip: Translation.tr("Wipes the screen horizontally to reveal the new wallpaper")
+                    }
+                ]
+            }
+        }
     }
 
     ContentSection {

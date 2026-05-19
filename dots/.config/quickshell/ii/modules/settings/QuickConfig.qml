@@ -239,33 +239,7 @@ ContentPage {
             }
         }
         
-        ContentSubsection {
-            visible: Config.options.background.animateWallpaperChanges
-            title: Translation.tr("Wallpaper transition style")
-            ConfigSelectionArray {
-                currentValue: Config.options.background.transitionType
-                onSelected: newValue => {
-                    Config.options.background.transitionType = newValue;
-                }
-                options: [
-                    {
-                        displayName: Translation.tr("Radial Wipe"),
-                        icon: "circle",
-                        value: "radial"
-                    },
-                    {
-                        displayName: Translation.tr("Crossfade"),
-                        icon: "blur_on",
-                        value: "crossfade"
-                    },
-                    {
-                        displayName: Translation.tr("Linear Wipe"),
-                        icon: "swap_horiz",
-                        value: "wipe"
-                    }
-                ]
-            }
-        }
+
         
         ConfigSwitch {
             buttonIcon: "ev_shadow"
