@@ -36,10 +36,14 @@ Item {
 
     onImageSourceChanged: fadeTo(imageSource)
 
-    function fadeTo(newSrc) {
-        if (!newSrc || newSrc === backImg.source) return
+    property string currentWallpaper: ""
 
-        if (root.animated && ready && root.width > 0 && root.height > 0 && String(backImg.source) !== "") {
+    function fadeTo(newSrc) {
+        if (!newSrc || newSrc === currentWallpaper) return
+
+        let hasWallpaper = (currentWallpaper !== "")
+
+        if (root.animated && ready && root.width > 0 && root.height > 0 && hasWallpaper) {
             cleanupTransition()
             
             // Flip AT THE START so frontImg is ALWAYS the new image with z=1
@@ -47,6 +51,7 @@ Item {
             
             root.transitionActive = true
             frontImg.source = newSrc 
+            currentWallpaper = newSrc
             
             let wait = effectLoader.item ? effectLoader.item.waitForReady !== false : true
             
@@ -57,6 +62,7 @@ Item {
             cleanupTransition()
             root.imgAIsBack       = !root.imgAIsBack 
             frontImg.source       = newSrc
+            currentWallpaper      = newSrc
             root.transitionActive = false
         }
     }

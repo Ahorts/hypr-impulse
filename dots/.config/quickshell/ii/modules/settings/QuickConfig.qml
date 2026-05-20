@@ -238,9 +238,6 @@ ContentPage {
                 }
             }
         }
-        
-
-        
         ConfigSwitch {
             buttonIcon: "ev_shadow"
             text: Translation.tr("Transparency")

@@ -1,5 +1,6 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
+import qs.modules.common
 
 Item {
     id: effect
@@ -16,7 +17,7 @@ Item {
         wipeMask.visible = true
         
         revealAnim.from = 0
-        revealAnim.to = effect.width
+        revealAnim.to = pivot.diagonal
         revealAnim.restart()
     }
 
@@ -43,13 +44,22 @@ Item {
         visible: false
         layer.enabled: false
 
-        Rectangle {
-            id: wipeRect
-            width: 0
-            height: effect.height
-            color: "black"
-            x: 0
-            y: 0
+        Item {
+            id: pivot
+            x: effect.width / 2
+            y: effect.height / 2
+            rotation: Config.options.background.wipeAngle ?? 0
+            
+            property real diagonal: Math.ceil(Math.sqrt(effect.width * effect.width + effect.height * effect.height))
+
+            Rectangle {
+                id: wipeRect
+                color: "black"
+                height: pivot.diagonal
+                y: -pivot.diagonal / 2
+                x: -pivot.diagonal / 2
+                width: 0
+            }
         }
     }
 

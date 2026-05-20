@@ -95,6 +95,20 @@ ContentPage {
                     }
                 ]
             }
+
+            ConfigSpinBox {
+                visible: Config.options.background.transitionType === "wipe"
+                Layout.fillWidth: true
+                icon: "rotate_right"
+                text: Translation.tr("Wipe Angle (0° starts from left side)")
+                value: Config.options.background.wipeAngle
+                from: 0
+                to: 359
+                stepSize: 1
+                onValueChanged: {
+                    Config.options.background.wipeAngle = value;
+                }
+            }
         }
     }
 
