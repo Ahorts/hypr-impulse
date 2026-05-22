@@ -561,7 +561,6 @@ Singleton {
 
             property JsonObject notifications: JsonObject {
                 property int timeout: 7000
-                property int clearOlderThanHours: 6 // Auto-clear notifications older than this many hours (0 to disable)
             }
 
             property JsonObject osd: JsonObject {
