@@ -65,6 +65,63 @@ ContentPage {
                 Config.options.background.animateWallpaperChanges = checked;
             }
         }
+        
+        ContentSubsection {
+            visible: Config.options.background.animateWallpaperChanges
+            title: Translation.tr("Wallpaper transition style")
+
+            StyledComboBox {
+                textRole: "displayName"
+                model: [
+                    {
+                        displayName: Translation.tr("Radial Wipe"),
+                        icon: "circle",
+                        value: "radial",
+                    },
+                    {
+                        displayName: Translation.tr("Crossfade"),
+                        icon: "blur_on",
+                        value: "crossfade",
+                    },
+                    {
+                        displayName: Translation.tr("Linear Wipe"),
+                        icon: "blur_linear",
+                        value: "wipe",
+                    },
+                    {
+                        displayName: Translation.tr("Diamond Wipe"),
+                        icon: "nearby",
+                        value: "diamond",
+                    },
+                    {
+                        displayName: Translation.tr("Slash Wipe"),
+                        icon: "timeline",
+                        value: "slash",
+                    }
+                ]
+                currentIndex: {
+                    const idx = model.findIndex(item => item.value === Config.options.background.transitionType);
+                    return idx >= 0 ? idx : 0;
+                }
+                onActivated: index => {
+                    Config.options.background.transitionType = model[index].value;
+                }
+            }
+
+            ConfigSpinBox {
+                visible: Config.options.background.transitionType === "wipe"
+                Layout.fillWidth: true
+                icon: "rotate_right"
+                text: Translation.tr("Wipe Angle")
+                value: Config.options.background.wipeAngle
+                from: 0
+                to: 359
+                stepSize: 1
+                onValueChanged: {
+                    Config.options.background.wipeAngle = value;
+                }
+            }
+        }
     }
 
     ContentSection {
