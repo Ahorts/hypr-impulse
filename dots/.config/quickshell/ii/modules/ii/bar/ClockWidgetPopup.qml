@@ -9,11 +9,13 @@ StyledPopup {
     id: root
     popupRadius: Appearance.rounding.large
 
+    required property bool compact
     property string formattedDate: Qt.locale().toString(DateTime.clock.date, "MMMM dd, dddd")
     property string formattedTime: DateTime.time
     property string formattedUptime: DateTime.uptime
     property string todosSection: getUpcomingTodos(Todo.list)
     property bool todosEmpty: todosSection === ""
+    stickyHover: true
 
     property bool stopwatchPaused: !TimerService.stopwatchRunning && TimerService.stopwatchTime > 0
 
@@ -51,7 +53,7 @@ StyledPopup {
         return Math.floor((secondsPassed / 86400) * 100)
     }
 
-    ColumnLayout {
+    contentItem: ColumnLayout {
         id: columnLayout
         anchors.centerIn: parent
         spacing: 12
@@ -73,6 +75,7 @@ StyledPopup {
             spacing: 12
 
             InfoPill {
+                visible: !root.compact ? LocalSend.currentTransfer == null || LocalSend.droppedFiles.length > 0 : false
                 text: root.formattedUptime
 
                 shapeContent: CustomIcon {
@@ -86,6 +89,7 @@ StyledPopup {
             }
 
             InfoPill {
+                visible: !root.compact ? LocalSend.currentTransfer == null || LocalSend.droppedFiles.length > 0 : false
                 textContent: Loader {
                     anchors.centerIn: parent
                     sourceComponent: TimerService.pomodoroRunning ? pomodoroText : (TimerService.stopwatchTime > 0 ? stopwatchText : timerOffText)
@@ -97,6 +101,10 @@ StyledPopup {
                 symbolColor: TimerService.pomodoroBreak ? Appearance.colors.colOnTertiary : (TimerService.pomodoroRunning || TimerService.stopwatchRunning ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondary)
                 textColor: TimerService.pomodoroBreak ? Appearance.colors.colOnTertiaryContainer : (TimerService.pomodoroRunning || TimerService.stopwatchRunning ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnSecondaryContainer)
                 icon: TimerService.pomodoroBreak ? "coffee" : root.stopwatchPaused ? "timer_pause" : TimerService.stopwatchRunning ? "timer_play" : "timer"
+            }
+
+            LocalSendPill {
+                visible: LocalSend.available
             }
         }
 
@@ -173,17 +181,37 @@ StyledPopup {
             }
         }
 
-        SectionCard {
-            title: Translation.tr("To-Do Tasks")
-            icon: "checklist"
-            subtitle: root.todosSection
+        Loader {
+            Layout.fillWidth: true
+            visible: active
+            active: root.compact ? sourceComponent !== todoSection : true
+            sourceComponent: LocalSend.currentTransfer !== null ? transferCard : LocalSend.droppedFiles.length > 0 ? sendCard : todoSection
+        }
 
-            LoadingPlaceholder {
-                Layout.preferredHeight: 120
-                visible: root.todosEmpty
-                loading: false
-                emptyText: Translation.tr("No pending tasks")
+        Component {
+            id: todoSection
+            SectionCard {
+                title: Translation.tr("To-Do Tasks")
+                icon: "checklist"
+                subtitle: root.todosSection
+
+                LoadingPlaceholder {
+                    Layout.preferredHeight: 30
+                    visible: root.todosEmpty
+                    loading: false
+                    emptyText: Translation.tr("No pending tasks")
+                }
             }
+        }
+
+        Component {
+            id: transferCard
+            LocalSendTransferCard {}
+        }
+
+        Component {
+            id: sendCard
+            LocalSendSendCard {}
         }
     }
 }

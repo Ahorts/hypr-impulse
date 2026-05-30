@@ -13,8 +13,45 @@ LazyLoader {
     property real popupBackgroundMargin: 0
     property int popupRadius: Appearance.rounding.large
     property bool animate: true
+    property bool stickyHover: false
 
-    active: hoverTarget && hoverTarget.containsMouse
+    property bool _popupHovered: false
+    property bool _stickyActive: false
+    property bool _targetHovered: hoverTarget ? hoverTarget.containsMouse : false
+
+    active: stickyHover ? _stickyActive : (hoverTarget && hoverTarget.containsMouse)
+
+    // I have NO FUCKING IDEA why we cant use a normal timer here
+    // Because if we do, we FUCKING cannot reference the timer from anywhere
+    property QtObject _timers: QtObject {
+        property Timer grace: Timer {
+            interval: 100
+            onTriggered: {
+                root._popupHovered = false;
+                root._stickyActive = false;
+            }
+        }
+    }
+
+    function _evaluateStickyState() {
+        if (!stickyHover) return;
+
+        if (_targetHovered || _popupHovered) {
+            _stickyActive = true;
+            _timers.grace.stop();
+        } else if (_stickyActive && !_timers.grace.running) {
+            _timers.grace.start();
+        }
+    }
+
+    on_TargetHoveredChanged: _evaluateStickyState()
+
+    onActiveChanged: {
+        if (!active) {
+            _popupHovered = false;
+            _timers.grace.stop();
+        }
+    }
 
     component: PanelWindow {
         id: popupWindow
@@ -86,7 +123,6 @@ LazyLoader {
             return null;
         }
         readonly property real heroHeight: heroItem ? heroItem.implicitHeight : 0
-        readonly property real totalContentHeight: root.contentItem ? root.contentItem.implicitHeight : 0
 
         NumberAnimation on animProgress {
             id: openAnim
@@ -108,7 +144,40 @@ LazyLoader {
             property bool isVertical: Config.options.bar.vertical
             property bool isBottom: Config.options.bar.bottom
             property int elevation: Appearance.sizes.elevationMargin
-            
+
+            // Debounced height — no auto-binding to targetHeight.
+            // Batches rapid layout changes before triggering smooth animation.
+            property real _commitHeight: 0
+            // Delayed enable to avoid opening animation transition glitch
+            property bool _heightReady: false
+
+            Timer {
+                id: heightCommit
+                interval: 32
+                repeat: false
+                onTriggered: popupBackground._commitHeight = popupBackground.targetHeight
+            }
+
+            onTargetHeightChanged: {
+                if (popupWindow.animProgress >= 1.0 && popupBackground._heightReady)
+                    heightCommit.restart()
+                else
+                    _commitHeight = targetHeight
+            }
+
+            Component.onCompleted: {
+                _commitHeight = targetHeight
+                Qt.callLater(function() { popupBackground._heightReady = true })
+            }
+
+            Behavior on _commitHeight {
+                enabled: popupBackground._heightReady
+                SmoothedAnimation {
+                    duration: 200
+                    easing: Easing.OutQuad
+                }
+            }
+
             anchors {
                 top: (!isVertical && !isBottom) ? parent.top : undefined
                 bottom: (!isVertical && isBottom) ? parent.bottom : undefined
@@ -126,8 +195,8 @@ LazyLoader {
             
             width: targetWidth
             height: {
-                if (!root.animate || !root.contentItem || !heroItem || targetHeight <= heroHeight + margin * 2) return targetHeight;
-                return (heroHeight + margin * 2) + (targetHeight - (heroHeight + margin * 2)) * popupWindow.animProgress;
+                if (!root.animate || !root.contentItem || !heroItem || targetHeight <= heroHeight + margin * 2) return _commitHeight;
+                return (heroHeight + margin * 2) + (_commitHeight - (heroHeight + margin * 2)) * popupWindow.animProgress;
             }
 
             color: Appearance.m3colors.m3surfaceContainer
@@ -165,6 +234,14 @@ LazyLoader {
                             });
                         }
                     }
+                }
+            }
+
+            HoverHandler {
+                id: popupHoverHandler
+                onHoveredChanged: {
+                    root._popupHovered = hovered;
+                    root._evaluateStickyState();
                 }
             }
 
