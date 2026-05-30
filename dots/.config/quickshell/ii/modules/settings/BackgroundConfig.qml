@@ -104,12 +104,24 @@ ContentPage {
                         icon: "timeline",
                         value: "slash",
                         tooltip: Translation.tr("Expands a 45-degree slash line outward to reveal the new wallpaper")
+                    },
+                    {
+                        displayName: Translation.tr("Outer Wipe"),
+                        icon: "radio_button_unchecked",
+                        value: "outer",
+                        tooltip: Translation.tr("Closes in from the edges to the center to reveal the new wallpaper")
+                    },
+                    {
+                        displayName: Translation.tr("Wave Wipe"),
+                        icon: "water",
+                        value: "wave",
+                        tooltip: Translation.tr("Wipes the screen with a wavy edge to reveal the new wallpaper")
                     }
                 ]
             }
 
             ConfigSpinBox {
-                visible: Config.options.background.transitionType === "wipe"
+                visible: Config.options.background.transitionType === "wipe" || Config.options.background.transitionType === "wave"
                 Layout.fillWidth: true
                 icon: "rotate_right"
                 text: Translation.tr("Wipe Angle (0° starts from left side)")
