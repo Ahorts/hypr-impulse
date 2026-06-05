@@ -11,17 +11,17 @@ if status is-interactive # Commands to run in interactive sessions can go here
     function starship_transient_prompt_func
         starship module character
     end
-    if test "$TERM" != "linux"
+    if test "$TERM" != linux
         starship init fish | source
         enable_transience
     end
-    
+    fastfetch
+
     # Colors
     if test -f ~/.local/state/quickshell/user/generated/terminal/sequences.txt
         cat ~/.local/state/quickshell/user/generated/terminal/sequences.txt
     end
 
-    fastfetch -c ~/.config/fastfetch/examples/16.jsonc
 
     alias pamcan pacman
     alias ls 'eza --icons'
@@ -32,7 +32,7 @@ if status is-interactive # Commands to run in interactive sessions can go here
     alias claer "printf '\033[2J\033[3J\033[1;1H'"
     alias pamcan pacman
     alias q 'qs -c ii'
-    if test "$TERM" != "linux"
+    if test "$TERM" != linux
         alias ls 'eza --icons'
     end
     alias vim nvim
