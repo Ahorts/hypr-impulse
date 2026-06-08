@@ -485,6 +485,7 @@ Item {
                                 if (targetWorkspace !== -1 && targetWorkspace !== windowData?.workspace.id) {
                                     Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, window = "address:${window.windowData?.address}" })`)
                                     updateWindowPosition.restart()
+                                    HyprlandData.updateWindowList()
                                 } else {
                                     if (!window.windowData.floating) {
                                         updateWindowPosition.restart()
@@ -505,11 +506,11 @@ Item {
                                 
                                 if (targetWindowAdress !== "" && targetWindowAdress !== windowData?.address) {
                                     if (root.draggingTargetWorkspace === root.draggingFromWorkspace) { // direct same workspace swap (plugin supports)
-                                        Hyprland.dispatch(`layoutmsg swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true`)
+                                        Hyprland.dispatch(`hl.dsp.layout("swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true")`)
                                     } else { // different workspace
                                         Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, window = "address:${root.draggingFromWindowAddress}" })`)
                                         Qt.callLater(() => {
-                                            Hyprland.dispatch(`layoutmsg swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true`)
+                                            Hyprland.dispatch(`hl.dsp.layout("swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true")`)
                                         })
                                     }
                                 }
