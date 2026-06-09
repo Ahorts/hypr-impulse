@@ -22,7 +22,6 @@ if status is-interactive # Commands to run in interactive sessions can go here
         cat ~/.local/state/quickshell/user/generated/terminal/sequences.txt
     end
 
-
     alias pamcan pacman
     alias ls 'eza --icons'
     # Aliases
@@ -51,6 +50,7 @@ if status is-interactive # Commands to run in interactive sessions can go here
 
     zoxide init fish | source
     fzf --fish | source
+    dotnet completions script fish | source
 
 end
 
