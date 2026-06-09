@@ -1,0 +1,35 @@
+--- dots/.config/quickshell/ii/modules/ii/background/widgets/clock/CookieClock.qml
++++ dots/.config/quickshell/ii/modules/ii/background/widgets/clock/CookieClock.qml
+@@ -79,15 +79,20 @@
+     property bool isCovered: false
+     property bool hasFullscreen: false
+ 
+     readonly property bool shouldRotate: (Config.options.background.widgets.clock.cookie.constantlyRotate === true) && 
+         (GlobalStates.screenLocked || 
+         (!(Config.options.background.widgets.clock.cookie.pauseWhenFullscreen && root.hasFullscreen) &&
+          !(Config.options.background.widgets.clock.cookie.pauseWhenCovered && root.isCovered)))
+ 
++    onShouldRotateChanged: console.log("[CookieClock] shouldRotate changed to: " + shouldRotate + " isCovered: " + isCovered + " hasFS: " + hasFullscreen + " constantlyRotate: " + Config.options.background.widgets.clock.cookie.constantlyRotate)
++    onIsCoveredChanged: console.log("[CookieClock] isCovered changed to: " + isCovered)
++
+     property string backgroundStyle: Config.options.background.widgets.clock.cookie.backgroundStyle
+     StyledDropShadow {
+         id: shadowItem
+         target: backgroundStyle === "sine" ? sineCookieLoader : backgroundStyle === "shape" ? materialShapeCookieLoader : roundedPolygonCookieLoader
+ 
+-        RotationAnimation on rotation {
+-            running: Config.options.background.widgets.clock.cookie.constantlyRotate
+-            paused: !root.shouldRotate
+-            duration: 30000
+-            easing.type: Easing.Linear
+-            loops: Animation.Infinite
+-            from: 360
+-            to: 0
+-        }
++        FrameAnimation {
++            running: root.shouldRotate
++            onTriggered: {
++                shadowItem.rotation = (shadowItem.rotation + 12 * frameTime) % 360;
++            }
++        }
+     }

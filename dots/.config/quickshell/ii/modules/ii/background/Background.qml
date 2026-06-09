@@ -1,4 +1,4 @@
-// pdata:image/svg+xml,<svg xmlns="http:\/\/www.w3.org/2000/svg" viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>ragma ComponentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import qs
 import qs.services
@@ -19,22 +19,97 @@ import qs.modules.ii.background.widgets
 import qs.modules.ii.background.widgets.clock
 import qs.modules.ii.background.widgets.weather
 import qs.modules.ii.background.widgets.media
+import qs.modules.ii.background.widgets.visualizer
 
-Variants {
+Scope {
     id: root
-    model: Quickshell.screens
-    
-    PanelWindow {
-        id: bgRoot
 
-        required property var modelData
+    property list<real> visualizerPoints: Array.from({length: 50}, () => 0)
 
-        // Hide when fullscreen
-        property list<HyprlandWorkspace> workspacesForMonitor: Hyprland.workspaces.values.filter(workspace => workspace.monitor && workspace.monitor.name == monitor.name)
-        property var activeWorkspaceWithFullscreen: workspacesForMonitor.filter(workspace => ((workspace.toplevels.values.filter(window => window.wayland?.fullscreen)[0] != undefined) && workspace.active))[0]
-        visible: GlobalStates.screenLocked || (!(activeWorkspaceWithFullscreen != undefined)) || !Config?.options.background.hideWhenFullscreen
+    readonly property bool isVisualizerNeeded: {
+        if (!(Config?.options?.background?.widgets?.visualizer?.enable ?? false)) return false;
 
-        // Workspaces
+        // Roughly estimate if needed based on active config, since we don't have bgRoot instance here
+        return !Config.options.background.hideWhenFullscreen || true; 
+    }
+
+    // Cava process
+    Process {
+        id: cavaProc
+        running: (Config?.options?.background?.widgets?.visualizer?.enable ?? false) && root.isVisualizerNeeded
+        onRunningChanged: {
+            if (!cavaProc.running)
+                root.visualizerPoints = Array.from({length: 50}, () => 0);
+        }
+        command: ["cava", "-p", `${CF.FileUtils.trimFileProtocol(Directories.scriptPath)}/cava/raw_output_config.txt`]
+        stdout: SplitParser {
+            onRead: data => {
+                const points = data.split(";").map(p => parseFloat(p.trim())).filter(p => !isNaN(p));
+                if (points.length > 0)
+                    root.visualizerPoints = points;
+            }
+        }
+    }
+
+    Variants {
+        id: variants
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: bgRoot
+
+            required property var modelData
+
+            property bool isCovered: false
+            property bool hasFullscreen: false
+
+            property int monitorIndex: variants.model.indexOf(modelData)
+
+            // Compute covered and fullscreen states dynamically
+            function updateVisibilityStates() {
+                const hdMonitor = HyprlandData.monitors.find(m => m.id === monitorIndex);
+                const wsId = hdMonitor?.activeWorkspace?.id;
+
+                let covered = false;
+                let fs = false;
+
+                if (wsId) {
+                    HyprlandData.windowList.forEach(w => {
+                        if (w.monitor == monitorIndex && w.workspace?.id === wsId) {
+                            if (w.fullscreen || w.wayland?.fullscreen) {
+                                fs = true;
+                            }
+                            if (!w.floating) {
+                                covered = true;
+                            }
+                        }
+                    });
+                }
+
+                isCovered = covered;
+                hasFullscreen = fs;
+            }
+
+            Connections {
+                target: HyprlandData
+                function onWindowListChanged() { updateVisibilityStates(); }
+                function onActiveWorkspaceChanged() { updateVisibilityStates(); }
+            }
+
+            // Visualizer visibility helper
+            readonly property bool isVisualizerVisible: {
+                if (GlobalStates.screenLocked) return true;
+                const hideCovered = Config?.options?.background?.widgets?.visualizer?.hideWhenCovered ?? true;
+                const hideFull = Config?.options?.background?.widgets?.visualizer?.hideWhenFullscreen ?? true;
+                if (hideCovered && isCovered) return false;
+                if (hideFull && hasFullscreen) return false;
+                return true;
+            }
+
+            visible: GlobalStates.screenLocked || !hasFullscreen || !Config?.options.background.hideWhenFullscreen
+
+            // Workspaces
+
         property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
         property list<var> relevantWindows: HyprlandData.windowList.filter(win => win.monitor == monitor?.id && win.workspace.id >= 0).sort((a, b) => a.workspace.id - b.workspace.id)
         property int firstWorkspaceId: relevantWindows[0]?.workspace.id || 1
@@ -155,6 +230,7 @@ Variants {
         }
 
         Component.onCompleted: {
+            updateVisibilityStates()
             if (!mediaModeOpen && Config.options.appearance.palette.type.startsWith("scheme")) {
                 Wallpapers.apply(Config.options.background.wallpaperPath)
             }
@@ -387,6 +463,32 @@ Variants {
             }
         }
 
+        FadeLoader {
+            id: visualizerLoader
+            z: 0
+
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+            }
+            height: Config.options.background.widgets.visualizer.height
+
+            readonly property var vizConfig: Config?.options?.background?.widgets?.visualizer
+            shown: vizConfig?.enable && bgRoot.isVisualizerVisible && (!GlobalStates.screenLocked || vizConfig?.showWhenLocked) && !bgRoot.mediaModeOpen
+
+            sourceComponent: VisualizerWidget {
+                anchors.fill: parent
+
+                points: root.visualizerPoints
+                primaryColor: Appearance.colors.colPrimary
+                shown: visualizerLoader.shown
+
+                scaledScreenWidth: bgRoot.screen.width
+                scaledScreenHeight: bgRoot.screen.height
+            }
+        }
+
         GlobalShortcut {
             name: "mediaModeToggle"
             description: "Toggles media mode on press"
@@ -409,5 +511,6 @@ Variants {
                 animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
             }
         }
-    }
-}
+        }
+        }
+        }
