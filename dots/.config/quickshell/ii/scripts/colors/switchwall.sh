@@ -24,12 +24,12 @@ handle_kde_material_you_colors() {
     # Map $type_flag to allowed scheme variants for kde-material-you-colors-wrapper.sh
     local kde_scheme_variant=""
     case "$type_flag" in
-    scheme-content | scheme-expressive | scheme-fidelity | scheme-fruit-salad | scheme-monochrome | scheme-neutral | scheme-rainbow | scheme-tonal-spot)
-        kde_scheme_variant="$type_flag"
-        ;;
-    *)
-        kde_scheme_variant="scheme-tonal-spot" # default
-        ;;
+        scheme-content|scheme-expressive|scheme-fidelity|scheme-fruit-salad|scheme-monochrome|scheme-neutral|scheme-rainbow|scheme-tonal-spot)
+            kde_scheme_variant="$type_flag"
+            ;;
+        *)
+            kde_scheme_variant="scheme-tonal-spot" # default
+            ;;
     esac
     "$XDG_CONFIG_HOME"/matugen/templates/kde/kde-material-you-colors-wrapper.sh --scheme-variant "$kde_scheme_variant"
 }
@@ -158,6 +158,16 @@ set_thumbnail_path() {
     fi
 }
 
+categorize_wallpaper() {
+    local target_payload="$1"
+
+    if [[ -z "$ai_script" || ! -f "$target_payload" ]]; then
+        return
+    fi
+
+    "$ai_script" "$target_payload" >"$STATE_DIR/user/generated/wallpaper/category.txt" 2>"$STATE_DIR/user/generated/wallpaper/ai_error.log" &
+}
+
 switch() {
     imgpath="$1"
     mode_flag="$2"
@@ -172,9 +182,9 @@ switch() {
     ai_script=""
 
     if [[ "$aiStylingEnabled" == "true" ]]; then
-        if [[ "$aiStylingModel" == "gemini" ]]; then
+        if [[ "$aiStylingModel" == "gemini" ]]; then  
             ai_script="$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh"
-        elif [[ "$aiStylingModel" == "openrouter" ]]; then
+        elif [[ "$aiStylingModel" == "openrouter" ]]; then  
             ai_script="$SCRIPT_DIR/../ai/openrouter-categorize-wallpaper.sh"
         fi
     fi
@@ -251,9 +261,7 @@ switch() {
                 generate_colors_material_args=(--path "$thumbnail")
                 create_restore_script "$video_path"
 
-                if [[ -n "$ai_script" ]]; then
-                    "$ai_script" "$thumbnail" >"$STATE_DIR/user/generated/wallpaper/category.txt" 2>"$STATE_DIR/user/generated/wallpaper/ai_error.log" &
-                fi
+                categorize_wallpaper "$thumbnail"
             else
                 echo "Cannot create image to colorgen"
                 remove_restore
@@ -266,9 +274,7 @@ switch() {
             set_wallpaper_path "$imgpath"
             remove_restore
 
-            if [[ -n "$ai_script" ]]; then
-                "$ai_script" "$imgpath" >"$STATE_DIR/user/generated/wallpaper/category.txt" 2>"$STATE_DIR/user/generated/wallpaper/ai_error.log" &
-            fi
+            categorize_wallpaper "$imgpath"
         fi
     fi
 
@@ -323,7 +329,7 @@ switch() {
     else
         matugen "${matugen_args[@]}"
         source "$(eval echo $ILLOGICAL_IMPULSE_VIRTUAL_ENV)/bin/activate"
-        python3 "$SCRIPT_DIR/generate_colors_material.py" "${generate_colors_material_args[@]}" \
+        python3 "$SCRIPT_DIR/generate_colors_material.py" "$@" \
             >"$STATE_DIR"/user/generated/material_colors.scss
         deactivate
         "$SCRIPT_DIR"/applycolor.sh
@@ -363,41 +369,41 @@ main() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-        --mode)
-            mode_flag="$2"
-            shift 2
-            ;;
-        --type)
-            type_flag="$2"
-            shift 2
-            ;;
-        --color)
-            if [[ "$2" =~ ^#?[A-Fa-f0-9]{6}$ ]]; then
-                set_accent_color "$2"
+            --mode)
+                mode_flag="$2"
                 shift 2
-            elif [[ "$2" == "clear" ]]; then
-                set_accent_color ""
+                ;;
+            --type)
+                type_flag="$2"
                 shift 2
-            else
-                set_accent_color $(hyprpicker --no-fancy)
+                ;;
+            --color)
+                if [[ "$2" =~ ^#?[A-Fa-f0-9]{6}$ ]]; then
+                    set_accent_color "$2"
+                    shift 2
+                elif [[ "$2" == "clear" ]]; then
+                    set_accent_color ""
+                    shift 2
+                else
+                    set_accent_color $(hyprpicker --no-fancy)
+                    shift
+                fi
+                ;;
+            --image)
+                imgpath="$2"
+                shift 2
+                ;;
+            --noswitch)
+                noswitch_flag="1"
+                imgpath=$(jq -r '.background.wallpaperPath' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "")
                 shift
-            fi
-            ;;
-        --image)
-            imgpath="$2"
-            shift 2
-            ;;
-        --noswitch)
-            noswitch_flag="1"
-            imgpath=$(jq -r '.background.wallpaperPath' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "")
-            shift
-            ;;
-        *)
-            if [[ -z "$imgpath" ]]; then
-                imgpath="$1"
-            fi
-            shift
-            ;;
+                ;;
+            *)
+                if [[ -z "$imgpath" ]]; then
+                    imgpath="$1"
+                fi
+                shift
+                ;;
         esac
     done
 
