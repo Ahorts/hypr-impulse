@@ -36,13 +36,15 @@ SETUP_FLAGS=""
 
 if [ -d "$BASE_DIR" ]; then
     cd "$BASE_DIR"
-    if [[ "$VERBOSE" == "true" ]]; then
-        git pull
-    else
-        git pull > /dev/null 2>&1
+    if [[ "$DO_PULL" == "true" ]]; then
+        if [[ "$VERBOSE" == "true" ]]; then
+            git pull
+        else
+            git pull > /dev/null 2>&1
+        fi
+        
+        echo -e "${GREEN}Vynx repo updated successfully!${NC}"
     fi
-    
-    echo -e "${GREEN}Vynx repo updated successfully!${NC}"
     
     bash setup-ii-vynx.sh $SETUP_FLAGS
 else

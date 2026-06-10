@@ -473,6 +473,7 @@ Item {
                                 if (targetWorkspace !== -1 && targetWorkspace !== windowData?.workspace.id) {
                                     Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, window = "address:${window.windowData?.address}" })`)
                                     updateWindowPosition.restart()
+                                    HyprlandData.updateWindowList()
                                 }
                                 else {
                                     if (!window.windowData.floating) {
@@ -492,11 +493,11 @@ Item {
                                     // FIXME: we dont use the plugin anymore, so we have to somehow clear these or find a way to
                                     // have the same functionality without/with another plugin
                                     if (root.draggingTargetWorkspace === root.draggingFromWorkspace) { // plugin directly supports same workspace switch
-                                        Hyprland.dispatch(`layoutmsg swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true`)
+                                        Hyprland.dispatch(`hl.dsp.layout("swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true")`)
                                     } else { // different workspace
-                                        Hyprland.dispatch(`movetoworkspacesilent ${targetWorkspace}, address:${root.draggingFromWindowAddress}`)
+                                        Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, window = "address:${root.draggingFromWindowAddress}" })`)
                                         Qt.callLater(() => {
-                                            Hyprland.dispatch(`layoutmsg swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true`)
+                                            Hyprland.dispatch(`hl.dsp.layout("swapaddrdir ${targetWindowAdress} ${root.draggingDirection} ${window.windowData?.address} true")`)
                                         })
                                     }
                                 }
@@ -506,6 +507,10 @@ Item {
                                     updateWindowPosition.restart();
                                     HyprlandData.updateWindowList();
                                 })   
+                            } else {
+                                window.pressed = false
+                                window.Drag.active = false
+                                updateWindowPosition.restart()
                             }
                         }
                         onClicked: (event) => {
@@ -521,12 +526,12 @@ Item {
                                 }
 
                                 if (sameWorkspaceWithTarget) {
-                                    Hyprland.dispatch(`layoutmsg focusaddr ${windowData.address}`)
+                                    Hyprland.dispatch(`hl.dsp.layout("focusaddr ${windowData.address}")`)
                                     GlobalStates.overviewOpen = false;
                                 } else {
                                     Hyprland.dispatch(`hl.dsp.focus({window = "address:${windowData.address}"})`)
                                     Qt.callLater(() => {
-                                        Hyprland.dispatch(`layoutmsg focusaddr ${windowData.address}`);
+                                        Hyprland.dispatch(`hl.dsp.layout("focusaddr ${windowData.address}")`);
                                         GlobalStates.overviewOpen = false;
                                     });
 
