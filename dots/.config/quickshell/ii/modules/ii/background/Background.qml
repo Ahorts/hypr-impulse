@@ -52,22 +52,26 @@ Scope {
     }
 
     Variants {
-        id: variants
         model: Quickshell.screens
 
         PanelWindow {
             id: bgRoot
 
             required property var modelData
+            property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
 
             property bool isCovered: false
             property bool hasFullscreen: false
 
-            property int monitorIndex: variants.model.indexOf(modelData)
-
             // Compute covered and fullscreen states dynamically
             function updateVisibilityStates() {
-                const hdMonitor = HyprlandData.monitors.find(m => m.id === monitorIndex);
+                if (!monitor) {
+                    isCovered = false;
+                    hasFullscreen = false;
+                    return;
+                }
+
+                const hdMonitor = HyprlandData.monitors.find(m => m.id === monitor.id);
                 const wsId = hdMonitor?.activeWorkspace?.id;
 
                 let covered = false;
@@ -75,7 +79,7 @@ Scope {
 
                 if (wsId) {
                     HyprlandData.windowList.forEach(w => {
-                        if (w.monitor == monitorIndex && w.workspace?.id === wsId) {
+                        if (w.monitor === monitor.id && w.workspace?.id === wsId) {
                             if (w.fullscreen || w.wayland?.fullscreen) {
                                 fs = true;
                             }
@@ -110,7 +114,6 @@ Scope {
 
             // Workspaces
 
-        property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
         property list<var> relevantWindows: HyprlandData.windowList.filter(win => win.monitor == monitor?.id && win.workspace.id >= 0).sort((a, b) => a.workspace.id - b.workspace.id)
         property int firstWorkspaceId: relevantWindows[0]?.workspace.id || 1
         property int lastWorkspaceId: relevantWindows[relevantWindows.length - 1]?.workspace.id || 10
