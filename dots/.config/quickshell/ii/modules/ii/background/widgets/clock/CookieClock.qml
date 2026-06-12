@@ -48,7 +48,7 @@ Item {
         if (!Config.options.background.widgets.clock.cookie.aiStyling) return;
         if (category === "") return;
         print("[Cookie clock] Setting clock preset for category: " + category)
-        // "abstract", "anime", "city", "minimalist", "landscape", "plants", "person", "space"
+        // "abstract", "anime", "city", "minimalist", "landscape", "plants", "person", "space", "sportscar", "hypercar", "suv", "classic_car", "drift_car", "cyberpunk", "retro", "industrial", "animal", "architecture", "gaming", "technology", "food", "underwater"
         if (category == "abstract") {
             applyStyle(9, "none", "fill", "medium", "dot", "bubble")
         } else if (category == "anime") {
@@ -63,6 +63,34 @@ Item {
             applyStyle(9, "dots", "fill", "bold", "dot", "border")
         } else if (category == "person") {
             applyStyle(14, "full", "classic", "classic", "classic", "rect")
+        } else if (category == "sportscar") {
+            applyStyle(32, "full", "hollow", "thin", "classic", "border")
+        } else if (category == "hypercar") {
+            applyStyle(100, "full", "hollow", "thin", "classic", "rect")
+        } else if (category == "suv") {
+            applyStyle(8, "dots", "fill", "bold", "dot", "rect")
+        } else if (category == "classic_car") {
+            applyStyle(12, "full", "classic", "classic", "classic", "rect")
+        } else if (category == "drift_car") {
+            applyStyle(10, "none", "fill", "bold", "dot", "border")
+        } else if (category == "cyberpunk") {
+            applyStyle(4, "none", "hollow", "bold", "dot", "border")
+        } else if (category == "retro") {
+            applyStyle(12, "full", "classic", "classic", "classic", "rect")
+        } else if (category == "industrial") {
+            applyStyle(6, "full", "fill", "bold", "classic", "rect")
+        } else if (category == "animal") {
+            applyStyle(11, "dots", "fill", "medium", "dot", "border")
+        } else if (category == "architecture") {
+            applyStyle(24, "full", "hollow", "thin", "classic", "border")
+        } else if (category == "gaming") {
+            applyStyle(8, "none", "hollow", "bold", "dot", "bubble")
+        } else if (category == "technology") {
+            applyStyle(16, "none", "hollow", "thin", "classic", "border")
+        } else if (category == "food") {
+            applyStyle(7, "dots", "fill", "medium", "dot", "bubble")
+        } else if (category == "underwater") {
+            applyStyle(15, "none", "fill", "medium", "dot", "bubble")
         }
     }
 

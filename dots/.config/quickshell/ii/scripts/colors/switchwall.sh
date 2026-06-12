@@ -185,7 +185,7 @@ categorize_wallpaper() {
 
             # checking the output because sometimes we get garbage for some reason
             local clean_res=$(cat "$tmp_output" | tr -d '"' | xargs | tr '[:upper:]' '[:lower:]')
-            local valid_categories=("abstract" "anime" "city" "minimalist" "landscape" "plants" "person" "space")
+            local valid_categories=("abstract" "anime" "city" "minimalist" "landscape" "plants" "person" "space" "sportscar" "hypercar" "suv" "classic_car" "drift_car" "cyberpunk" "retro" "industrial" "animal" "architecture" "gaming" "technology" "food" "underwater")
             local api_success=0
 
             for cat in "${valid_categories[@]}"; do

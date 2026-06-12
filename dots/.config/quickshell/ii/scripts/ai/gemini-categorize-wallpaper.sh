@@ -46,7 +46,7 @@ payload='{
         "responseMimeType": "text/x.enum",
         "responseSchema": {
             "type": "string",
-            "enum": [ "abstract", "anime", "city", "minimalist", "landscape", "plants", "person", "space" ]
+            "enum": [ "abstract", "anime", "city", "minimalist", "landscape", "plants", "person", "space", "sportscar", "hypercar", "suv", "classic_car", "drift_car", "cyberpunk", "retro", "industrial", "animal", "architecture", "gaming", "technology", "food", "underwater" ]
         },
         "temperature": 0
     }
