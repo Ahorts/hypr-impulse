@@ -2,6 +2,7 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.widgets.animations
 import qs.modules.common.functions
 import qs.modules.ii.sidebarPolicies.aiChat
 import QtQuick
@@ -405,12 +406,17 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
             }
 
             PagePlaceholder {
+                id: placeholder
                 z: 2
-                shown: Ai.messageIDs.length === 0
+
                 icon: "neurology"
-                title: Translation.tr("Large language models")
-                description: Translation.tr("Type /key to get started with online models\nCtrl+O to expand sidebar\nCtrl+P to pin sidebar\nCtrl+D to detach sidebar")
                 shape: MaterialShape.Shape.PixelCircle
+                title: Translation.tr("Large language models")
+                
+                rotateIconWithShape: true
+                shown: Ai.messageIDs.length === 0
+                triggerAnimationOn: GlobalStates.policiesPanelOpen
+                description: Translation.tr("Type /key to get started with online models\nCtrl+O to expand sidebar\nCtrl+P to pin sidebar\nCtrl+D to detach sidebar")
             }
 
             ScrollToBottomButton {
