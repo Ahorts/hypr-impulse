@@ -51,6 +51,7 @@ MouseArea {
         const totalImageMargin = (Appearance.sizes.wallpaperSelectorItemMargins + Appearance.sizes.wallpaperSelectorItemPadding) * 2;
         const thumbnailSizeName = Images.thumbnailSizeNameForDimensions(grid.cellWidth - totalImageMargin, grid.cellHeight - totalImageMargin);
         Wallpapers.generateThumbnail(thumbnailSizeName);
+        loadTimer.restart()
     }
 
     Connections {

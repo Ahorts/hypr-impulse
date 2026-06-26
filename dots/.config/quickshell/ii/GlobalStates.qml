@@ -55,6 +55,10 @@ Singleton {
         }
     }
 
+    // helper properties
+    readonly property bool policiesOnLeft: Config.options.sidebar.position === "default" || Config.options.sidebar.position === "left"
+    readonly property bool dashboardOnLeft: Config.options.sidebar.position === "inverted" || Config.options.sidebar.position === "left"
+
     onPoliciesPanelOpenChanged: {
         if (policiesPanelOpen) {
             if (Config.options.sidebar.position == "right" || Config.options.sidebar.position == "left") {

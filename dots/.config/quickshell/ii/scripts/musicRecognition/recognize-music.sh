@@ -1,9 +1,8 @@
 #!/bin/bash
 
-INTERVAL=2
+INTERVAL=10
 TOTAL_DURATION=30
 SOURCE_TYPE="monitor"  # monitor | input
-FIFO=$(mktemp -u /tmp/songrec_out_XXXXXX)
 
 while getopts "i:t:s:" opt; do
   case $opt in
@@ -14,14 +13,14 @@ while getopts "i:t:s:" opt; do
   esac
 done
 
-if ! command -v songrec >/dev/null 2>&1; then
+if ! command -v songrec >/dev/null 2>&1 || ! command -v parec >/dev/null 2>&1 || ! command -v ffmpeg >/dev/null 2>&1; then
     exit 1
 fi
 
 if [ "$SOURCE_TYPE" = "monitor" ]; then
     AUDIO_DEVICE=$(pactl get-default-sink).monitor
 elif [ "$SOURCE_TYPE" = "input" ]; then
-    AUDIO_DEVICE=$(pactl info | grep "Default Source:" | awk '{print $3}' || true)
+    AUDIO_DEVICE=$(pactl get-default-source)
 else
     echo "Invalid source type"
     exit 1
@@ -31,25 +30,31 @@ if [ -z "$AUDIO_DEVICE" ] || ! pactl list short sources | grep -q "$AUDIO_DEVICE
     exit 1
 fi
 
-mkfifo "$FIFO"
+TMPDIR=$(mktemp -d /tmp/songrec_chunks_XXXXXX)
+trap 'rm -rf "$TMPDIR"' EXIT
 
-cleanup() {
-    kill "$SONGREC_PID" 2>/dev/null || true
-    wait "$SONGREC_PID" 2>/dev/null
-    rm -f "$FIFO"
-}
-trap cleanup EXIT
+ELAPSED=0
+while [ "$ELAPSED" -lt "$TOTAL_DURATION" ]; do
+    RAW="$TMPDIR/chunk.raw"
+    WAV="$TMPDIR/chunk.wav"
+    rm -f "$RAW" "$WAV"
 
-songrec listen --audio-device "$AUDIO_DEVICE" --request-interval "$INTERVAL" --json --disable-mpris > "$FIFO" &
-SONGREC_PID=$!
+    # INTERVAL saniyelik PCM kaydı al
+    timeout "$((INTERVAL + 2))" parec \
+        --device="$AUDIO_DEVICE" \
+        --rate=44100 --channels=2 --format=s16le \
+        --raw "$RAW" 2>/dev/null
 
-( sleep "$TOTAL_DURATION" && kill "$SONGREC_PID" 2>/dev/null ) &
+    ffmpeg -loglevel quiet -f s16le -ar 44100 -ac 2 -i "$RAW" -y "$WAV" 2>/dev/null
 
-while IFS= read -r line; do
-    if echo "$line" | grep -q '"matches": \['; then
-        echo "$line"
+    RESULT=$(songrec recognize --json "$WAV" 2>/dev/null)
+
+    if echo "$RESULT" | grep -q '"matches": \[{' ; then
+        echo "$RESULT"
         exit 0
     fi
-done < "$FIFO"
+
+    ELAPSED=$((ELAPSED + INTERVAL))
+done
 
 exit 0

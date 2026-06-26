@@ -16,8 +16,9 @@ TriggerAnimation {
 
             // rotating the icon widget right/left
             PropertyAnimation {
+                id: rotationAnim
                 target: targetPlaceholder.iconWidget; property: "rotation"
-                from: rotateToRight ? -50 : 50; to: 0; duration: 250
+                to: 0; duration: 250
                 easing.type: Easing.OutCubic
             }
 
@@ -34,6 +35,15 @@ TriggerAnimation {
         ParallelAnimation {
             FadeSlide { target: targetPlaceholder.titleWidget }
             FadeSlide { target: targetPlaceholder.descriptionWidget; delay: 50 }
+        }
+    }
+
+    onTriggerChanged: {
+        if (returnOnTrue && trigger || !returnOnTrue && !trigger) return
+        if (animation) {
+            // we have to set this dynamically (dont ask me the reason behind it)
+            rotationAnim.from = root.rotateToRight ? -50 : 50
+            animation.restart()
         }
     }
 
