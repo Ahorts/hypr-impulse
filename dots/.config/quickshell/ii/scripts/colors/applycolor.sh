@@ -74,7 +74,6 @@ apply_anyterm() {
 }
 
 apply_term() {
-  apply_anyterm &
   apply_kitty &
 }
 
