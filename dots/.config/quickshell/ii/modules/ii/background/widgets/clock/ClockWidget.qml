@@ -21,7 +21,6 @@ AbstractBackgroundWidget {
     readonly property bool shouldShow: (!Config.options.background.widgets.clock.showOnlyWhenLocked || GlobalStates.screenLocked)
     property bool wallpaperSafetyTriggered: false
     property bool isCovered: false
-    property bool hasFullscreen: false
     needsColText: clockStyle === "digital"
     x: forceCenter ? ((root.screenWidth - root.width) / 2) : targetX
     y: forceCenter ? ((root.screenHeight - root.height) / 2) : targetY
@@ -52,7 +51,6 @@ AbstractBackgroundWidget {
                 CookieClock {
                     anchors.horizontalCenter: parent.horizontalCenter
                     isCovered: root.isCovered
-                    hasFullscreen: root.hasFullscreen
                 }
                 FadeLoader {
                     anchors.horizontalCenter: parent.horizontalCenter

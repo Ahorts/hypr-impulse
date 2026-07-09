@@ -18,7 +18,6 @@ Item {
     readonly property string clockStyle: Config.options.background.widgets.clock.style
 
     property bool isCovered: false
-    property bool hasFullscreen: false
 
     property real implicitSize: 230
 
@@ -89,7 +88,7 @@ Item {
             target: shadowItem
             property: "rotation"
             running: Config.options.background.widgets.clock.cookie.constantlyRotate
-            paused: rotateAnim.running && (Config.options.background.widgets.clock.cookie.turnOffRotationOnTiledApps && root.isCovered)
+            paused: Config.options.background.widgets.clock.cookie.turnOffRotationOnTiledApps && root.isCovered
             duration: 30000
             loops: Animation.Infinite
             from: 360
