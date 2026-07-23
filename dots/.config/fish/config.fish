@@ -51,6 +51,9 @@ if status is-interactive # Commands to run in interactive sessions can go here
     zoxide init fish | source
     fzf --fish | source
     dotnet completions script fish | source
+    set -gx ANDROID_HOME $HOME/Android/Sdk
+    fish_add_path $ANDROID_HOME/emulator
+    fish_add_path $ANDROID_HOME/platform-tools
 
 end
 
@@ -59,5 +62,12 @@ end
 #   set_color green; echo '> '
 # end
 
+if test -f ~/.config/fish/secrets.fish
+    source ~/.config/fish/secrets.fish
+end
 # Created by `pipx` on 2026-01-29 16:31:06
 set PATH $PATH /home/ahorts/.local/bin
+
+
+# Added by Antigravity CLI installer
+set -gx PATH "/home/ahorts/.local/bin" $PATH
