@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import qs
 import qs.modules.common
 import qs.modules.common.widgets
-import Qt5Compat.GraphicalEffects
 
 Item {
     id: root
@@ -28,7 +28,7 @@ Item {
     property real parallaxY: {
         return verticalParallax ? (workspaceNorm - 0.5) * -2 * workspaceParallaxStrength : 0
     }
-    
+
     // using normal animations feels too flat
     Behavior on parallaxX {
         NumberAnimation { duration: 600; easing.type: Easing.OutCubic }
@@ -38,10 +38,12 @@ Item {
     }
 
     GaussianBlur {
+        id: blurEffect
         anchors.fill: parent
         source: img
         radius: Config.options.background.mediaMode.backgroundBlurRadius
         samples: radius * 2 + 1
+        visible: false
     }
 
     TransitionImage {
@@ -51,6 +53,11 @@ Item {
         visible: false
 
         Rectangle { anchors.fill: parent; color: root.overlayColor }
+    }
+
+    // Moving the transform to a separate item to cache the blur effect and not have it re-render every frame
+    Item {
+        anchors.fill: parent
 
         transform: [
             Scale {
@@ -60,6 +67,12 @@ Item {
             Translate { id: floatTranslate },
             Translate { id: parallaxTranslate; x: -root.parallaxX; y: root.parallaxY }
         ]
+
+        ShaderEffectSource {
+            anchors.fill: parent
+            sourceItem: blurEffect
+            live: true
+        }
 
         AxisAnimation {
             speed: root.animationSpeedScale
@@ -78,18 +91,15 @@ Item {
 
     component AxisAnimation: SequentialAnimation {
         required property string axis
-        required property var frames 
-        required property var times 
+        required property var frames
+        required property var times
         required property var speed
 
         loops: Animation.Infinite
         running: root.animationEnabled
 
         onSpeedChanged: { // to instantly update the speed, it waits for the full animation to end to take effect otherwise
-            running = false
-            Qt.callLater (() => {
-                running = root.animationEnabled
-            })
+            if (running) restart()
         }
 
         NumberAnimation { target: floatTranslate; property: axis; from: frames[0]; to: frames[1]; duration: times[0] / speed; easing.type: Easing.InOutSine }
