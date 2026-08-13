@@ -60,10 +60,6 @@ post_process() {
 
     # Generate YouTube Music theme
     "$SCRIPT_DIR/../ytmusic/generate-ytmusic-theme.sh" > /dev/null 2>&1 &
-    (
-        sleep 0.3
-        dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland
-    ) >/dev/null 2>&1 &
 }
 
 check_and_prompt_upscale() {
