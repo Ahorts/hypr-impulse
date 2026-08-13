@@ -13,5 +13,7 @@ __pycache__/
 # custom os-release
 /os-release
 
-# Emacs auto backup file
-*~
+# Secrets & local overrides
+secrets.fish
+*.secrets.fish
+

@@ -51,6 +51,7 @@ if status is-interactive # Commands to run in interactive sessions can go here
     zoxide init fish | source
     fzf --fish | source
     dotnet completions script fish | source
+    fish_add_path $HOME/.local/bin
     set -gx ANDROID_HOME $HOME/Android/Sdk
     fish_add_path $ANDROID_HOME/emulator
     fish_add_path $ANDROID_HOME/platform-tools
