@@ -20,7 +20,13 @@ ColumnLayout {
     property var segmentLang: "txt"
     property var messageData: {}
     property bool isCommandRequest: segmentLang === "command"
-    property var displayLang: (isCommandRequest ? "bash" : segmentLang)
+    property var displayLang: {
+        if (isCommandRequest) return "bash";
+        const raw = (segmentLang || "").toString().toLowerCase().trim();
+        const shellAliases = ["", "txt", "sh", "shell", "console", "terminal", "bash", "zsh", "fish"];
+        if (shellAliases.includes(raw)) return "bash";
+        return segmentLang;
+    }
 
     property real codeBlockBackgroundRounding: Appearance.rounding.small
     property real codeBlockHeaderPadding: 3
@@ -55,8 +61,12 @@ ColumnLayout {
                 Layout.leftMargin: 10
                 font.pixelSize: Appearance.font.pixelSize.small
                 font.weight: Font.DemiBold
-                color: Appearance.colors.colOnLayer2
-                text: root.displayLang ? Repository.definitionForName(root.displayLang).name : "plain"
+                text: {
+                    if (root.isCommandRequest) return Translation.tr("Command");
+                    if (!root.displayLang) return "plain";
+                    const def = Repository.definitionForName(root.displayLang);
+                    return (def && def.name) ? def.name : root.displayLang;
+                }
             }
 
             Item { Layout.fillWidth: true }
@@ -178,38 +188,16 @@ ColumnLayout {
                     // Layout.fillHeight: true
                     implicitWidth: parent.width
                     implicitHeight: codeTextArea.implicitHeight + 1
-                    contentWidth: codeTextArea.width - 1
+                    contentWidth: availableWidth
                     // contentHeight: codeTextArea.contentHeight
                     clip: true
                     ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-                    
-                    ScrollBar.horizontal: ScrollBar {
-                        anchors.bottom: parent.bottom
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        padding: 5
-                        policy: ScrollBar.AsNeeded
-                        opacity: visualSize == 1 ? 0 : 1
-                        visible: opacity > 0
-
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: Appearance.animation.elementMoveFast.duration
-                                easing.type: Appearance.animation.elementMoveFast.type
-                                easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
-                            }
-                        }
-                        
-                        contentItem: Rectangle {
-                            implicitHeight: 6
-                            radius: Appearance.rounding.small
-                            color: Appearance.colors.colLayer2Active
-                        }
-                    }
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
                     TextArea { // Code
                         id: codeTextArea
                         Layout.fillWidth: true
+                        width: codeScrollView.availableWidth
                         readOnly: !editing
                         selectByMouse: enableMouseSelection || editing
                         renderType: Text.NativeRendering
@@ -218,7 +206,7 @@ ColumnLayout {
                         font.pixelSize: Appearance.font.pixelSize.small
                         selectedTextColor: Appearance.m3colors.m3onSecondaryContainer
                         selectionColor: Appearance.colors.colSecondaryContainer
-                        // wrapMode: TextEdit.Wrap
+                        wrapMode: TextEdit.Wrap
                         color: messageData.thinking ? Appearance.colors.colSubtext : Appearance.colors.colOnLayer1
 
                         text: segmentContent
@@ -243,7 +231,7 @@ ColumnLayout {
                             id: highlighter
                             textEdit: codeTextArea
                             repository: Repository
-                            definition: Repository.definitionForName(root.displayLang || "plaintext")
+                            definition: Repository.definitionForName(root.displayLang || "bash")
                             theme: Appearance.syntaxHighlightingTheme
                         }
                     }
