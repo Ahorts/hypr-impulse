@@ -32,7 +32,7 @@ if status is-interactive # Commands to run in interactive sessions can go here
     alias pamcan pacman
     alias q 'qs -c ii'
     if test "$TERM" != linux
-        alias ls 'eza --icons'
+        alias ls 'eza --icons=auto'
     end
     alias vim nvim
     alias pn=pnpm
@@ -57,17 +57,7 @@ if status is-interactive # Commands to run in interactive sessions can go here
 
 end
 
-# function fish_prompt
-#   set_color cyan; echo (pwd)
-#   set_color green; echo '> '
-# end
 
 if test -f ~/.config/fish/secrets.fish
     source ~/.config/fish/secrets.fish
 end
-# Created by `pipx` on 2026-01-29 16:31:06
-set PATH $PATH /home/ahorts/.local/bin
-
-
-# Added by Antigravity CLI installer
-set -gx PATH "/home/ahorts/.local/bin" $PATH
