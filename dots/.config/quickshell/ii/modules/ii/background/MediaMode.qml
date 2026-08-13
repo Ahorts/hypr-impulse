@@ -102,7 +102,7 @@ Item { // MediaMode instance
                         const upper = Math.ceil(bgRoot.lastWorkspaceId / chunkSize) * chunkSize
                         const range = upper - lower
                         const id = bgRoot.monitor.activeWorkspace?.id ?? 1
-                        const raw =  range > 0 ? (id - lower) / range : 0.5
+                        const raw = range > 0 ? (id - lower) / range : 0.5
                         return Math.max(0, Math.min(1, raw))
                     }
 
