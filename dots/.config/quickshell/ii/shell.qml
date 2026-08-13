@@ -75,5 +75,23 @@ ShellRoot {
 
         onPressed: root.cyclePanelFamily()
     }
+
+    Timer { // Wallpaper slideshow timer
+        id: slideshowTimer
+        interval: Math.max(1, Config.options.background.slideshowInterval) * 60000
+        running: Config.options.background.enableSlideshow
+        repeat: true
+        onTriggered: {
+            console.log("[Wallpaper] Slideshow timer triggered. Cycling wallpaper...");
+            Wallpapers.cycleFromCurrentFolder();
+        }
+    }
+
+    Connections {
+        target: Config.options.background
+        function onSlideshowIntervalChanged() {
+            if (slideshowTimer.running) slideshowTimer.restart();
+        }
+    }
 }
 

@@ -13,7 +13,7 @@ ContentPage {
     readonly property int index: 0
     property bool register: parent.register ?? false
     forceWidth: true
-    interactive: false
+    interactive: true
 
     property bool allowHeavyLoad: false
     property ListModel favouritesCarouselModel: ListModel {}
@@ -439,6 +439,53 @@ ContentPage {
             stepSize: 1
             onValueChanged: {
                 Config.options.appearance.wrappedFrameThickness = value;
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "shuffle"
+            text: Translation.tr("Wallpaper Slideshow")
+            checked: Config.options.background.enableSlideshow
+            onCheckedChanged: {
+                Config.options.background.enableSlideshow = checked;
+            }
+        }
+
+        ContentSubsection {
+            visible: Config.options.background.enableSlideshow
+            title: Translation.tr("Slideshow mode")
+            Layout.fillWidth: true
+
+            ConfigSelectionArray {
+                currentValue: Config.options.background.slideshowMode
+                onSelected: newValue => {
+                    Config.options.background.slideshowMode = newValue;
+                }
+                options: [
+                    {
+                        displayName: Translation.tr("Sequential"),
+                        icon: "format_list_numbered",
+                        value: "sequential"
+                    },
+                    {
+                        displayName: Translation.tr("Random"),
+                        icon: "shuffle",
+                        value: "random"
+                    }
+                ]
+            }
+        }
+
+        ConfigSpinBox {
+            visible: Config.options.background.enableSlideshow
+            icon: "timer"
+            text: Translation.tr("Slideshow interval (minutes)")
+            value: Config.options.background.slideshowInterval
+            from: 1
+            to: 1440
+            stepSize: 1
+            onValueChanged: {
+                Config.options.background.slideshowInterval = value;
             }
         }
 
