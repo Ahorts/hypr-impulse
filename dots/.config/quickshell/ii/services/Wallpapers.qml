@@ -93,8 +93,27 @@ Singleton {
         if (folderModel.count === 0) return;
         const randomIndex = Math.floor(Math.random() * folderModel.count);
         const filePath = folderModel.get(randomIndex, "filePath");
-        print("Randomly selected wallpaper:", filePath);
+        print("[Wallpapers] Randomly selected wallpaper:", filePath);
         root.select(filePath, darkMode);
+    }
+
+    function nextFromCurrentFolder(darkMode = Appearance.m3colors.darkmode) {
+        if (wallpapers.length === 0) return;
+        const currentPath = FileUtils.trimFileProtocol(Config.options.background.wallpaperPath);
+        let idx = wallpapers.indexOf(currentPath);
+        if (idx === -1) idx = 0;
+        else idx = (idx + 1) % wallpapers.length;
+        const nextPath = wallpapers[idx];
+        print("[Wallpapers] Sequentially selected next wallpaper:", nextPath);
+        root.select(nextPath, darkMode);
+    }
+
+    function cycleFromCurrentFolder(mode = Config.options.background.slideshowMode, darkMode = Appearance.m3colors.darkmode) {
+        if (mode === "random") {
+            randomFromCurrentFolder(darkMode);
+        } else {
+            nextFromCurrentFolder(darkMode);
+        }
     }
 
     Process {
@@ -221,6 +240,18 @@ Singleton {
 
         function apply(path: string): void {
             root.apply(path);
+        }
+
+        function cycle(): void {
+            root.cycleFromCurrentFolder();
+        }
+
+        function next(): void {
+            root.nextFromCurrentFolder();
+        }
+
+        function random(): void {
+            root.randomFromCurrentFolder();
         }
     }
 }

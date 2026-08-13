@@ -298,6 +298,9 @@ Singleton {
                         property int textHighlightStyle: 0 // 0: vertical, 1: horizontal (not perfect bc its not synced in a word level, but a cool animation to have)
                     }
                 }
+                property bool enableSlideshow: false
+                property int slideshowInterval: 10
+                property string slideshowMode: "sequential"
             }
 
             property JsonObject bar: JsonObject {
