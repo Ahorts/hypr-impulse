@@ -272,9 +272,7 @@ Singleton {
             "description": Translation.tr("Online via %1 | %2's model")
                 .arg("OpenRouter")
                 .arg("Google"),
-            "homepage": `https://openrouter.ai/google/${currentModel}`, 
-            "endpoint": "https://openrouter.ai/api/v1/chat/completions",
-            "model": `${getModelProvider(Persistent.states.ai.provider,currentModel)}/${currentModel}`,
+            "model": root.resolveOpenRouterModel(Persistent.states.ai.provider, root.currentModel),
             "requires_key": true,
             "key_id": "openrouter",
             "key_get_link": "https://openrouter.ai/settings/keys",
@@ -315,12 +313,16 @@ Singleton {
 
     property var baseModels: {
         "openrouter": [
-            {title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite", modelProvider: "google"},
+            { title: "Gemini 2.5 Flash", value: "gemini-2.5-flash", modelProvider: "google" },
+            { title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite", modelProvider: "google" },
+            { title: "DeepSeek V3", value: "deepseek/deepseek-chat" },
+            { title: "Llama 3.3 70B", value: "meta-llama/llama-3.3-70b-instruct" }
         ],
         "google": [
-            { title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite" },
             { title: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
-            { title: "Gemini 3 Flash Preview", value: "gemini-3-flash-preview" }
+            { title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite" },
+            { title: "Gemini 2.5 Pro", value: "gemini-2.5-pro" },
+            { title: "Gemini 1.5 Flash", value: "gemini-1.5-flash" }
         ],
         "others": []
     }
@@ -374,8 +376,14 @@ Singleton {
                 return models[i].modelProvider || null
             }
         }
-        
         return null
+    }
+
+    function resolveOpenRouterModel(providerKey, modelValue) {
+        if (!modelValue) return ""
+        if (modelValue.includes("/")) return modelValue
+        const provider = getModelProvider(providerKey, modelValue)
+        return provider ? `${provider}/${modelValue}` : modelValue
     }
 
 
@@ -690,6 +698,8 @@ Singleton {
 
             let requestHeaders = {
                 "Content-Type": "application/json",
+                "HTTP-Referer": "https://github.com/end-4/dots-hyprland",
+                "X-Title": "Illogical Impulse"
             }
             
             /* Create local message object */
