@@ -41,10 +41,21 @@ Scope {
         // click-through.
         readonly property real sidebarInset: GlobalStates.effectiveRightOpen ? Appearance.sizes.sidebarWidth : 0
 
+        // Notifications own this corner, so drop below them rather than
+        // overlapping. card.y adds the gutter on top of this, which is what
+        // leaves the same gap here as the card keeps from the screen edge.
+        // Clamped so a tall stack cannot push the card off screen.
+        readonly property real notificationInset: {
+            if (GlobalStates.notificationPopupHeight <= 0)
+                return 0;
+            const room = (root.screen?.height ?? 0) - card.height - card.gutter * 2;
+            return Math.max(0, Math.min(GlobalStates.notificationPopupHeight, room));
+        }
+
         // Gutter to the screen edge, elevationMargin of slack on the far side
         // for the shadow: the same split SidebarDashboard uses.
         implicitWidth: card.width + card.gutter + Appearance.sizes.elevationMargin + Appearance.sizes.sidebarWidth
-        implicitHeight: card.height + card.gutter + Appearance.sizes.elevationMargin
+        implicitHeight: card.gutter + root.notificationInset + card.height + Appearance.sizes.elevationMargin
 
         mask: Region {
             item: card
@@ -82,11 +93,15 @@ Scope {
 
             width: 344
             height: content.implicitHeight + card.padding * 2
-            y: card.gutter
+            y: card.gutter + root.notificationInset
             // Slides out past the screen edge, so there is nothing to clip.
             x: FastPair.popupShown ? root.width - card.width - card.gutter - root.sidebarInset : root.width + card.gutter
 
             Behavior on x {
+                animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
+            }
+
+            Behavior on y {
                 animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
             }
 
