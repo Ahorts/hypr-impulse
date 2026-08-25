@@ -28,9 +28,14 @@ Scope {
         // and it handles a vertical or bottom bar without special-casing it.
         exclusiveZone: 0
 
+        // Full height on purpose, like NotificationPopup: the card changes height
+        // when the options expand, and resizing a layer surface every animation
+        // frame is what makes that stutter. The mask keeps the slack
+        // click-through.
         anchors {
             top: true
             right: true
+            bottom: true
         }
 
         // Slide inwards so the right sidebar can have the corner, and drift back
@@ -48,14 +53,13 @@ Scope {
         readonly property real notificationInset: {
             if (GlobalStates.notificationPopupHeight <= 0)
                 return 0;
-            const room = (root.screen?.height ?? 0) - card.height - card.gutter * 2;
+            const room = root.height - card.height - card.gutter * 2;
             return Math.max(0, Math.min(GlobalStates.notificationPopupHeight, room));
         }
 
         // Gutter to the screen edge, elevationMargin of slack on the far side
         // for the shadow: the same split SidebarDashboard uses.
         implicitWidth: card.width + card.gutter + Appearance.sizes.elevationMargin + Appearance.sizes.sidebarWidth
-        implicitHeight: card.gutter + root.notificationInset + card.height + Appearance.sizes.elevationMargin
 
         mask: Region {
             item: card
@@ -162,61 +166,72 @@ Scope {
                     text: Icons.getBluetoothDeviceMaterialSymbol(FastPair.candidate?.icon ?? "")
                 }
 
-                ColumnLayout {
+                // Revealer clips and animates the reveal rather than snapping the
+                // card to a new height. Held visible at zero height so the
+                // layout's spacing does not pop once it finishes collapsing.
+                Revealer {
                     Layout.fillWidth: true
-                    Layout.bottomMargin: 10
-                    visible: card.optionsOpen
-                    spacing: 4
+                    vertical: true
+                    reveal: card.optionsOpen
+                    visible: true
 
-                    StyledText {
-                        text: Translation.tr("Snooze this device")
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colSubtext
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
+                    ColumnLayout {
+                        // Explicit width: taking it from the Revealer would make
+                        // the Revealer's implicitWidth depend on its own child.
+                        width: card.width - card.padding * 2
                         spacing: 4
 
-                        Repeater {
-                            model: card.snoozePresets
+                        StyledText {
+                            text: Translation.tr("Snooze this device")
+                            font.pixelSize: Appearance.font.pixelSize.smaller
+                            color: Appearance.colors.colSubtext
+                        }
 
-                            Chip {
-                                required property var modelData
-                                Layout.fillWidth: true
-                                buttonText: modelData.label
-                                onClicked: FastPair.dismiss(modelData.ms)
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Repeater {
+                                model: card.snoozePresets
+
+                                Chip {
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    buttonText: modelData.label
+                                    onClicked: FastPair.dismiss(modelData.ms)
+                                }
                             }
                         }
-                    }
 
-                    Chip {
-                        Layout.fillWidth: true
-                        Layout.topMargin: 2
-                        colText: Appearance.colors.colError
-                        buttonText: Translation.tr("Never show this device")
-                        onClicked: FastPair.ignoreCandidate()
-                    }
+                        Chip {
+                            Layout.fillWidth: true
+                            Layout.topMargin: 2
+                            colText: Appearance.colors.colError
+                            buttonText: Translation.tr("Never show this device")
+                            onClicked: FastPair.ignoreCandidate()
+                        }
 
-                    StyledText {
-                        Layout.topMargin: 6
-                        text: Translation.tr("Mute all pairing popups")
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colSubtext
-                    }
+                        StyledText {
+                            Layout.topMargin: 6
+                            text: Translation.tr("Mute all pairing popups")
+                            font.pixelSize: Appearance.font.pixelSize.smaller
+                            color: Appearance.colors.colSubtext
+                        }
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 4
+                        RowLayout {
+                            Layout.bottomMargin: 10
+                            Layout.fillWidth: true
+                            spacing: 4
 
-                        Repeater {
-                            model: card.snoozePresets
+                            Repeater {
+                                model: card.snoozePresets
 
-                            Chip {
-                                required property var modelData
-                                Layout.fillWidth: true
-                                buttonText: modelData.label
-                                onClicked: FastPair.muteAll(modelData.ms)
+                                Chip {
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    buttonText: modelData.label
+                                    onClicked: FastPair.muteAll(modelData.ms)
+                                }
                             }
                         }
                     }
