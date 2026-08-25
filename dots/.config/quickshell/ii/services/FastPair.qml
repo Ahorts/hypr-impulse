@@ -246,8 +246,11 @@ Singleton {
         onTriggered: root.applyScanState()
     }
 
+    // Discovery can also be running because the user opened the Bluetooth dialog,
+    // so this checks the option too: the singleton outlives the popup when the
+    // option is switched off, and must go quiet rather than keep polling.
     Timer {
-        running: (root.adapter?.discovering ?? false) && !root.popupShown
+        running: root.options.enable && (root.adapter?.discovering ?? false) && !root.popupShown
         repeat: true
         interval: 2000
         triggeredOnStart: true
