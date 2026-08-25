@@ -28,6 +28,68 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "bluetooth_searching"
+        title: Translation.tr("Fast pairing")
+
+        ConfigSwitch {
+            buttonIcon: "check"
+            text: Translation.tr("Offer nearby devices for pairing")
+            checked: Config.options.bluetooth.fastPair.enable
+            onCheckedChanged: {
+                Config.options.bluetooth.fastPair.enable = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Shows an Android-style card when an unpaired device is nearby. Keeps Bluetooth discovering whenever nothing is connected, which costs radio time and battery.")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "headphones"
+            text: Translation.tr("Audio devices only")
+            checked: Config.options.bluetooth.fastPair.audioOnly
+            onCheckedChanged: {
+                Config.options.bluetooth.fastPair.audioOnly = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Ignore watches, phones and anything else that is not a headset or speaker")
+            }
+        }
+
+        ConfigSpinBox {
+            icon: "settings_input_antenna"
+            text: Translation.tr("Minimum signal strength (dBm)")
+            value: Config.options.bluetooth.fastPair.rssiThreshold
+            from: -95
+            to: -35
+            stepSize: 5
+            onValueChanged: {
+                Config.options.bluetooth.fastPair.rssiThreshold = value;
+            }
+        }
+
+        ConfigSpinBox {
+            icon: "timer"
+            text: Translation.tr("Popup timeout (s)")
+            value: Config.options.bluetooth.fastPair.popupTimeout
+            from: 0
+            to: 120
+            stepSize: 5
+            onValueChanged: {
+                Config.options.bluetooth.fastPair.popupTimeout = value;
+            }
+        }
+
+        RippleButtonWithIcon {
+            visible: Config.options.bluetooth.fastPair.ignoredDevices.length > 0
+            materialIcon: "playlist_remove"
+            mainText: Translation.tr("Clear %1 ignored device(s)").arg(Config.options.bluetooth.fastPair.ignoredDevices.length)
+            onClicked: {
+                Config.options.bluetooth.fastPair.ignoredDevices = [];
+            }
+        }
+    }
+
+    ContentSection {
         icon: "album"
         title: Translation.tr("Media")
 
