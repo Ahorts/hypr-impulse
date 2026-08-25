@@ -15,6 +15,7 @@ depends=(
   ripgrep
   jq
   xdg-user-dirs
+  bluez-utils # bluetoothctl: provides the BlueZ pairing agent the shell borrows
   # Used in install script
   rsync
   go-yq # https://github.com/mikefarah/yq

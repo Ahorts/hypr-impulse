@@ -29,6 +29,10 @@ Singleton {
     // popupShown: closing the card must not abort a connect already running.
     property bool busy: false
     property bool failed: false
+    // No pairing agent could be brought up, which on most systems means
+    // bluetoothctl is not installed. Worth telling the user apart from an
+    // ordinary failure, since nothing they do to the device will help.
+    property bool agentUnavailable: false
 
     // address -> advert, straight from BlueZ. See fastPairAdverts.js.
     property var adverts: ({})
@@ -72,6 +76,7 @@ Singleton {
         root.candidate = best;
         root.busy = false;
         root.failed = false;
+        root.agentUnavailable = false;
         root.popupShown = true;
         if (root.options.popupTimeout > 0)
             autoDismiss.restart();
@@ -86,6 +91,7 @@ Singleton {
         // unreliable.
         root.busy = true;
         root.failed = false;
+        root.agentUnavailable = false;
         connectTimeout.restart();
         // Trusting up front stops BlueZ asking the agent to authorize the
         // service, which the borrowed bluetoothctl agent would only prompt for
@@ -107,6 +113,20 @@ Singleton {
 
     function releaseAgent() {
         pairingAgent.running = false;
+    }
+
+    // One place to end a failed attempt. busy is cleared first so that releasing
+    // the agent cannot re-enter this through pairingAgent's onRunningChanged.
+    function abandon() {
+        if (!root.busy)
+            return;
+        root.busy = false;
+        connectTimeout.stop();
+        settle.stop();
+        root.releaseAgent();
+        root.failed = true;
+        if (root.popupShown && root.options.popupTimeout > 0)
+            autoDismiss.restart();
     }
 
     // Hides the card. UI only: an in-flight attempt keeps running.
@@ -198,13 +218,8 @@ Singleton {
         onTriggered: {
             if (!root.busy)
                 return;
-            settle.stop();
             console.warn("FastPair: gave up on", root.candidate?.name ?? "device", "- paired =", root.candidate?.paired ?? false, "connected =", root.candidate?.connected ?? false);
-            root.releaseAgent();
-            root.busy = false;
-            root.failed = true;
-            if (root.popupShown && root.options.popupTimeout > 0)
-                autoDismiss.restart();
+            root.abandon();
         }
     }
 
@@ -269,7 +284,20 @@ Singleton {
         command: ["bluetoothctl", "--agent", "NoInputNoOutput"]
         stdinEnabled: true
         onStarted: pairingAgent.write("default-agent\n")
-        onRunningChanged: if (!pairingAgent.running) pairingAgent.agentReady = false
+        onRunningChanged: {
+            if (pairingAgent.running)
+                return;
+            pairingAgent.agentReady = false;
+            if (!root.busy)
+                return;
+            // Quickshell emits no exited signal for a binary it could not find,
+            // it just puts running back to false, so this is also how
+            // "bluetoothctl is not installed" arrives. Fail now rather than
+            // letting the attempt sit there until connectTimeout.
+            console.warn("FastPair: pairing agent went away - is bluetoothctl installed?");
+            root.agentUnavailable = true;
+            root.abandon();
+        }
         stdout: SplitParser {
             onRead: line => {
                 if (pairingAgent.agentReady || !line.includes("Agent registered"))

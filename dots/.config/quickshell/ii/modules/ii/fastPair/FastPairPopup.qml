@@ -77,6 +77,9 @@ Scope {
             onShownChanged: if (card.shown) card.optionsOpen = false
 
             readonly property string statusText: {
+                // Names the binary rather than any one distro's package name.
+                if (FastPair.agentUnavailable)
+                    return Translation.tr("Can't pair: bluetoothctl not available");
                 if (FastPair.failed)
                     return Translation.tr("Couldn't connect, try again");
                 if (!FastPair.busy)
