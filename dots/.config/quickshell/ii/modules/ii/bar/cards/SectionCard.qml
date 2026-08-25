@@ -60,6 +60,9 @@ Rectangle {
             StyledText {
                 id: titleText
                 Layout.fillWidth: true
+                // fillWidth lets this shrink below its implicit width, and
+                // without eliding it keeps painting over headerExtraContainer.
+                elide: Text.ElideRight
                 font.family: Appearance.font.family.title
                 font.pixelSize: Appearance.font.pixelSize.large
                 font.weight: Font.Bold
