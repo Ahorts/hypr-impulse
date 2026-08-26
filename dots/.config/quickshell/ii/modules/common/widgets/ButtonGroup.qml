@@ -18,12 +18,16 @@ Rectangle {
 
     property real contentWidth: {
         let total = 0;
+        let shown = 0;
         for (let i = 0; i < rowLayout.children.length; ++i) {
             const child = rowLayout.children[i];
             if (!child.visible) continue;
             total += child.baseWidth ?? child.implicitWidth ?? child.width;
+            shown += 1;
         }
-        return total + rowLayout.spacing * (rowLayout.children.length - 1);
+        // Guard the empty case: spacing * (0 - 1) used to make this negative.
+        if (shown === 0) return 0;
+        return total + rowLayout.spacing * (shown - 1);
     }
 
     topLeftRadius: rowLayout.children.length > 0 ? (rowLayout.children[0].radius + padding) : 
