@@ -62,8 +62,8 @@ Singleton {
         if (root.useUSCS) {
             temp.wind = (data?.current?.windspeedMiles || 0) + " mph";
             temp.precip = (data?.current?.precipInches || 0) + " in";
-            temp.visib = (data?.current?.visibilityMiles || 0) + " m";
-            temp.press = (data?.current?.pressureInches || 0) + " psi";
+            temp.visib = (data?.current?.visibilityMiles || 0) + " mi";
+            temp.press = (data?.current?.pressureInches || 0) + " inHg";
             temp.temp += (data?.current?.temp_F || 0);
             temp.tempFeelsLike += (data?.current?.FeelsLikeF || 0);
             temp.temp += "°F";
