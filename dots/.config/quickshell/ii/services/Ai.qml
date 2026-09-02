@@ -313,12 +313,14 @@ Singleton {
 
     property var baseModels: {
         "openrouter": [
+            { title: "Gemini 3.6 Flash", value: "google/gemini-3.6-flash", modelProvider: "google" },
             { title: "Gemini 2.5 Flash", value: "gemini-2.5-flash", modelProvider: "google" },
             { title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite", modelProvider: "google" },
             { title: "DeepSeek V3", value: "deepseek/deepseek-chat" },
             { title: "Llama 3.3 70B", value: "meta-llama/llama-3.3-70b-instruct" }
         ],
         "google": [
+            { title: "Gemini 3.6 Flash", value: "gemini-3.6-flash" },
             { title: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
             { title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite" },
             { title: "Gemini 2.5 Pro", value: "gemini-2.5-pro" },
@@ -987,6 +989,7 @@ Singleton {
                 "annotationSources": message.annotationSources,
                 "functionName": message.functionName,
                 "functionCall": message.functionCall,
+                "thoughtSignature": message.thoughtSignature,
                 "functionResponse": message.functionResponse,
                 "visibleToUser": message.visibleToUser,
             })
@@ -1043,6 +1046,7 @@ Singleton {
                     "annotationSources": message.annotationSources,
                     "functionName": message.functionName,
                     "functionCall": message.functionCall,
+                    "thoughtSignature": message.thoughtSignature,
                     "functionResponse": message.functionResponse,
                     "visibleToUser": message.visibleToUser,
                 });
