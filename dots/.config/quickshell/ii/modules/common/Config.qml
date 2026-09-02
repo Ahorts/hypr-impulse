@@ -462,6 +462,20 @@ Singleton {
                 property int suspend: 3
             }
 
+            property JsonObject bluetooth: JsonObject {
+                // Android-style popup offering nearby unpaired devices.
+                // Off by default: it keeps the adapter discovering whenever
+                // nothing is connected, which costs radio time and battery.
+                property JsonObject fastPair: JsonObject {
+                    property bool enable: false
+                    property int rssiThreshold: -65 // dBm; higher means the device must be closer
+                    property bool audioOnly: true // Only offer headsets, earbuds and speakers
+                    property int popupTimeout: 20 // Seconds before the popup snoozes itself; 0 to never
+                    property int snoozeSeconds: 300 // How long a dismissed device stays quiet
+                    property list<string> ignoredDevices: [] // Addresses to never offer again
+                }
+            }
+
             property JsonObject calendar: JsonObject {
                 property string locale: "en-GB"
             }

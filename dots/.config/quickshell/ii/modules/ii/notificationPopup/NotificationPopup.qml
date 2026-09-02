@@ -45,5 +45,14 @@ Scope {
             implicitWidth: parent.width - Appearance.sizes.elevationMargin * 2
             popup: true
         }
+
+        // Published so panels in the same corner can shift out of the way.
+        // Clamped to what actually fits on screen, so a long stack cannot push
+        // them off the display.
+        Binding {
+            target: GlobalStates
+            property: "notificationPopupHeight"
+            value: root.visible ? listview.y + Math.min(listview.contentHeight, listview.height) : 0
+        }
     }
 }

@@ -40,7 +40,13 @@ SectionCard {
                     spacing: 4
 
                     StyledText {
-                        Layout.alignment: Qt.AlignHCenter
+                        // Six cards share one row, so the cell can be narrower
+                        // than the day name. A RowLayout clamps the centering
+                        // offset at zero rather than shrinking the child, so
+                        // without fillWidth an oversized label spills out.
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
                         text: root.getDayName(modelData.date, index)
                         font.pixelSize: Appearance.font.pixelSize.small
                         font.weight: Font.Bold
@@ -50,7 +56,8 @@ SectionCard {
                     MaterialShape {
                         Layout.alignment: Qt.AlignHCenter
                         shapeString: index === 0 ? "Cookie9Sided" : (index === 1 ? "Flower" : "Clover4Leaf")
-                        implicitSize: 48
+                        // Clamp to the cell so the shape cannot overflow it
+                        implicitSize: Math.max(24, Math.min(48, dayCard.width - dayColumn.anchors.margins * 2))
                         color: Qt.rgba(dayCard.textColor.r, dayCard.textColor.g, dayCard.textColor.b, 0.15)
 
                         MaterialSymbol {

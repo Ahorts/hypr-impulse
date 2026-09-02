@@ -37,7 +37,7 @@ It’s my daily driver, meaning I keep it up to date but **I also break things f
     <h2> installation </h2>
 </div>
 
-Clone and run the setup script:
+Clone (with `--recurse-submodules` flag) and run the setup script:
 
 ```bash
 git clone https://github.com/vaguesyntax/ii-vynx.git --recurse-submodules && cd ii-vynx && ./setup-ii-vynx.sh

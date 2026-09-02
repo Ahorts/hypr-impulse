@@ -33,6 +33,10 @@ Singleton {
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
 
+    // Vertical space the notification popups currently take up, so other panels
+    // sharing that corner can move out of their way. 0 when none are showing.
+    property real notificationPopupHeight: 0
+
     property bool dashboardPanelOpen: false // formerly sidebarRightOpen
     property bool policiesPanelOpen: false  // formerly sidebarLeftOpen
 
