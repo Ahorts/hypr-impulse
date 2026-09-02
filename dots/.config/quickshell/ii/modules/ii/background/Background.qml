@@ -53,8 +53,11 @@ Variants {
         property int lastWorkspaceId: relevantWindows[relevantWindows.length - 1]?.workspace.id || 10
 
         // Wallpaper
-        property bool wallpaperIsVideo: Config.options.background.wallpaperPath.endsWith(".mp4") || Config.options.background.wallpaperPath.endsWith(".webm") || Config.options.background.wallpaperPath.endsWith(".mkv") || Config.options.background.wallpaperPath.endsWith(".avi") || Config.options.background.wallpaperPath.endsWith(".mov")
-        property string wallpaperPath: wallpaperIsVideo ? Config.options.background.thumbnailPath : Config.options.background.wallpaperPath
+        property bool wallpaperIsVideo: {
+            const p = (Config.options?.background?.wallpaperPath ?? "").toLowerCase();
+            return p.endsWith(".mp4") || p.endsWith(".webm") || p.endsWith(".mkv") || p.endsWith(".avi") || p.endsWith(".mov") || p.endsWith(".m4v") || p.endsWith(".ogv");
+        }
+        property string wallpaperPath: (wallpaperIsVideo && Config.options?.background?.thumbnailPath) ? Config.options.background.thumbnailPath : (Config.options?.background?.wallpaperPath ?? "")
         property bool wallpaperSafetyTriggered: {
             const enabled = Config.options.workSafety.enable.wallpaper;
             const sensitiveWallpaper = (CF.StringUtils.stringListContainsSubstring(wallpaperPath.toLowerCase(), Config.options.workSafety.triggerCondition.fileKeywords));
@@ -129,32 +132,30 @@ Variants {
             // Clock position gets updated after zoom scale is updated
         }
 
-        // Wallpaper zoom scale
+        // Wallpaper zoom scale (computed natively from Qt Image properties)
         function updateZoomScale() {
-            getWallpaperSizeProc.path = bgRoot.wallpaperPath;
-            getWallpaperSizeProc.running = true;
-        }
-        Process {
-            id: getWallpaperSizeProc
-            property string path: bgRoot.wallpaperPath
-            command: ["magick", "identify", "-format", "%w %h", path]
-            stdout: StdioCollector {
-                id: wallpaperSizeOutputCollector
-                onStreamFinished: {
-                    const output = wallpaperSizeOutputCollector.text;
-                    const [width, height] = output.split(" ").map(Number);
-                    const [screenWidth, screenHeight] = [bgRoot.screen.width, bgRoot.screen.height];
-                    bgRoot.wallpaperWidth = width;
-                    bgRoot.wallpaperHeight = height;
+            if (bgRoot.wallpaperIsVideo) {
+                const screenWidth = bgRoot.screen.width;
+                const screenHeight = bgRoot.screen.height;
+                bgRoot.wallpaperWidth = screenWidth;
+                bgRoot.wallpaperHeight = screenHeight;
+                bgRoot.effectiveWallpaperScale = 1;
+                return;
+            }
 
-                    if (width <= screenWidth || height <= screenHeight) {
-                        // Undersized/perfectly sized wallpapers
-                        bgRoot.effectiveWallpaperScale = Math.max(screenWidth / width, screenHeight / height);
-                    } else {
-                        // Oversized = can be zoomed for parallax, yay
-                        bgRoot.effectiveWallpaperScale = Math.min(bgRoot.preferredWallpaperScale, width / screenWidth, height / screenHeight);
-                    }
-                }
+            const width = wallpaper?.implicitWidth > 0 ? wallpaper.implicitWidth : bgRoot.screen.width;
+            const height = wallpaper?.implicitHeight > 0 ? wallpaper.implicitHeight : bgRoot.screen.height;
+            const screenWidth = bgRoot.screen.width;
+            const screenHeight = bgRoot.screen.height;
+            bgRoot.wallpaperWidth = width;
+            bgRoot.wallpaperHeight = height;
+
+            if (width <= screenWidth || height <= screenHeight) {
+                // Undersized/perfectly sized wallpapers
+                bgRoot.effectiveWallpaperScale = Math.max(screenWidth / width, screenHeight / height);
+            } else {
+                // Oversized = can be zoomed for parallax, yay
+                bgRoot.effectiveWallpaperScale = Math.min(bgRoot.preferredWallpaperScale, width / screenWidth, height / screenHeight);
             }
         }
 
@@ -332,6 +333,11 @@ Variants {
                 imageSource: bgRoot.wallpaperSafetyTriggered ? "" : bgRoot.wallpaperPath
                 animated: !bgRoot.wallpaperIsVideo
                 fillMode: Image.PreserveAspectCrop
+                onStatusChanged: {
+                    if (status === Image.Ready) {
+                        bgRoot.updateZoomScale();
+                    }
+                }
                 Behavior on x {
                     NumberAnimation {
                         duration: 600

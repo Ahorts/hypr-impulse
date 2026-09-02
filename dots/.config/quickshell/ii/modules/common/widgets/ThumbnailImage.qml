@@ -41,19 +41,19 @@ StyledImage {
     Process {
         id: thumbnailGeneration
         command: {
-            if (sourceSize.width >= 512 || sourceSize.height >= 512) {
-                const maxSize = root.sourceSize.width;
-                const thumbFile = FileUtils.trimFileProtocol(root.thumbnailPath)
-                return ["bash", "-c",
-                    `[ -f '${thumbFile}' ] && exit 0 || { mkdir -p "$(dirname '${thumbFile}')" && magick '${root.sourcePath}' -resize ${maxSize}x${maxSize} '${thumbFile}' && exit 1; }`
-                ]
-            } else {
-                const maxSize = Images.thumbnailSizes[root.thumbnailSizeName];
-                return ["bash", "-c", 
-                    `[ -f '${FileUtils.trimFileProtocol(root.thumbnailPath)}' ] && exit 0 || { magick '${root.sourcePath}' -resize ${maxSize}x${maxSize} '${FileUtils.trimFileProtocol(root.thumbnailPath)}' && exit 1; }`
-                ]
-            }
-            
+            const thumbFile = FileUtils.trimFileProtocol(root.thumbnailPath);
+            const maxSize = (sourceSize.width >= 512 || sourceSize.height >= 512) 
+                ? root.sourceSize.width 
+                : Images.thumbnailSizes[root.thumbnailSizeName];
+            return ["bash", "-c",
+                `[ -f '${thumbFile}' ] && exit 0; mkdir -p "$(dirname '${thumbFile}')" || exit 0; ` +
+                `case "${root.sourcePath.toLowerCase()}" in ` +
+                `    *.mp4|*.webm|*.mkv|*.avi|*.mov|*.m4v|*.ogv) ` +
+                `        ffmpeg -y -i '${root.sourcePath}' -vframes 1 '${thumbFile}' 2>/dev/null && exit 1 ;; ` +
+                `    *) ` +
+                `        magick '${root.sourcePath}[0]' -resize ${maxSize}x${maxSize} '${thumbFile}' 2>/dev/null && exit 1 ;; ` +
+                `esac; exit 0`
+            ]
         }
         onExited: (exitCode, exitStatus) => {
             if (exitCode === 1) { // Force reload if thumbnail had to be generated

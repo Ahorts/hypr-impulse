@@ -32,6 +32,9 @@ Item {
 
     property int status: (imgA.status === Image.Ready || imgB.status === Image.Ready) ? Image.Ready : frontImg.status
 
+    implicitWidth: frontImg.implicitWidth
+    implicitHeight: frontImg.implicitHeight
+
     Component.onCompleted: ready = true
 
     onImageSourceChanged: fadeTo(imageSource)

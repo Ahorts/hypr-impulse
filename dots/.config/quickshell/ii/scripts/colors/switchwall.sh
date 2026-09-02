@@ -110,8 +110,8 @@ THUMBNAIL_DIR="$RESTORE_SCRIPT_DIR/mpvpaper_thumbnails"
 VIDEO_OPTS="no-audio loop hwdec=auto scale=bilinear interpolation=no video-sync=display-resample panscan=1.0 video-scale-x=1.0 video-scale-y=1.0 video-align-x=0.5 video-align-y=0.5 load-scripts=no"
 
 is_video() {
-    local extension="${1##*.}"
-    [[ "$extension" == "mp4" || "$extension" == "webm" || "$extension" == "mkv" || "$extension" == "avi" || "$extension" == "mov" ]] && return 0 || return 1
+    local ext="$(echo "${1##*.}" | tr '[:upper:]' '[:lower:]')"
+    [[ "$ext" == "mp4" || "$ext" == "webm" || "$ext" == "mkv" || "$ext" == "avi" || "$ext" == "mov" || "$ext" == "m4v" || "$ext" == "ogv" ]] && return 0 || return 1
 }
 
 kill_existing_mpvpaper() {
@@ -276,7 +276,12 @@ switch() {
                 exit 0
             fi
 
-            # Set wallpaper path
+            # Extract first frame for color generation and static background fallback
+            thumbnail="$THUMBNAIL_DIR/$(basename "$imgpath").jpg"
+            ffmpeg -y -i "$imgpath" -vframes 1 "$thumbnail" 2>/dev/null
+
+            # Set thumbnail path and wallpaper path
+            set_thumbnail_path "$thumbnail"
             set_wallpaper_path "$imgpath"
 
             # Set video wallpaper
@@ -286,13 +291,6 @@ switch() {
                 nohup mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" >/dev/null 2>&1 &
                 sleep 0.1
             done
-
-            # Extract first frame for color generation
-            thumbnail="$THUMBNAIL_DIR/$(basename "$imgpath").jpg"
-            ffmpeg -y -i "$imgpath" -vframes 1 "$thumbnail" 2>/dev/null
-
-            # Set thumbnail path
-            set_thumbnail_path "$thumbnail"
 
             if [ -f "$thumbnail" ]; then
                 matugen_args+=(image "$thumbnail")
