@@ -235,7 +235,7 @@ switch() {
     cursorposy_inverted=$((screensizey - cursorposy))
 
     matugen_args=(--source-color-index 0)
-    wallpaper_backend=$(jq -r '.background.wallpaperBackend // "skwd"' "$SHELL_CONFIG_FILE" 2>/dev/null)
+    wallpaper_backend=$(jq -r '.background.wallpaperBackend // "builtin"' "$SHELL_CONFIG_FILE" 2>/dev/null)
 
     if [[ "$color_flag" == "1" ]]; then
         matugen_args+=(color hex "$color")
