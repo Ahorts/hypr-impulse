@@ -19,11 +19,14 @@ ContentPage {
 
         ConfigSwitch {
             buttonIcon: "electric_bolt"
-            text: Translation.tr("Use Skwd Vulkan backend")
+            text: Translation.tr("Use Skwd Vulkan backend (Experimental)")
             checked: Config.options.background.skwdActive
             onClicked: {
                 Config.options.background.wallpaperBackend = checked ? "skwd" : "builtin";
                 Wallpapers.apply(Config.options.background.wallpaperPath);
+            }
+            StyledToolTip {
+                text: Translation.tr("Install from AUR (skwd-wall-v2-bin) or compile from source.\nStability is not guaranteed.")
             }
         }
     }
