@@ -69,8 +69,8 @@ Variants {
         property real effectiveWallpaperScale: 1 // Some reasonable init value, to be updated
         property int wallpaperWidth: modelData.width // Some reasonable init value, to be updated
         property int wallpaperHeight: modelData.height // Some reasonable init value, to be updated
-        property real movableXSpace: ((wallpaperWidth / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.width) / 2
-        property real movableYSpace: ((wallpaperHeight / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.height) / 2
+        property real movableXSpace: (Config.options.background.skwdActive || bgRoot.wallpaperIsVideo) ? 0 : (((wallpaperWidth / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.width) / 2)
+        property real movableYSpace: (Config.options.background.skwdActive || bgRoot.wallpaperIsVideo) ? 0 : (((wallpaperHeight / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.height) / 2)
 
         readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
         // Colors
@@ -119,7 +119,7 @@ Variants {
             right: true
         }
         color: {
-            if (!bgRoot.wallpaperSafetyTriggered || bgRoot.wallpaperIsVideo)
+            if (!bgRoot.wallpaperSafetyTriggered || bgRoot.wallpaperIsVideo || Config.options.background.skwdActive)
                 return "transparent";
             return CF.ColorUtils.mix(Appearance.colors.colLayer0, Appearance.colors.colPrimary, 0.75);
         }
@@ -134,7 +134,7 @@ Variants {
 
         // Wallpaper zoom scale (computed natively from Qt Image properties)
         function updateZoomScale() {
-            if (bgRoot.wallpaperIsVideo) {
+            if (bgRoot.wallpaperIsVideo || Config.options.background.skwdActive) {
                 const screenWidth = bgRoot.screen.width;
                 const screenHeight = bgRoot.screen.height;
                 bgRoot.wallpaperWidth = screenWidth;
@@ -162,7 +162,7 @@ Variants {
         property bool mediaModeOpen: mediaModeLoader.active && MprisController.activePlayer
         onMediaModeOpenChanged: {
             if (!mediaModeOpen && Config.options.appearance.palette.type.startsWith("scheme")) {
-                Wallpapers.apply(Config.options.background.wallpaperPath)
+                Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--noswitch"]);
                 LyricsService.shellColorChanged = false
             }
         }
@@ -270,9 +270,6 @@ Variants {
 
         Component.onCompleted: {
             refreshExtensionBgWidgets()
-            if (!mediaModeOpen && Config.options.appearance.palette.type.startsWith("scheme")) {
-                Wallpapers.apply(Config.options.background.wallpaperPath)
-            }
         }
 
         Connections {
@@ -298,7 +295,7 @@ Variants {
             // Wallpaper
             TransitionImage {
                 id: wallpaper
-                visible: !blurLoader.active
+                visible: !blurLoader.active && !Config.options.background.skwdActive && !bgRoot.wallpaperIsVideo
                 opacity: (Config.options.background.skwdActive || bgRoot.wallpaperIsVideo) ? 0 : 1
                 // Range = groups that workspaces span on
                 property int chunkSize: Config?.options.bar.workspaces.shown ?? 10
@@ -330,11 +327,11 @@ Variants {
                 x: -(bgRoot.movableXSpace) - (effectiveValueX - 0.5) * 2 * bgRoot.movableXSpace
                 y: -(bgRoot.movableYSpace) - (effectiveValueY - 0.5) * 2 * bgRoot.movableYSpace
 
-                imageSource: bgRoot.wallpaperSafetyTriggered ? "" : bgRoot.wallpaperPath
-                animated: !bgRoot.wallpaperIsVideo
+                imageSource: (Config.options.background.skwdActive || bgRoot.wallpaperSafetyTriggered) ? "" : bgRoot.wallpaperPath
+                animated: !Config.options.background.skwdActive && !bgRoot.wallpaperIsVideo
                 fillMode: Image.PreserveAspectCrop
                 onStatusChanged: {
-                    if (status === Image.Ready) {
+                    if (status === Image.Ready && !Config.options.background.skwdActive) {
                         bgRoot.updateZoomScale();
                     }
                 }

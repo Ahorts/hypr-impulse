@@ -21,7 +21,7 @@ ContentPage {
             buttonIcon: "electric_bolt"
             text: Translation.tr("Use Skwd Vulkan backend")
             checked: Config.options.background.skwdActive
-            onCheckedChanged: {
+            onClicked: {
                 Config.options.background.wallpaperBackend = checked ? "skwd" : "builtin";
                 Wallpapers.apply(Config.options.background.wallpaperPath);
             }

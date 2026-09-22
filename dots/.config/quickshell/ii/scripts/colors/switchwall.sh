@@ -103,6 +103,25 @@ check_and_prompt_upscale() {
     fi
 }
 
+check_skwd_deps() {
+    if ! command -v skwd-helm &>/dev/null; then
+        echo "Missing skwd: skwd-wall-v2-bin"
+        action=$(notify-send \
+            -a "Wallpaper switcher" \
+            -c "im.error" \
+            -A "install_skwd=Install Skwd (AUR)" \
+            "Can't switch with Skwd backend" \
+            "Missing dependency: skwd-wall-v2-bin (AUR)")
+        if [[ "$action" == "install_skwd" ]]; then
+            kitty -1 yay -S skwd-wall-v2-bin
+            if command -v skwd-helm &>/dev/null; then
+                notify-send 'Wallpaper switcher' 'Alright, try again!' -a "Wallpaper switcher"
+            fi
+        fi
+        exit 0
+    fi
+}
+
 CUSTOM_DIR="$XDG_CONFIG_HOME/hypr/custom"
 RESTORE_SCRIPT_DIR="$CUSTOM_DIR/scripts"
 RESTORE_SCRIPT="$RESTORE_SCRIPT_DIR/__restore_video_wallpaper.sh"
@@ -246,14 +265,19 @@ switch() {
             exit 0
         fi
 
-        check_and_prompt_upscale "$imgpath" &
-        kill_existing_mpvpaper
+        if [[ -z "$noswitch_flag" ]]; then
+            if [[ "$wallpaper_backend" == "skwd" ]]; then
+                check_skwd_deps
+            fi
+            check_and_prompt_upscale "$imgpath" &
+            kill_existing_mpvpaper
+        fi
 
         if is_video "$imgpath"; then
             mkdir -p "$THUMBNAIL_DIR"
 
             missing_deps=()
-            if ! command -v mpvpaper &> /dev/null; then
+            if [[ "$wallpaper_backend" != "skwd" ]] && ! command -v mpvpaper &> /dev/null; then
                 missing_deps+=("mpvpaper")
             fi
             if ! command -v ffmpeg &> /dev/null; then
@@ -286,17 +310,19 @@ switch() {
             set_wallpaper_path "$imgpath"
 
             # Set video wallpaper
-            if [[ "$wallpaper_backend" == "skwd" ]]; then
-                skwd-helm apply "$imgpath"
-                remove_restore
-            else
-                local video_path="$imgpath"
-                monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
-                for monitor in $monitors; do
-                    nohup mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" >/dev/null 2>&1 &
-                    sleep 0.1
-                done
-                create_restore_script "$video_path"
+            if [[ -z "$noswitch_flag" ]]; then
+                if [[ "$wallpaper_backend" == "skwd" ]]; then
+                    skwd-helm apply "$imgpath"
+                    remove_restore
+                else
+                    local video_path="$imgpath"
+                    monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
+                    for monitor in $monitors; do
+                        nohup mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" >/dev/null 2>&1 &
+                        sleep 0.1
+                    done
+                    create_restore_script "$video_path"
+                fi
             fi
 
             if [ -f "$thumbnail" ]; then
@@ -316,7 +342,7 @@ switch() {
             set_wallpaper_path "$imgpath"
             remove_restore
 
-            if [[ "$wallpaper_backend" == "skwd" ]]; then
+            if [[ -z "$noswitch_flag" && "$wallpaper_backend" == "skwd" ]]; then
                 skwd-helm apply "$imgpath"
             fi
 
@@ -436,22 +462,27 @@ main() {
                 fi
                 ;;
             --image)
-                imgpath="$2"
+                imgpath="${2#file://}"
                 shift 2
                 ;;
             --noswitch)
                 noswitch_flag="1"
-                imgpath=$(jq -r '.background.wallpaperPath' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "")
+                if [[ -z "$imgpath" ]]; then
+                    imgpath=$(jq -r '.background.wallpaperPath' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "")
+                fi
+                imgpath="${imgpath#file://}"
                 shift
                 ;;
             *)
                 if [[ -z "$imgpath" ]]; then
-                    imgpath="$1"
+                    imgpath="${1#file://}"
                 fi
                 shift
                 ;;
         esac
     done
+
+    imgpath="${imgpath#file://}"
 
     # If accentColor is set in config, use it
     config_color="$(get_accent_color_from_config)"
@@ -463,6 +494,9 @@ main() {
     # If type_flag is not set, get it from config
     if [[ -z "$type_flag" ]]; then
         type_flag="$(get_type_from_config)"
+    fi
+    if [[ "$type_flag" == "scheme-auto" ]]; then
+        type_flag="auto"
     fi
 
     # Validate type_flag (allow 'auto' as well)
@@ -505,7 +539,52 @@ main() {
         color=""
     fi
 
-    # If type_flag is 'auto', detect scheme type from image (after imgpath is set)
+    # If mode_flag is dark or light, try to find a variant with that mode suffix
+    local orig_imgpath="$imgpath"
+    if [[ "$mode_flag" == "dark" || "$mode_flag" == "light" ]]; then
+        # Get directory, filename without extension, and extension
+        local imgdir="$(dirname "$imgpath")"
+        local imgbase="$(basename "$imgpath")"
+        local imgname="${imgbase%.*}"
+        local imgext="${imgbase##*.}"
+
+        # Strip existing -dark, _dark, -light, _light suffix (case variations)
+        local stripped_name="$imgname"
+        for suffix in "-dark" "-Dark" "_dark" "_Dark" "-light" "-Light" "_light" "_Light"; do
+            if [[ "$stripped_name" == *"$suffix" ]]; then
+                stripped_name="${stripped_name%"$suffix"}"
+                break
+            fi
+        done
+
+        local found_variant=""
+        local target_suffixes=()
+        if [[ "$mode_flag" == "dark" ]]; then
+            target_suffixes=("-dark" "_dark" "-Dark" "_Dark")
+        else
+            target_suffixes=("-light" "_light" "-Light" "_Light")
+        fi
+
+        for s in "${target_suffixes[@]}"; do
+            if [[ -f "${imgdir}/${stripped_name}${s}.${imgext}" ]]; then
+                found_variant="${imgdir}/${stripped_name}${s}.${imgext}"
+                break
+            fi
+        done
+
+        if [[ -n "$found_variant" ]]; then
+            imgpath="$found_variant"
+        elif [[ -f "${imgdir}/${stripped_name}.${imgext}" && "$stripped_name" != "$imgname" ]]; then
+            imgpath="${imgdir}/${stripped_name}.${imgext}"
+        fi
+
+        # If a different variant was found, enable switching even if --noswitch was supplied
+        if [[ -n "$orig_imgpath" && "$orig_imgpath" != "$imgpath" ]]; then
+            noswitch_flag=""
+        fi
+    fi
+
+    # If type_flag is 'auto', detect scheme type from image (after variant resolution)
     if [[ "$type_flag" == "auto" ]]; then
         if [[ -n "$imgpath" && -f "$imgpath" ]]; then
             detected_type="$(detect_scheme_type_from_image "$imgpath")"
@@ -526,30 +605,6 @@ main() {
         else
             echo "[switchwall] Warning: No image to auto-detect scheme from, defaulting to 'scheme-tonal-spot'" >&2
             type_flag="scheme-tonal-spot"
-        fi
-    fi
-
-    # If mode_flag is dark or light, try to find a variant with that mode suffix
-    if [[ "$mode_flag" == "dark" || "$mode_flag" == "light" ]]; then
-        # Get directory, filename without extension, and extension
-        local imgdir="$(dirname "$imgpath")"
-        local imgbase="$(basename "$imgpath")"
-        local imgname="${imgbase%.*}"
-        local imgext="${imgbase##*.}"
-
-        # Strip existing -dark or -light suffix
-        local stripped_name="${imgname%-dark}"
-        stripped_name="${stripped_name%-light}"
-
-        # Construct the new path with the requested mode suffix
-        local new_imgpath="${imgdir}/${stripped_name}-${mode_flag}.${imgext}"
-        local new_stripped_imgpath="${imgdir}/${stripped_name}.${imgext}"
-
-        # If the variant exists, use it
-        if [[ -f "$new_imgpath" ]]; then
-            imgpath="$new_imgpath"
-        elif [[ -f "$new_stripped_imgpath" ]]; then
-            imgpath="$new_stripped_imgpath"
         fi
     fi
 

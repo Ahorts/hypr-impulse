@@ -235,16 +235,6 @@ Singleton {
         root.loadColorCache();
     }
 
-    // Skwd wallpaper daemon watcher
-    Process {
-        id: skwdWatchProc
-        running: Config.ready && (Config.options.background.skwdActive ?? false)
-        command: [
-            "skwd-helm", "watch",
-            "--exec", `bash -c 'curr=$(jq -r ".background.wallpaperPath" "\${XDG_CONFIG_HOME:-$HOME/.config}/illogical-impulse/config.json" 2>/dev/null); [ "$1" != "$curr" ] && ${Directories.wallpaperSwitchScriptPath} --noswitch --image "$1"' _ %path%`
-        ]
-    }
-
     IpcHandler {
         target: "wallpapers"
 
