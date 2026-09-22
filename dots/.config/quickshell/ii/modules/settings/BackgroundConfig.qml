@@ -14,6 +14,21 @@ ContentPage {
     Component.onCompleted: Qt.callLater(() => page.allowHeavyLoads = true)
 
     ContentSection {
+        icon: "wallpaper"
+        title: Translation.tr("Wallpaper engine")
+
+        ConfigSwitch {
+            buttonIcon: "electric_bolt"
+            text: Translation.tr("Use Skwd Vulkan backend")
+            checked: Config.options.background.skwdActive
+            onCheckedChanged: {
+                Config.options.background.wallpaperBackend = checked ? "skwd" : "builtin";
+                Wallpapers.apply(Config.options.background.wallpaperPath);
+            }
+        }
+    }
+
+    ContentSection {
         icon: "sync_alt"
         title: Translation.tr("Parallax")
 
