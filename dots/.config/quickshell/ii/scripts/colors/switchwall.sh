@@ -235,6 +235,7 @@ switch() {
     cursorposy_inverted=$((screensizey - cursorposy))
 
     matugen_args=(--source-color-index 0)
+    wallpaper_backend=$(jq -r '.background.wallpaperBackend // "skwd"' "$SHELL_CONFIG_FILE" 2>/dev/null)
 
     if [[ "$color_flag" == "1" ]]; then
         matugen_args+=(color hex "$color")
@@ -285,17 +286,22 @@ switch() {
             set_wallpaper_path "$imgpath"
 
             # Set video wallpaper
-            local video_path="$imgpath"
-            monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
-            for monitor in $monitors; do
-                nohup mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" >/dev/null 2>&1 &
-                sleep 0.1
-            done
+            if [[ "$wallpaper_backend" == "skwd" ]]; then
+                skwd-helm apply "$imgpath"
+                remove_restore
+            else
+                local video_path="$imgpath"
+                monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
+                for monitor in $monitors; do
+                    nohup mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" >/dev/null 2>&1 &
+                    sleep 0.1
+                done
+                create_restore_script "$video_path"
+            fi
 
             if [ -f "$thumbnail" ]; then
                 matugen_args+=(image "$thumbnail")
                 generate_colors_material_args=(--path "$thumbnail")
-                create_restore_script "$video_path"
 
                 categorize_wallpaper "$thumbnail"
             else
@@ -309,6 +315,10 @@ switch() {
             # Update wallpaper path in config
             set_wallpaper_path "$imgpath"
             remove_restore
+
+            if [[ "$wallpaper_backend" == "skwd" ]]; then
+                skwd-helm apply "$imgpath"
+            fi
 
             categorize_wallpaper "$imgpath"
         fi
