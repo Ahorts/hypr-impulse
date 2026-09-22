@@ -73,6 +73,7 @@ ContentPage {
             }
         }
         ConfigSwitch {
+            visible: !Config.options.background.skwdActive
             buttonIcon: "masked_transitions"
             text: Translation.tr("Animate wallpaper changes")
             checked: Config.options.background.animateWallpaperChanges
@@ -82,7 +83,7 @@ ContentPage {
         }
         
         ContentSubsection {
-            visible: Config.options.background.animateWallpaperChanges
+            visible: !Config.options.background.skwdActive && Config.options.background.animateWallpaperChanges
             title: Translation.tr("Wallpaper transition style")
             
             StyledComboBox {
