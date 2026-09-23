@@ -161,7 +161,7 @@ Variants {
 
         property bool mediaModeOpen: mediaModeLoader.active && MprisController.activePlayer
         onMediaModeOpenChanged: {
-            if (!mediaModeOpen && Config.options.appearance.palette.type.startsWith("scheme")) {
+            if (!mediaModeOpen && (Config.options.appearance.palette.type.startsWith("scheme") || Config.options.appearance.palette.type === "auto")) {
                 Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--noswitch"]);
                 LyricsService.shellColorChanged = false
             }
