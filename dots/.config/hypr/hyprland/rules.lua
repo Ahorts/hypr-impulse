@@ -93,6 +93,8 @@ hl.layer_rule({ match = { namespace = "indicator.*" }, no_anim = true})
 hl.layer_rule({ match = { namespace = "osk" }, no_anim = true})
 hl.layer_rule({ match = { namespace = "hyprpicker" }, no_anim = true})
 
+hl.layer_rule({ match = { namespace = "skwd-paper.*" }, no_anim = true})
+hl.layer_rule({ match = { namespace = "skwd-wall.*" }, no_anim = true})
 hl.layer_rule({ match = { namespace = "noanim" }, no_anim = true})
 hl.layer_rule({ match = { namespace = "gtk-layer-shell" }, blur = true})
 hl.layer_rule({ match = { namespace = "gtk-layer-shell" }, ignore_alpha = 0})
