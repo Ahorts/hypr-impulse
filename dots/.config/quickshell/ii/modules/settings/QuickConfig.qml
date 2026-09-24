@@ -237,12 +237,12 @@ ContentPage {
                     SmallLightDarkPreferenceButton {
                         Layout.preferredHeight: 60
                         dark: false
-                        enabled: Config.options.appearance.palette.type.startsWith("scheme")
+                        enabled: Config.options.appearance.palette.type.startsWith("scheme") || Config.options.appearance.palette.type === "auto"
                     }
                     SmallLightDarkPreferenceButton {
                         Layout.preferredHeight: 60
                         dark: true
-                        enabled: Config.options.appearance.palette.type.startsWith("scheme")
+                        enabled: Config.options.appearance.palette.type.startsWith("scheme") || Config.options.appearance.palette.type === "auto"
                     }
                 }
                 

@@ -235,6 +235,27 @@ Singleton {
         root.loadColorCache();
     }
 
+    // Skwd wallpaper external change sync (only active when skwd backend is used)
+    FileView {
+        id: skwdLastWallpaperFileView
+        path: (Config.ready && (Config.options.background.skwdActive ?? false)) ? Directories.skwdLastWallpaperPath : ""
+        watchChanges: true
+        onFileChanged: this.reload()
+        onLoaded: {
+            if (!Config.ready || !Config.options.background.skwdActive) return;
+            try {
+                const raw = text().trim();
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (data && data.path && data.path !== Config.options.background.wallpaperPath) {
+                    Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--noswitch", "--image", data.path]);
+                }
+            } catch (e) {
+                // Ignore partial read errors while skwd-walld writes
+            }
+        }
+    }
+
     IpcHandler {
         target: "wallpapers"
 

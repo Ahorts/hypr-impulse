@@ -14,6 +14,24 @@ ContentPage {
     Component.onCompleted: Qt.callLater(() => page.allowHeavyLoads = true)
 
     ContentSection {
+        icon: "wallpaper"
+        title: Translation.tr("Wallpaper engine")
+
+        ConfigSwitch {
+            buttonIcon: "electric_bolt"
+            text: Translation.tr("Use Skwd Vulkan backend (Experimental)")
+            checked: Config.options.background.skwdActive
+            onClicked: {
+                Config.options.background.wallpaperBackend = checked ? "skwd" : "builtin";
+                Wallpapers.apply(Config.options.background.wallpaperPath);
+            }
+            StyledToolTip {
+                text: Translation.tr("Install from AUR (skwd-wall-v2-bin) or compile from source.\nStability is not guaranteed.")
+            }
+        }
+    }
+
+    ContentSection {
         icon: "sync_alt"
         title: Translation.tr("Parallax")
 
@@ -58,6 +76,7 @@ ContentPage {
             }
         }
         ConfigSwitch {
+            visible: !Config.options.background.skwdActive
             buttonIcon: "masked_transitions"
             text: Translation.tr("Animate wallpaper changes")
             checked: Config.options.background.animateWallpaperChanges
@@ -67,7 +86,7 @@ ContentPage {
         }
         
         ContentSubsection {
-            visible: Config.options.background.animateWallpaperChanges
+            visible: !Config.options.background.skwdActive && Config.options.background.animateWallpaperChanges
             title: Translation.tr("Wallpaper transition style")
             
             StyledComboBox {
