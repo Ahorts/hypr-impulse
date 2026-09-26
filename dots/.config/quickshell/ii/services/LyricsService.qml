@@ -142,7 +142,7 @@ Singleton {
         // console.log("[Lyrics Service] Is media mode open :  ", mediaModeOpenCount > 0)
         if (!mediaModeOpenCount > 0 || shellColorChanged && !force) return;
         // console.log("[Lyrics Service] Changing the shell color with color:   ", color)
-        Quickshell.execDetached([`${Directories.wallpaperSwitchScriptPath}`, "--noswitch", "--color", color])
+        Quickshell.execDetached([`${Directories.wallpaperSwitchScriptPath}`, "--noswitch", "--temp-color", color])
         shellColorChanged = true
     }
 }

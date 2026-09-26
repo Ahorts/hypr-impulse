@@ -439,6 +439,8 @@ main() {
         deactivate
     }
 
+    no_save_color=""
+
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --mode)
@@ -450,16 +452,26 @@ main() {
                 shift 2
                 ;;
             --color)
+                color_flag="1"
+                color="$2"
+                no_save_color=""
                 if [[ "$2" =~ ^#?[A-Fa-f0-9]{6}$ ]]; then
-                    set_accent_color "$2"
                     shift 2
                 elif [[ "$2" == "clear" ]]; then
                     set_accent_color ""
+                    color_flag=""
+                    color=""
                     shift 2
                 else
-                    set_accent_color $(hyprpicker --no-fancy)
+                    color=$(hyprpicker --no-fancy)
                     shift
                 fi
+                ;;
+            --temp-color|--temporary-color)
+                color_flag="1"
+                color="$2"
+                no_save_color="1"
+                shift 2
                 ;;
             --image)
                 imgpath="${2#file://}"
@@ -468,7 +480,13 @@ main() {
             --noswitch)
                 noswitch_flag="1"
                 if [[ -z "$imgpath" ]]; then
-                    imgpath=$(jq -r '.background.wallpaperPath' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "")
+                    wallpaper_backend=$(jq -r '.background.wallpaperBackend // "builtin"' "$SHELL_CONFIG_FILE" 2>/dev/null)
+                    if [[ "$wallpaper_backend" == "skwd" && -f "$XDG_CACHE_HOME/skwd-wall-v2/last-wallpaper.json" ]]; then
+                        imgpath=$(jq -r '.path // ""' "$XDG_CACHE_HOME/skwd-wall-v2/last-wallpaper.json" 2>/dev/null)
+                    fi
+                    if [[ -z "$imgpath" ]]; then
+                        imgpath=$(jq -r '.background.wallpaperPath' "$SHELL_CONFIG_FILE" 2>/dev/null || echo "")
+                    fi
                 fi
                 imgpath="${imgpath#file://}"
                 shift
@@ -484,11 +502,13 @@ main() {
 
     imgpath="${imgpath#file://}"
 
-    # If accentColor is set in config, use it
-    config_color="$(get_accent_color_from_config)"
-    if [[ "$config_color" =~ ^#?[A-Fa-f0-9]{6}$ ]]; then
-        color_flag="1"
-        color="$config_color"
+    # Only load saved accentColor if neither an explicit color nor an explicit image was specified on CLI
+    if [[ -z "$color_flag" && -z "$imgpath" ]]; then
+        config_color="$(get_accent_color_from_config)"
+        if [[ "$config_color" =~ ^#?[A-Fa-f0-9]{6}$ ]]; then
+            color_flag="1"
+            color="$config_color"
+        fi
     fi
 
     # If type_flag is not set, get it from config
@@ -533,10 +553,12 @@ main() {
         imgpath="$(kdialog --getopenfilename . --title 'Choose wallpaper')"
     fi
 
-    if [[ -n "$imgpath" && -z "$noswitch_flag" ]]; then
+    if [[ -n "$imgpath" && "$color_flag" != "1" ]]; then
         set_accent_color ""
         color_flag=""
         color=""
+    elif [[ "$color_flag" == "1" && "$no_save_color" != "1" ]]; then
+        set_accent_color "$color"
     fi
 
     # If mode_flag is dark or light, try to find a variant with that mode suffix
