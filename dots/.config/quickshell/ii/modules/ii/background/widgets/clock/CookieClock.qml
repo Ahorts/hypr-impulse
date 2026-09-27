@@ -77,7 +77,7 @@ Item {
         } else if (category == "drift_car") {
             applyStyle(10, "none", "fill", "bold", "dot", "border")
         } else if (category == "cyberpunk") {
-            applyStyle(4, "none", "hollow", "bold", "dot", "border")
+            applyStyle(4, "none", "hollow", "bold", "dot", "bubble")
         } else if (category == "retro") {
             applyStyle(12, "full", "classic", "classic", "classic", "rect")
         } else if (category == "industrial") {
