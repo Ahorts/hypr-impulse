@@ -185,6 +185,12 @@ categorize_wallpaper() {
     fi
 
     local wallpaper_name=$(basename "$imgpath")
+    if [[ "$wallpaper_name" =~ ^preview\.(jpg|png|gif|webp)$ ]]; then
+        local parent_dir=$(basename "$(dirname "$imgpath")")
+        if [[ -n "$parent_dir" && "$parent_dir" != "." ]]; then
+            wallpaper_name="$parent_dir"
+        fi
+    fi
     local cache_file="$CACHE_DIR/ai-categories/$wallpaper_name.txt"
   
     if [ -f "$cache_file" ]; then
@@ -303,7 +309,9 @@ switch() {
 
             # Extract first frame for color generation and static background fallback
             thumbnail="$THUMBNAIL_DIR/$(basename "$imgpath").jpg"
-            ffmpeg -y -i "$imgpath" -vframes 1 "$thumbnail" 2>/dev/null
+            if [[ ! -f "$thumbnail" ]]; then
+                ffmpeg -y -i "$imgpath" -vframes 1 "$thumbnail" 2>/dev/null
+            fi
 
             # Set thumbnail path and wallpaper path
             set_thumbnail_path "$thumbnail"
@@ -336,8 +344,21 @@ switch() {
                 exit 1
             fi
         else
-            matugen_args+=(image "$imgpath")
-            generate_colors_material_args=(--path "$imgpath")
+            local colorgen_path="$imgpath"
+            if [[ -d "$imgpath" ]]; then
+                if [[ -f "$imgpath/preview.gif" ]]; then
+                    colorgen_path="$imgpath/preview.gif"
+                elif [[ -f "$imgpath/preview.jpg" ]]; then
+                    colorgen_path="$imgpath/preview.jpg"
+                elif [[ -f "$imgpath/preview.png" ]]; then
+                    colorgen_path="$imgpath/preview.png"
+                elif [[ -f "$imgpath/preview.webp" ]]; then
+                    colorgen_path="$imgpath/preview.webp"
+                fi
+            fi
+
+            matugen_args+=(image "$colorgen_path")
+            generate_colors_material_args=(--path "$colorgen_path")
             # Update wallpaper path in config
             set_wallpaper_path "$imgpath"
             remove_restore
@@ -346,7 +367,7 @@ switch() {
                 skwd-helm apply "$imgpath"
             fi
 
-            categorize_wallpaper "$imgpath"
+            categorize_wallpaper "$colorgen_path"
         fi
     fi
 

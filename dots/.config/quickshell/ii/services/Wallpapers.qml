@@ -27,6 +27,7 @@ Singleton {
         "jpg", "jpeg", "png", "webp", "avif", "bmp", "svg", "mp4", "mkv", "webm", "avi", "mov", "m4v", "ogv"
     ]
     property list<string> wallpapers: [] // List of absolute file paths (without file://)
+    property var skwdWallpapers: []
     readonly property bool thumbnailGenerationRunning: thumbgenProc.running
     property real thumbnailGenerationProgress: 0
     property var colorCache: ({})
@@ -51,9 +52,13 @@ Singleton {
 
     Connections {
         target: Config
-        function onReadyChanged() { // Apply wallpaper on config ready if it's a video
-            if (!Config.ready || !root.isVideoFile(Config.options.background.wallpaperPath.toLowerCase())) return;
-            root.apply(Config.options.background.wallpaperPath, Appearance.m3colors.darkmode);
+        function onReadyChanged() {
+            if (!Config.ready) return;
+            if (Config.options.background.skwdActive) {
+                root.reloadSkwdLibrary();
+            } else if (root.isVideoFile(Config.options.background.wallpaperPath.toLowerCase())) {
+                root.apply(Config.options.background.wallpaperPath, Appearance.m3colors.darkmode);
+            }
         }
     }
     
@@ -90,6 +95,10 @@ Singleton {
     }
 
     function randomFromCurrentFolder(darkMode = Appearance.m3colors.darkmode) {
+        if (Config.options.background.skwdActive) {
+            Quickshell.execDetached(["skwd-helm", "random"]);
+            return;
+        }
         if (folderModel.count === 0) return;
         const randomIndex = Math.floor(Math.random() * folderModel.count);
         const filePath = folderModel.get(randomIndex, "filePath");
@@ -98,6 +107,28 @@ Singleton {
     }
 
     function nextFromCurrentFolder(darkMode = Appearance.m3colors.darkmode) {
+        if (Config.options.background.skwdActive) {
+            if (!skwdWallpapers || skwdWallpapers.length === 0) {
+                root.reloadSkwdLibrary();
+                Quickshell.execDetached(["skwd-helm", "random"]);
+                return;
+            }
+            const currentPath = FileUtils.trimFileProtocol(Config.options.background.wallpaperPath);
+            let idx = root.skwdWallpapers.findIndex(w => {
+                if (w.key && currentPath.endsWith(w.key)) return true;
+                if (w.video_file && w.video_file === currentPath) return true;
+                if (w.name && currentPath.endsWith(w.name)) return true;
+                if (w.we_id && currentPath.includes(w.we_id)) return true;
+                return false;
+            });
+            if (idx === -1) idx = 0;
+            else idx = (idx + 1) % root.skwdWallpapers.length;
+            const nextItem = root.skwdWallpapers[idx];
+            print("[Wallpapers] Sequentially selected next skwd wallpaper:", nextItem.key);
+            Quickshell.execDetached(["skwd-helm", "apply", nextItem.key]);
+            return;
+        }
+
         if (wallpapers.length === 0) return;
         const currentPath = FileUtils.trimFileProtocol(Config.options.background.wallpaperPath);
         let idx = wallpapers.indexOf(currentPath);
@@ -231,8 +262,40 @@ Singleton {
         readColorCacheProc.exec(["cat", path]);
     }
 
+    Process {
+        id: loadSkwdKeysProc
+        command: ["skwd-helm", "list", "--json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!text || text.trim().length === 0) return;
+                try {
+                    const data = JSON.parse(text);
+                    if (data && Array.isArray(data.wallpapers)) {
+                        root.skwdWallpapers = data.wallpapers;
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+
+    function reloadSkwdLibrary() {
+        if (!Config.ready || !Config.options.background.skwdActive) return;
+        loadSkwdKeysProc.running = false;
+        loadSkwdKeysProc.exec(["skwd-helm", "list", "--json"]);
+    }
+
     Component.onCompleted: {
         root.loadColorCache();
+        if (Config.ready && Config.options.background.skwdActive) {
+            root.reloadSkwdLibrary();
+        }
+    }
+
+    FileView {
+        id: skwdDbWatcher
+        path: (Config.ready && (Config.options.background.skwdActive ?? false)) ? "file:///home/ahorts/.local/share/skwd-wall-v2/wall.sqlite" : ""
+        watchChanges: true
+        onFileChanged: root.reloadSkwdLibrary()
     }
 
     // Skwd wallpaper external change sync (only active when skwd backend is used)
@@ -247,8 +310,9 @@ Singleton {
                 const raw = text().trim();
                 if (!raw) return;
                 const data = JSON.parse(raw);
-                if (data && data.path && data.path !== Config.options.background.wallpaperPath) {
-                    Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--noswitch", "--image", data.path]);
+                const currentWall = (data && data.path && data.path.length > 0) ? data.path : (data ? (data.thumb || "") : "");
+                if (currentWall && currentWall !== Config.options.background.wallpaperPath) {
+                    Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--noswitch", "--image", currentWall]);
                 }
             } catch (e) {
                 // Ignore partial read errors while skwd-walld writes
