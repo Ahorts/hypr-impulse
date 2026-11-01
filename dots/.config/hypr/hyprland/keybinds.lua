@@ -9,6 +9,7 @@ local hyprScripts = "$HOME/.config/hypr/hyprland/scripts"
 local qsIpcCall = "qs -c $qsConfig ipc call"
 local qsIsAlive = qsIpcCall .. " TEST_ALIVE"
 local bind = hl.bind
+local unbind = hl.unbind
 local interruptedSuperBinds = {}
 
 hl.bind = function(keys, dispatcher, options)
@@ -29,6 +30,15 @@ hl.bind = function(keys, dispatcher, options)
     end
 
     return bind(keys, dispatcher, options)
+end
+
+hl.unbind = function(keys)
+    if type(keys) == "string" then
+        interruptedSuperBinds[keys] = nil
+    end
+    if unbind then
+        return unbind(keys)
+    end
 end
 
 hl.bind("SUPER + SUPER_L", hl.dsp.global("quickshell:searchToggleRelease"), { description = "Shell: Toggle search" })
