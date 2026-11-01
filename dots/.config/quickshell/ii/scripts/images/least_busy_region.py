@@ -18,7 +18,7 @@ def center_crop(img, target_w, target_h):
     y2 = y1 + target_h
     return img[y1:y2, x1:x2]
 
-def find_least_busy_region(image_path, region_width=300, region_height=200, screen_width=None, screen_height=None, verbose=False, stride=2, screen_mode="fill", horizontal_padding=50, vertical_padding=50, busiest=False):
+def find_least_busy_region(image_path, region_width=300, region_height=200, screen_width=None, screen_height=None, verbose=False, stride=2, screen_mode="fill", horizontal_padding=50, vertical_padding=50, busiest=False, candidate_index=0, num_candidates=5):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
         raise FileNotFoundError(f"Image not found: {image_path}")
@@ -46,6 +46,13 @@ def find_least_busy_region(image_path, region_width=300, region_height=200, scre
     h, w = arr.shape
     # Validate & adjust stride
     stride = max(1, int(stride) if stride else 1)
+
+    # Compute Sobel edge magnitude to detect high-contrast text, outlines, and busy details
+    sobelx = cv2.Sobel(img, cv2.CV_32F, 1, 0, ksize=3)
+    sobely = cv2.Sobel(img, cv2.CV_32F, 0, 1, ksize=3)
+    edge_mag = cv2.magnitude(sobelx, sobely).astype(np.float64)
+    sharp_arr = (edge_mag > 80.0).astype(np.float64)
+
     # Adjust region size if it does not fit given padding
     if horizontal_padding * 2 >= w or vertical_padding * 2 >= h:
         # Reduce padding to fit at least a 1x1 region
@@ -63,11 +70,15 @@ def find_least_busy_region(image_path, region_width=300, region_height=200, scre
         if verbose:
             print(f"Requested region_height {region_height} too large; clamping to {max_region_h}")
         region_height = max_region_h
-    # Use OpenCV's integral for fast computation
-    integral = cv2.integral(arr, sdepth=cv2.CV_64F)[1:,1:]
-    integral_sq = cv2.integral(arr**2, sdepth=cv2.CV_64F)[1:,1:]
+
+    # Use OpenCV's integral for fast O(1) computation across luminance & edges
+    integral_lum = cv2.integral(arr, sdepth=cv2.CV_64F)[1:,1:]
+    integral_lum_sq = cv2.integral(arr**2, sdepth=cv2.CV_64F)[1:,1:]
+    integral_edge = cv2.integral(edge_mag, sdepth=cv2.CV_64F)[1:,1:]
+    integral_edge_sq = cv2.integral(edge_mag**2, sdepth=cv2.CV_64F)[1:,1:]
+    integral_sharp = cv2.integral(sharp_arr, sdepth=cv2.CV_64F)[1:,1:]
+
     def region_sum(ii, x1, y1, x2, y2):
-        # Assume bounds have been checked before calling
         total = ii[y2, x2]
         if x1 > 0:
             total -= ii[y2, x1-1]
@@ -76,10 +87,7 @@ def find_least_busy_region(image_path, region_width=300, region_height=200, scre
         if x1 > 0 and y1 > 0:
             total += ii[y1-1, x1-1]
         return total
-    min_var = None
-    max_var = None
-    min_coords = (horizontal_padding, vertical_padding)
-    max_coords = (horizontal_padding, vertical_padding)
+
     area = region_width * region_height
     x_start = horizontal_padding
     y_start = vertical_padding
@@ -89,26 +97,68 @@ def find_least_busy_region(image_path, region_width=300, region_height=200, scre
         x_end = x_start
     if y_end < y_start:
         y_end = y_start
+
+    raw_candidates = []
     for y in range(y_start, y_end + 1, stride):
         for x in range(x_start, x_end + 1, stride):
             x1, y1 = x, y
             x2, y2 = x + region_width - 1, y + region_height - 1
             if x2 >= w or y2 >= h:
-                continue  # Skip out-of-bounds window
-            s = region_sum(integral, x1, y1, x2, y2)
-            s2 = region_sum(integral_sq, x1, y1, x2, y2)
-            mean = s / area
-            var = (s2 / area) - (mean ** 2)
-            if (min_var is None) or (var < min_var):
-                min_var = var
-                min_coords = (x, y)
-            if (max_var is None) or (var > max_var):
-                max_var = var
-                max_coords = (x, y)
-    if busiest:
-        return max_coords, max_var
-    else:
-        return min_coords, min_var
+                continue
+
+            s = region_sum(integral_lum, x1, y1, x2, y2)
+            s2 = region_sum(integral_lum_sq, x1, y1, x2, y2)
+            mean_lum = s / area
+            var_lum = max(0.0, (s2 / area) - (mean_lum ** 2))
+
+            edge_s = region_sum(integral_edge, x1, y1, x2, y2)
+            edge_mean = edge_s / area
+            edge_s2 = region_sum(integral_edge_sq, x1, y1, x2, y2)
+            edge_rms = np.sqrt(max(0.0, edge_s2 / area))
+
+            sharp_count = region_sum(integral_sharp, x1, y1, x2, y2)
+
+            # Composite busyness score:
+            # - var_lum: luminance flatness
+            # - edge_mean ** 2: overall texture density
+            # - edge_rms ** 2: localized edge energy
+            # - sharp_count * 2.5: text characters and high-contrast outlines penalty
+            score = var_lum + 8.0 * (edge_mean ** 2) + 4.0 * (edge_rms ** 2) + sharp_count * 2.5
+            raw_candidates.append((score, var_lum, x, y, sharp_count))
+
+    if not raw_candidates:
+        return (horizontal_padding, vertical_padding), 0.0, []
+
+    # Sort candidates
+    raw_candidates.sort(key=lambda c: c[0], reverse=busiest)
+
+    # Spatial Non-Maximum Suppression to find diverse candidate regions spread across the screen
+    diverse_candidates = []
+    min_dist = max(150, int(min(region_width, region_height) * 0.65))
+    for cand in raw_candidates:
+        cx = cand[2] + region_width // 2
+        cy = cand[3] + region_height // 2
+        too_close = False
+        for dc in diverse_candidates:
+            if np.hypot(cx - dc["center_x"], cy - dc["center_y"]) < min_dist:
+                too_close = True
+                break
+        if not too_close:
+            diverse_candidates.append({
+                "x": cand[2],
+                "y": cand[3],
+                "center_x": cx,
+                "center_y": cy,
+                "variance": cand[1],
+                "score": cand[0]
+            })
+            if len(diverse_candidates) >= num_candidates:
+                break
+
+    chosen_idx = max(0, min(candidate_index, len(diverse_candidates) - 1)) if diverse_candidates else 0
+    chosen = diverse_candidates[chosen_idx] if diverse_candidates else {"x": horizontal_padding, "y": vertical_padding, "variance": 0.0}
+
+    return (chosen["x"], chosen["y"]), chosen["variance"], diverse_candidates
 
 def find_largest_region(image_path, screen_width=None, screen_height=None, verbose=False, stride=2, screen_mode="fill", threshold=100.0, aspect_ratio=1.0, horizontal_padding=50, vertical_padding=50):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -322,6 +372,8 @@ def main():
     parser.add_argument("--horizontal-padding", "-hp", type=int, default=50, help="Minimum horizontal distance from region to image edge")
     parser.add_argument("--vertical-padding", "-vp", type=int, default=50, help="Minimum vertical distance from region to image edge")
     parser.add_argument("--busiest", action="store_true", help="Find the busiest region instead of the least busy")
+    parser.add_argument("--candidate", type=int, default=0, help="Candidate index to select from top diverse least-busy regions (default 0)")
+    parser.add_argument("--num-candidates", type=int, default=5, help="Number of diverse candidate regions to detect (default 5)")
     args = parser.parse_args()
 
     if args.largest_region:
@@ -362,7 +414,7 @@ def main():
             print(json.dumps({"error": "No region found under the threshold."}))
         return
 
-    coords, variance = find_least_busy_region(
+    coords, variance, diverse_candidates = find_least_busy_region(
         args.image_path,
         region_width=args.width,
         region_height=args.height,
@@ -373,11 +425,13 @@ def main():
         screen_mode=args.screen_mode,
         horizontal_padding=args.horizontal_padding,
         vertical_padding=args.vertical_padding,
-        busiest=args.busiest
+        busiest=args.busiest,
+        candidate_index=args.candidate,
+        num_candidates=args.num_candidates
     )
     if args.visual_output:
         draw_region(args.image_path, coords, region_width=args.width, region_height=args.height, screen_width=args.screen_width, screen_height=args.screen_height, screen_mode=args.screen_mode)
-    # Output JSON with center point
+    # Output JSON with center point and candidates
     center_x = coords[0] + args.width // 2
     center_y = coords[1] + args.height // 2
     dominant_color = get_dominant_color(
@@ -385,13 +439,32 @@ def main():
         screen_width=args.screen_width, screen_height=args.screen_height, screen_mode=args.screen_mode
     )
     dominant_color_hex = '#{:02x}{:02x}{:02x}'.format(*dominant_color)
+
+    enriched_candidates = []
+    for cand in diverse_candidates:
+        c_dom = get_dominant_color(
+            args.image_path, cand["x"], cand["y"], args.width, args.height,
+            screen_width=args.screen_width, screen_height=args.screen_height, screen_mode=args.screen_mode
+        )
+        enriched_candidates.append({
+            "center_x": int(cand["center_x"]),
+            "center_y": int(cand["center_y"]),
+            "x": int(cand["x"]),
+            "y": int(cand["y"]),
+            "variance": float(cand["variance"]),
+            "score": float(cand["score"]),
+            "dominant_color": '#{:02x}{:02x}{:02x}'.format(*c_dom)
+        })
+
     print(json.dumps({
-        "center_x": center_x,
-        "center_y": center_y,
-        "width": args.width,
-        "height": args.height,
-        "variance": variance,
-        "dominant_color": dominant_color_hex
+        "center_x": int(center_x),
+        "center_y": int(center_y),
+        "width": int(args.width),
+        "height": int(args.height),
+        "variance": float(variance),
+        "dominant_color": dominant_color_hex,
+        "candidate_index": int(args.candidate),
+        "candidates": enriched_candidates
     }))
 
 if __name__ == "__main__":
