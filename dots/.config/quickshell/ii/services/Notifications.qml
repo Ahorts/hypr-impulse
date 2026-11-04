@@ -176,8 +176,6 @@ Singleton {
                 "notification": notification,
                 "time": Date.now(),
             });
-			root.list = [...root.list, newNotifObject];
-
             // Popup
             if (!root.popupInhibited) {
                 newNotifObject.popup = true;
@@ -189,6 +187,7 @@ Singleton {
                 }
                 root.unread++;
             }
+			root.list = [...root.list, newNotifObject];
             root.notify(newNotifObject);
             // console.log(notifToString(newNotifObject));
             root.queueSave(); // debounced instead of a full synchronous file write per notification
@@ -243,7 +242,7 @@ Singleton {
 
     function cancelTimeout(id) {
         const index = root.list.findIndex((notif) => notif.notificationId === id);
-        if (root.list[index] != null)
+        if (root.list[index]?.timer != null)
             root.list[index].timer.stop();
     }
 
