@@ -18,7 +18,9 @@ MouseArea { // Notification group area
     property bool multipleNotifications: notificationCount > 1
     property bool expanded: false
     property bool popup: false
-    property real padding: 10
+    property real iconSize: 48
+    property real padding: 8
+    readonly property real collapsedSize: iconSize + (padding * 2)
     implicitHeight: background.implicitHeight
 
     property real dragConfirmThreshold: 70 // Drag further to discard notification
@@ -34,20 +36,114 @@ MouseArea { // Notification group area
 
     function destroyWithAnimation(left = false) {
         root.qmlParent.resetDrag()
-        background.anchors.leftMargin = background.anchors.leftMargin; // Break binding
+        background.anchors.horizontalCenterOffset = background.anchors.horizontalCenterOffset; // Break binding
         destroyAnimation.left = left;
         destroyAnimation.running = true;
+    }
+
+    SequentialAnimation {
+      id: popMorphAnim
+
+      ParallelAnimation {
+          NumberAnimation {
+            target: background
+            property: "scale"
+            from: 0.3
+            to: 1.0
+            duration: 200
+            easing.type: Easing.OutBack
+          }
+          NumberAnimation {
+          target: background
+          property: "opacity"
+          from: 0.0 
+          to: 1.0
+          duration: 150
+        }
+      }
+
+      ParallelAnimation {
+          NumberAnimation {
+              target: background
+              property: "width"
+              from: root.collapsedSize
+              to: root.width > 50 ? root.width : (Appearance.sizes.notificationPopupWidth - Appearance.sizes.elevationMargin * 2)
+              duration: 280
+              easing.type: Easing.OutCubic
+          }
+          NumberAnimation {
+            target: contentColumn
+            property: "opacity"
+            from: 0.0
+            to: 1.0
+            duration: 280
+          }
+      }
+
+      onFinished: {
+          if (root.popup) popupTimer.start();
+      }
+    }
+
+    Timer {
+        id: popupTimer
+        interval: Config?.options?.notifications?.timeout ?? 5000
+        running: false
+        repeat: false
+        onTriggered: collapseExitAnim.start()
+    }
+  
+    // The reverse of the pop up for exit animation
+    SequentialAnimation {
+        id: collapseExitAnim
+
+        NumberAnimation {
+            target: contentColumn
+            property: "opacity"
+            to: 0.0
+            duration: 120
+        }
+
+        NumberAnimation {
+            target: background
+            property: "width"
+            to: root.collapsedSize
+            duration: 200
+            easing.type: Easing.InCubic
+        }
+
+        ParallelAnimation {
+            NumberAnimation {
+                target: background
+                property: "scale"
+                to: 0.3
+                duration: 150
+                easing.type: Easing.InBack
+            }
+            NumberAnimation {
+                target: background
+                property: "opacity"
+                to: 0.0
+                duration: 150
+            }
+        }
+
+        onFinished: {
+            root.notifications.forEach(notif => {
+                Notifications.timeoutNotification(notif.notificationId);
+            });
+        }
     }
 
     hoverEnabled: true
     onContainsMouseChanged: {
         if (!root.popup) return;
-        if (root.containsMouse) root.notifications.forEach(notif => {
-            Notifications.cancelTimeout(notif.notificationId);
-        });
-        else root.notifications.forEach(notif => {
-            Notifications.timeoutNotification(notif.notificationId);
-        });
+        if (root.containsMouse) {
+          popupTimer.stop();
+        }
+        else {
+          popupTimer.start();
+        }
     }
 
     SequentialAnimation { // Drag finish animation
@@ -57,7 +153,7 @@ MouseArea { // Notification group area
 
         NumberAnimation {
             target: background.anchors
-            property: "leftMargin"
+            property: "horizontalCenterOffset"
             to: (root.width + root.dismissOvershoot) * (destroyAnimation.left ? -1 : 1)
             duration: Appearance.animation.elementMove.duration
             easing.type: Appearance.animation.elementMove.type
@@ -112,17 +208,23 @@ MouseArea { // Notification group area
 
     StyledRectangularShadow {
         target: background
-        visible: popup
+        visible: popup && background.opacity > 0.01
+        opacity: background.opacity
     }
     Rectangle { // Background of the notification
         id: background
-        anchors.left: parent.left
-        width: parent.width
+        width: root.popup ? root.collapsedSize : parent.width
+        scale: root.popup ? 0.3 : 1.0
+        opacity: root.popup ? 0.0 : 1.0
         color: popup ? Appearance.colors.colBackgroundSurfaceContainer : Appearance.colors.colLayer2
-        radius: Appearance.rounding.normal
-        anchors.leftMargin: root.xOffset
+        radius: (root.popup && !root.expanded) ? (height / 2) : Appearance.rounding.normal
+        Behavior on radius {
+            NumberAnimation { duration: 200 }
+        }
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: root.xOffset
 
-        Behavior on anchors.leftMargin {
+        Behavior on anchors.horizontalCenterOffset {
             enabled: !dragManager.dragging
             NumberAnimation {
                 duration: Appearance.animation.elementMove.duration
@@ -134,6 +236,7 @@ MouseArea { // Notification group area
         clip: true
         implicitHeight: root.expanded ? 
             row.implicitHeight + padding * 2 :
+            root.popup ? root.collapsedSize :
             Math.min(80, row.implicitHeight + padding * 2)
 
         Behavior on implicitHeight {
@@ -143,15 +246,19 @@ MouseArea { // Notification group area
 
         RowLayout { // Left column for icon, right column for content
             id: row
-            anchors.top: parent.top
+            // a bit messy but oh well
+            anchors.verticalCenter: (root.popup && !root.expanded) ? parent.verticalCenter : undefined
+            anchors.top: (root.popup && !root.expanded) ? undefined : parent.top
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: root.padding
             spacing: 10
 
             NotificationAppIcon { // Icons
-                Layout.alignment: Qt.AlignTop
+                Layout.alignment: root.expanded ? Qt.AlignTop : Qt.AlignVCenter
                 Layout.fillWidth: false
+                Layout.preferredWidth: root.iconSize
+                Layout.preferredHeight: root.iconSize
                 image: root?.multipleNotifications ? "" : notificationGroup?.notifications[0]?.image ?? ""
                 appIcon: root.notificationGroup?.appIcon
                 summary: root.notificationGroup?.notifications[root.notificationCount - 1]?.summary
@@ -160,6 +267,9 @@ MouseArea { // Notification group area
             }
 
             ColumnLayout { // Content
+                id: contentColumn
+                opacity: root.popup ? 0.0 : 1.0
+                visible: opacity > 0.001
                 Layout.fillWidth: true
                 spacing: expanded ? (root.multipleNotifications ? 
                     (notificationGroup?.notifications[root.notificationCount - 1].image != "") ? 35 : 
@@ -257,6 +367,19 @@ MouseArea { // Notification group area
                 }
 
             }
+        }
+    }
+
+    Component.onCompleted: {
+        if (root.popup){
+            try {
+                root.notifications.forEach(notif => {
+                    Notifications.cancelTimeout(notif.notificationId);
+                });
+            } catch (e) {
+                console.log("[NotificationGroup] cancelTimeout error:", e);
+            }
+            popMorphAnim.start();
         }
     }
 }
