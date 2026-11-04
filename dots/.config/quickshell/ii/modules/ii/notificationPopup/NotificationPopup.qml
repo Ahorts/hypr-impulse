@@ -42,7 +42,7 @@ Scope {
                 rightMargin: 4
                 topMargin: 4
             }
-            implicitWidth: parent.width - Appearance.sizes.elevationMargin * 2
+            width: parent.width - Appearance.sizes.elevationMargin * 2
             popup: true
         }
 
