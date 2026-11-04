@@ -271,6 +271,7 @@ MouseArea { // Notification group area
                 opacity: root.popup ? 0.0 : 1.0
                 visible: opacity > 0.001
                 Layout.fillWidth: true
+                Layout.rightMargin: (root.popup && !root.expanded) ? 10 : 0
                 spacing: expanded ? (root.multipleNotifications ? 
                     (notificationGroup?.notifications[root.notificationCount - 1].image != "") ? 35 : 
                     5 : 0) : 0
@@ -285,12 +286,12 @@ MouseArea { // Notification group area
                     Layout.fillWidth: true
                     property real fontSize: Appearance.font.pixelSize.smaller
                     property bool showAppName: root.multipleNotifications
-                    implicitHeight: Math.max(topTextRow.implicitHeight, expandButton.implicitHeight)
+                    implicitHeight: Math.max(topTextRow.implicitHeight, expandButton.visible ? expandButton.implicitHeight : 0)
 
                     RowLayout {
                         id: topTextRow
                         anchors.left: parent.left
-                        anchors.right: expandButton.left
+                        anchors.right: expandButton.visible ? expandButton.left : parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 5
                         StyledText {
@@ -309,6 +310,7 @@ MouseArea { // Notification group area
                         }
                         StyledText {
                             id: timeText
+                            visible: !root.popup || root.expanded
                             // Layout.fillWidth: true
                             Layout.rightMargin: 10
                             horizontalAlignment: Text.AlignLeft
@@ -319,6 +321,7 @@ MouseArea { // Notification group area
                     }
                     NotificationGroupExpandButton {
                         id: expandButton
+                        visible: !root.popup || root.expanded
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         count: root.notificationCount
