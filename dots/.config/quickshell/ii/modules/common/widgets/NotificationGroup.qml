@@ -10,7 +10,7 @@ import Quickshell.Services.Notifications
  * A group of notifications from the same app.
  * Similar to Android's notifications
  */
-MouseArea { // Notification group area
+Item { // Notification group area
     id: root
     property var notificationGroup
     property var notifications: notificationGroup?.notifications ?? []
@@ -22,6 +22,32 @@ MouseArea { // Notification group area
     property real padding: 8
     readonly property real collapsedSize: iconSize + (padding * 2)
     implicitHeight: background.implicitHeight
+
+    TextMetrics {
+        id: titleMetrics
+        font.family: Appearance.font.family.main
+        font.pixelSize: Appearance.font.pixelSize.small
+        text: (root.multipleNotifications ? notificationGroup?.appName : notificationGroup?.notifications[0]?.summary) || ""
+    }
+    TextMetrics {
+        id: bodyMetrics
+        font.family: Appearance.font.family.main
+        font.pixelSize: Appearance.font.pixelSize.small
+        text: notificationGroup?.notifications[0]?.body || ""
+    }
+    // TODO:Max notification max width when no size is defined.
+    // Some notifications don't seem to report width.
+    readonly property real dynamicTargetWidth: {
+        if (!root.popup || root.expanded) return root.width;
+        // 8px left margin + 48px icon + 10px spacing = 66px
+        // 8px right margin + 10px right padding = 18px
+        // Base chrome overhead = 84px + 20px padding buffer
+        const maxTextWidth = Math.max(titleMetrics.width, bodyMetrics.width);
+        const desired = 84 + maxTextWidth + 20;
+        const minW = 200;
+        const maxW = 400;
+        return Math.min(maxW, Math.max(minW, desired));
+    }
 
     property real dragConfirmThreshold: 70 // Drag further to discard notification
     property real dismissOvershoot: 20 // Account for gaps and bouncy animations
@@ -67,7 +93,7 @@ MouseArea { // Notification group area
               target: background
               property: "width"
               from: root.collapsedSize
-              to: root.width > 50 ? root.width : (Appearance.sizes.notificationPopupWidth - Appearance.sizes.elevationMargin * 2)
+              to: root.dynamicTargetWidth
               duration: 280
               easing.type: Easing.OutCubic
           }
@@ -85,12 +111,12 @@ MouseArea { // Notification group area
       }
     }
 
-    Timer {
+    // Using this as a workaround instead of creating new timer events on mouse enter and leave
+    // This resumes the notification timer instead of restarting it
+    PauseAnimation {
         id: popupTimer
-        interval: Config?.options?.notifications?.timeout ?? 5000
-        running: false
-        repeat: false
-        onTriggered: collapseExitAnim.start()
+        duration: Config?.options?.notifications?.timeout ?? 5000
+        onFinished: collapseExitAnim.start()
     }
   
     // The reverse of the pop up for exit animation
@@ -135,17 +161,6 @@ MouseArea { // Notification group area
         }
     }
 
-    hoverEnabled: true
-    onContainsMouseChanged: {
-        if (!root.popup) return;
-        if (root.containsMouse) {
-          popupTimer.stop();
-        }
-        else {
-          popupTimer.start();
-        }
-    }
-
     SequentialAnimation { // Drag finish animation
         id: destroyAnimation
         property bool left: true
@@ -173,10 +188,30 @@ MouseArea { // Notification group area
 
     DragManager { // Drag manager
         id: dragManager
-        anchors.fill: parent
+        anchors.fill: background
+        z: 99 // fixes notifications collapsing even on hover
         interactive: !expanded
         automaticallyReset: false
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        hoverEnabled: true
+
+        onContainsMouseChanged: {
+            if (!root.popup) return;
+            if (dragManager.containsMouse) {
+                if (collapseExitAnim.running) {
+                    collapseExitAnim.stop();
+                    popMorphAnim.start();
+                } else if (popupTimer.running) {
+                    popupTimer.pause();
+                }
+            } else {
+                if (popupTimer.paused) {
+                    popupTimer.resume();
+                } else if (!collapseExitAnim.running && !popMorphAnim.running) {
+                    popupTimer.start();
+                }
+            }
+        }
 
         onPressed: {
             if (mouse.button === Qt.RightButton) 
@@ -184,8 +219,14 @@ MouseArea { // Notification group area
         }
 
         onClicked: (mouse) => {
-            if (mouse.button === Qt.MiddleButton) 
+            if (mouse.button === Qt.MiddleButton) {
                 root.destroyWithAnimation();
+            } else if (mouse.button === Qt.LeftButton && root.popup && !root.expanded) {
+                if (!collapseExitAnim.running) {
+                    popupTimer.stop();
+                    collapseExitAnim.start();
+                }
+            }
         }
 
         onDraggingChanged: () => {
@@ -373,16 +414,30 @@ MouseArea { // Notification group area
         }
     }
 
+    function cancelAllServiceTimeouts() {
+        if (!root.popup) return;
+        try {
+            root.notifications.forEach(notif => {
+                Notifications.cancelTimeout(notif.notificationId);
+            });
+        } catch (e) {
+            console.log("[NotificationGroup] cancelTimeout error:", e);
+        }
+    }
+
     Component.onCompleted: {
         if (root.popup){
-            try {
-                root.notifications.forEach(notif => {
-                    Notifications.cancelTimeout(notif.notificationId);
-                });
-            } catch (e) {
-                console.log("[NotificationGroup] cancelTimeout error:", e);
-            }
+            cancelAllServiceTimeouts();
             popMorphAnim.start();
+        }
+    }
+
+    onNotificationsChanged: {
+        if (root.popup) {
+            cancelAllServiceTimeouts();
+            if (!collapseExitAnim.running && !popMorphAnim.running) {
+                popupTimer.restart();
+            }
         }
     }
 }
