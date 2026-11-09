@@ -15,21 +15,29 @@ Item {
 
     property string activeWindowAddress: `0x${activeWindow?.HyprlandToplevel?.address}`
     property bool focusingThisMonitor: HyprlandData.activeWorkspace?.monitor == monitor?.name
-    property var biggestWindow: HyprlandData.biggestWindowForWorkspace(HyprlandData.monitors[root.monitor?.id]?.activeWorkspace.id)
+    property var biggestWindow: HyprlandData.biggestWindowForWorkspace(HyprlandData.monitors[root.monitor?.id]
+                                                                       ?.activeWorkspace.id)
 
     readonly property bool isFixedSize: Config.options.bar.activeWindow.fixedSize
 
     readonly property int maxSize: 350
     readonly property int fixedSize: root.vertical ? 150 : 225
 
-    property string appClassText: root.focusingThisMonitor && root.activeWindow?.activated && root.biggestWindow ? 
-                root.activeWindow?.appId : (root.biggestWindow?.class) ?? Translation.tr("Desktop")
-                
-    property string appTitleText: root.focusingThisMonitor && root.activeWindow?.activated && root.biggestWindow ? 
-                root.activeWindow?.title : (root.biggestWindow?.title) ?? `${Translation.tr("Workspace")} ${monitor?.activeWorkspace?.id ?? 1}`
-    
-    implicitHeight: isFixedSize ? fixedSize : (root.vertical ? Math.max(classText.implicitWidth, titleText.implicitWidth) + 20 : colLayout.implicitHeight)
-    implicitWidth: isFixedSize ? fixedSize : Math.min(Math.max(classText.implicitWidth, titleText.implicitWidth) + 20, maxSize)
+    property string appClassText: root.focusingThisMonitor && root.activeWindow?.activated
+                                  && root.biggestWindow ? root.activeWindow?.appId : (root.biggestWindow
+                                                                                      ?.class)
+                                                          ?? Translation.tr("Desktop")
+
+    property string appTitleText: root.focusingThisMonitor && root.activeWindow?.activated
+                                  && root.biggestWindow ? root.activeWindow?.title : (root.biggestWindow
+                                                                                      ?.title) ?? `
+${Translation.tr("Workspace")} ${monitor?.activeWorkspace?.id ?? 1}`
+
+    implicitHeight: isFixedSize ? fixedSize : (root.vertical ? Math.max(classText.implicitWidth,
+                                                                        titleText.implicitWidth) + 20 :
+                                                               colLayout.implicitHeight)
+    implicitWidth: isFixedSize ? fixedSize : Math.min(Math.max(classText.implicitWidth,
+                                                               titleText.implicitWidth) + 20, maxSize)
     clip: true
 
     Behavior on implicitWidth {
@@ -39,9 +47,40 @@ Item {
         animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
     }
 
+    // Add hover tooltip for truncated window names
+    MouseArea {
+        id: hoverArea
+        anchors.fill: parent
+        hoverEnabled: true
+        property bool hovered: false
+
+        onContainsMouseChanged: {
+            if (containsMouse) {
+                hoverTimer.restart();
+            } else {
+                hoverTimer.stop();
+                hoverArea.hovered = false;
+            }
+        }
+
+        Timer {
+            id: hoverTimer
+            interval: 500
+            onTriggered: hoverArea.hovered = true
+        }
+        PopupToolTip {
+            id: tooltip
+            anchorEdges: (!Config.options.bar.bottom && !Config.options.bar.vertical) ? Edges.Bottom :
+                                                                                        Edges.Top
+
+            anchorGravity: anchorEdges
+            extraVisibleCondition: titleText.truncated || classText.truncated
+            text: `${root.appClassText}\n${root.appTitleText}`
+        }
+    }
     ColumnLayout {
-        visible: true
         id: colLayout
+        visible: true
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
